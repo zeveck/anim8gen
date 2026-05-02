@@ -744,7 +744,7 @@ After the first cat animation works:
 
 - [x] Phase 1: Scaffold prototype workspace and animation spec.
 - [x] Phase 2: Create canonical cat reference.
-- [ ] Phase 3: Generate candidate still frames.
+- [x] Phase 3: Generate candidate still frames.
 - [ ] Phase 4: Segment, crop, and align frames.
 - [ ] Phase 5: Validate sprite consistency.
 - [ ] Phase 6: Produce review artifacts.

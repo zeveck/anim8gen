@@ -44,7 +44,83 @@ Notes:
 
 ## Remaining Phases
 
-- Phase 3: Generate candidate still frames.
+- Phase 4: Segment, crop, and align frames.
+- Phase 5: Validate sprite consistency.
+- Phase 6: Produce review artifacts.
+- Phase 7: Build HTML preview.
+- Phase 8: Manual review and iteration loop.
+- Phase 9: Package prototype result.
+- Phase 10: Second animation readiness check.
+
+## Phase 3: Generate Candidate Still Frames
+
+Status: complete
+
+Branch/worktree:
+
+- Branch: `zskills/prototype-cat-sprite-animation-pipeline-phase-3`
+- Worktree: `/tmp/anim8gen-cp-prototype-cat-sprite-animation-pipeline-phase-3`
+
+Files changed:
+
+- `plans/prototype-cat-sprite-animation-pipeline.md`
+- `reports/plan-prototype-cat-sprite-animation-pipeline.md`
+- `sprite-lab/assets/cat-yawn-lay-sleep/manifests/candidates.jsonl`
+
+Generated local artifacts:
+
+- `sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-000.retry-001.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-001.retry-001.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-002.retry-001.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-003.retry-001.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-004.retry-001.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-005.retry-001.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-006.retry-001.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-007.retry-001.png`
+
+Generation metadata:
+
+- Generator: `imagegen2`
+- Model: `gpt-image-2`
+- Quality: `low`
+- Size: `1024x1024`
+- Reference image: `sprite-lab/assets/cat-yawn-lay-sleep/reference/cat-reference.jpg`
+- Manifest: `sprite-lab/assets/cat-yawn-lay-sleep/manifests/candidates.jsonl`
+
+Verification:
+
+```bash
+find sprite-lab/assets/cat-yawn-lay-sleep/raw -type f | sort
+file sprite-lab/assets/cat-yawn-lay-sleep/raw/*
+test -s sprite-lab/assets/cat-yawn-lay-sleep/manifests/candidates.jsonl
+```
+
+Result: passed with inline verification. All eight raw frame candidates exist
+as 1024x1024 PNGs, and the candidate manifest contains one metadata record per
+frame.
+
+Visual review:
+
+- Spot-checked all motion groups: sitting, yawn, lowering, lying, and sleep.
+- Frames preserve a side-view orange tabby cat on magenta background.
+- No frames include baked-in Zs, text labels, props, or scene backgrounds.
+- These are still candidates, not manually accepted final frames.
+
+Landing result: landed on `main` as commit `5de1857` by local cherry-pick.
+
+Notes:
+
+- `nanogen` was attempted first for Phase 3, but referenced frame generation
+  stalled on frame 1 after producing only frame 0. The partial nanogen output
+  was discarded and replaced with an `imagegen2` candidate set.
+- Raw generated PNGs remain ignored by git per the plan's generated-asset
+  rule; they must be copied from the phase worktree into the main workspace
+  after landing so later phases can align and validate them locally.
+- `accepted-frames.json` is intentionally not written yet because manual
+  approval belongs to later review phases.
+
+## Remaining Phases
+
 - Phase 4: Segment, crop, and align frames.
 - Phase 5: Validate sprite consistency.
 - Phase 6: Produce review artifacts.
