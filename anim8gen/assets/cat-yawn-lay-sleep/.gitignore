@@ -9,3 +9,5 @@ review/*
 !raw/.gitkeep
 !aligned/.gitkeep
 !review/.gitkeep
+!review/*.json
+!review/*.md

@@ -83,10 +83,12 @@ Anim8gen keeps the agentic part explicit:
 4. Generate or place raw candidates as
    `raw/frame-<index>.retry-<retry>.png`.
 5. Record candidate provenance in `manifests/candidates.jsonl`; accepted
-   frames and review decisions are tracked separately.
-6. Align frames, validate the aligned sprites, generate a contact sheet, and
+   frames and visual review decisions are tracked separately.
+6. Inspect raw candidates or the contact sheet and write
+   `review/frame-reviews.json` before claiming any frame is accepted.
+7. Align frames, validate the aligned sprites, generate a contact sheet, and
    create `preview/<animation-id>.html`.
-7. Review the contact sheet and preview before declaring the package complete.
+8. Review the contact sheet and preview before declaring the package complete.
 
 The structured brief schema lives at `anim8gen/config/brief.schema.json`.
 Defaults are intentionally narrow: side-view pixel art, a 128x128 final
@@ -106,6 +108,7 @@ anim8gen/assets/<animation-id>/reference/
 anim8gen/assets/<animation-id>/raw/frame-000.retry-001.png
 anim8gen/assets/<animation-id>/aligned/frame-000.<label>.png
 anim8gen/assets/<animation-id>/review/contact-sheet.png
+anim8gen/assets/<animation-id>/review/frame-reviews.json
 anim8gen/assets/<animation-id>/manifests/candidates.jsonl
 anim8gen/assets/<animation-id>/manifests/accepted-frames.json
 anim8gen/assets/<animation-id>/manifests/alignment-metrics.json
@@ -128,7 +131,9 @@ aligned/frame-002.yawn-wide.png
 Tracked provenance is JSON, JSONL, Markdown, specs, and generated HTML preview
 files. Live generated bitmap assets are ignored inside each package folder:
 `reference/`, `raw/`, `aligned/`, and `review/` image outputs remain local
-package artifacts while `.gitkeep` files preserve the directory shape.
+package artifacts while `.gitkeep` files preserve the directory shape. Review
+JSON and Markdown files under `review/` are tracked because they are
+provenance, not generated bitmap output.
 
 ## Example Packages
 
@@ -168,7 +173,8 @@ another short animation without changing tool code.
 - `assets/<animation-id>/raw/` stores generated still-frame candidates. Tools
   expect names like `frame-000.retry-001.png`.
 - `assets/<animation-id>/aligned/` stores fixed-canvas transparent PNG frames.
-- `assets/<animation-id>/review/` stores contact sheets and review images.
+- `assets/<animation-id>/review/` stores contact sheets, review images, and
+  `frame-reviews.json`.
 - `assets/<animation-id>/manifests/` stores candidate, accepted-frame,
   alignment, and package metadata.
 - `tools/` contains the alignment, validation, contact-sheet, and preview
@@ -202,6 +208,8 @@ Important fields:
   `sleeping-zs`.
 - `frames`: ordered frame definitions with `index`, `label`, `pose`, and
   optional `anchor`.
+- `generation.retryBudget`: bounded retry count for weak or rejected frame
+  candidates.
 
 Start from `anim8gen/config/template.animation-spec.json` for a new package.
 The template includes frame labels, pose descriptions, alignment settings,
@@ -264,6 +272,40 @@ frame listed in the spec.
 
 Raw frames should use the configured chroma-key background, currently magenta
 `#ff00ff`, so the aligner can isolate the sprite silhouette.
+
+Every generation attempt must also be recorded in
+`assets/<animation-id>/manifests/candidates.jsonl`. The candidate manifest is
+append-only provenance and should not be confused with the raw `imagegen2`
+transport response. Each record needs:
+
+- `prompt`
+- `frameIndex`
+- `frameLabel`
+- `outputPath`
+- `retry`
+- `reviewStatus`
+- `reviewNotes`
+
+Allowed `reviewStatus` values are `candidate`, `accepted`,
+`accepted-with-warning`, `rejected-pose`, `rejected-identity`,
+`rejected-background`, and `rejected-artifact`. Rejected records must stay in
+the manifest so prompt revisions and retry decisions remain explainable.
+
+Use `review/frame-reviews.json` for the visual review ledger. It records the
+terminal `packageStatus` of `complete`, `partial`, or `blocked`, plus
+per-frame pose, identity, camera, hygiene, background, decision, retry reason,
+and notes. The package can enter normal alignment only when every frame has one
+`accepted` or `accepted-with-warning` candidate. If the retry budget is
+exhausted, keep the best available package and report it as `partial` or
+`blocked` instead of claiming success.
+
+Validate candidate and review records with:
+
+```bash
+python3 .codex/skills/anim8gen/scripts/validate_review_records.py \
+  --candidates anim8gen/assets/<animation-id>/manifests/candidates.jsonl \
+  --reviews anim8gen/assets/<animation-id>/review/frame-reviews.json
+```
 
 ### 2. Align Frames
 
@@ -440,12 +482,14 @@ Then:
 4. Generate raw candidates into `raw/` using `frame-<index>.retry-<n>.png`
    names.
 5. Write `manifests/candidates.jsonl` with enough provenance to understand how
-   each candidate was produced.
-6. Run alignment, validation, contact-sheet, and preview commands with the new
+   each candidate was produced, reviewed, accepted, or rejected.
+6. Write `review/frame-reviews.json` with visual review verdicts before
+   accepting frames.
+7. Run alignment, validation, contact-sheet, and preview commands with the new
    spec path and animation id.
-7. Use validation reports and contact sheets to tune thresholds or manual
+8. Use validation reports and contact sheets to tune thresholds or manual
    anchors.
-8. Write accepted-frame and package manifests once the sequence is ready.
+9. Write accepted-frame and package manifests once the sequence is ready.
 
 The `cat-sit-lick-paw-sit` readiness sequence is a minimal example of a second
 spec using the same tools. Its report is
@@ -470,6 +514,7 @@ Tracked files include:
 - tool scripts in `tools/`;
 - HTML previews in `preview/`;
 - metadata manifests in `assets/<animation-id>/manifests/`;
+- review JSON or Markdown in `assets/<animation-id>/review/`;
 - reports in `reports/`;
 - `.gitkeep` files for empty directories.
 

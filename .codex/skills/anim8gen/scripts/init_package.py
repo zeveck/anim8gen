@@ -190,6 +190,8 @@ review/*
 !raw/.gitkeep
 !aligned/.gitkeep
 !review/.gitkeep
+!review/*.json
+!review/*.md
 """
 
 
@@ -216,6 +218,21 @@ def init_package(root: Path, spec: dict[str, Any], force: bool) -> None:
     write_if_missing(assets_dir / ".gitignore", package_gitignore(), force=force)
     write_if_missing(config_dir / f"{animation_id}.json", json.dumps(spec, indent=2) + "\n", force=force)
     write_if_missing(assets_dir / "manifests" / "candidates.jsonl", "", force=force)
+    write_if_missing(
+        assets_dir / "review" / "frame-reviews.json",
+        json.dumps(
+            {
+                "id": animation_id,
+                "reviewSchemaVersion": 1,
+                "packageStatus": "initialized",
+                "retryBudget": spec["generation"]["retryBudget"],
+                "frames": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        force=force,
+    )
 
     accepted_manifest = {
         "id": animation_id,

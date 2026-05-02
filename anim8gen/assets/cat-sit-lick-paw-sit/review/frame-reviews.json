@@ -1,0 +1,50 @@
+{
+  "id": "cat-sit-lick-paw-sit",
+  "reviewSchemaVersion": 1,
+  "packageStatus": "complete",
+  "retryBudget": 2,
+  "frames": [
+    {
+      "frameIndex": 0,
+      "frameLabel": "sit-idle",
+      "candidatePath": "anim8gen/assets/cat-sit-lick-paw-sit/raw/frame-000.retry-001.png",
+      "retry": 1,
+      "poseVerdict": "matches sitting placeholder pose",
+      "identityVerdict": "synthetic placeholder identity preserved",
+      "cameraVerdict": "side view preserved",
+      "hygieneVerdict": "clean sprite pixels",
+      "backgroundVerdict": "segmentable chroma-key background",
+      "decision": "accepted",
+      "retryReason": null,
+      "notes": "Synthetic readiness fixture accepted for deterministic tool coverage."
+    },
+    {
+      "frameIndex": 1,
+      "frameLabel": "paw-lick",
+      "candidatePath": "anim8gen/assets/cat-sit-lick-paw-sit/raw/frame-001.retry-001.png",
+      "retry": 1,
+      "poseVerdict": "matches paw-lick placeholder pose",
+      "identityVerdict": "synthetic placeholder identity preserved",
+      "cameraVerdict": "side view preserved",
+      "hygieneVerdict": "clean sprite pixels",
+      "backgroundVerdict": "segmentable chroma-key background",
+      "decision": "accepted-with-warning",
+      "retryReason": null,
+      "notes": "Accepted with warning because this is a local synthetic placeholder, not a live imagegen2 candidate."
+    },
+    {
+      "frameIndex": 2,
+      "frameLabel": "sit-return",
+      "candidatePath": "anim8gen/assets/cat-sit-lick-paw-sit/raw/frame-002.retry-001.png",
+      "retry": 1,
+      "poseVerdict": "matches return-to-sit placeholder pose",
+      "identityVerdict": "synthetic placeholder identity preserved",
+      "cameraVerdict": "side view preserved",
+      "hygieneVerdict": "clean sprite pixels",
+      "backgroundVerdict": "segmentable chroma-key background",
+      "decision": "accepted",
+      "retryReason": null,
+      "notes": "Synthetic readiness fixture accepted for deterministic tool coverage."
+    }
+  ]
+}

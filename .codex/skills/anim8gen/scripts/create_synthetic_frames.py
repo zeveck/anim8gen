@@ -89,12 +89,44 @@ def synthetic_record(spec: dict[str, Any], frame: dict[str, Any], output_path: P
         "parentCandidate": None,
         "neighboringReference": None,
         "status": "candidate",
-        "acceptedStatus": "pending-review",
+        "reviewStatus": "accepted",
+        "reviewNotes": "deterministic synthetic helper frame accepted for local plumbing tests",
         "bytes": output_path.stat().st_size,
         "outputFormat": "png",
         "refusalReason": None,
         "testHelper": True,
     }
+
+
+def synthetic_review(spec: dict[str, Any], frame: dict[str, Any], output_path: Path) -> dict[str, Any]:
+    return {
+        "frameIndex": frame["index"],
+        "frameLabel": frame["label"],
+        "candidatePath": str(output_path),
+        "retry": 1,
+        "poseVerdict": "matches",
+        "identityVerdict": "matches",
+        "cameraVerdict": "matches",
+        "hygieneVerdict": "clean",
+        "backgroundVerdict": "segmentable",
+        "decision": "accepted",
+        "retryReason": None,
+        "notes": "Deterministic synthetic helper output for smoke tests, not live imagegen2 output.",
+    }
+
+
+def initialized_review_file(path: Path) -> bool:
+    if not path.exists() or not path.read_text().strip():
+        return True
+    try:
+        payload = json.loads(path.read_text())
+    except json.JSONDecodeError:
+        return False
+    return (
+        isinstance(payload, dict)
+        and payload.get("packageStatus") == "initialized"
+        and payload.get("frames") == []
+    )
 
 
 def main() -> None:
@@ -110,10 +142,13 @@ def main() -> None:
 
     raw_dir = root / "assets" / animation_id / "raw"
     manifest_dir = root / "assets" / animation_id / "manifests"
+    review_dir = root / "assets" / animation_id / "review"
     raw_dir.mkdir(parents=True, exist_ok=True)
     manifest_dir.mkdir(parents=True, exist_ok=True)
+    review_dir.mkdir(parents=True, exist_ok=True)
 
     records: list[dict[str, Any]] = []
+    reviews: list[dict[str, Any]] = []
     for frame in spec["frames"]:
         if not isinstance(frame, dict) or "index" not in frame or "label" not in frame:
             raise SystemExit("each spec frame must include index and label")
@@ -124,13 +159,26 @@ def main() -> None:
         draw_sprite(ImageDraw.Draw(image), frame, working_size)
         image.save(out)
         records.append(synthetic_record(spec, frame, out))
+        reviews.append(synthetic_review(spec, frame, out))
 
     manifest = manifest_dir / "candidates.jsonl"
     if manifest.exists() and manifest.read_text() and not args.force:
         raise SystemExit(f"{manifest} already has content; pass --force to overwrite")
     manifest.write_text("".join(json.dumps(record, sort_keys=True) + "\n" for record in records))
+    review_path = review_dir / "frame-reviews.json"
+    if not initialized_review_file(review_path) and not args.force:
+        raise SystemExit(f"{review_path} already has content; pass --force to overwrite")
+    review_payload = {
+        "id": animation_id,
+        "reviewSchemaVersion": 1,
+        "packageStatus": "complete",
+        "retryBudget": spec.get("generation", {}).get("retryBudget", 2),
+        "frames": reviews,
+    }
+    review_path.write_text(json.dumps(review_payload, indent=2) + "\n")
     print(f"wrote {len(records)} synthetic raw frames to {raw_dir}")
     print(f"wrote candidate manifest to {manifest}")
+    print(f"wrote frame reviews to {review_path}")
 
 
 if __name__ == "__main__":

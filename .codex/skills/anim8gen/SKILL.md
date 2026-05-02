@@ -45,20 +45,25 @@ requests where the user only wants a single static image.
    absence of text, watermarks, UI labels, extra subjects, unwanted props, or
    baked preview effects.
 8. Record every attempt in
-   `anim8gen/assets/<id>/manifests/candidates.jsonl`. Preserve rejected
-   candidates and notes; do not silently replace weak outputs.
+   `anim8gen/assets/<id>/manifests/candidates.jsonl`. Keep generation
+   transport metadata separate from review fields: use `reviewStatus` and
+   `reviewNotes` for review decisions. Preserve rejected candidates and notes;
+   do not silently replace weak outputs.
 9. When a frame is missing or weak, revise the prompt and retry within the
    package retry budget. If acceptable poses cannot be produced, continue with
    a partial or blocked package report instead of claiming success.
-10. Align accepted frames with `anim8gen/tools/align_frames.py`, validate with
+10. Write `anim8gen/assets/<id>/review/frame-reviews.json` before alignment
+    succeeds or fails. Every accepted frame must have an explicit pose,
+    identity, camera, hygiene, background, and decision record.
+11. Align accepted frames with `anim8gen/tools/align_frames.py`, validate with
     `anim8gen/tools/validate_sprites.py`, create a contact sheet with
     `anim8gen/tools/make_contact_sheet.py`, and create an HTML preview with
     `anim8gen/tools/make_preview.py`.
-11. Review the contact sheet and preview. Use spec manual anchors or
+12. Review the contact sheet and preview. Use spec manual anchors or
     preview-only offsets only for alignment and playback polish; regenerate
     images for wrong identity, wrong pose, wrong camera angle, or unclean
     sprite pixels.
-12. Return final package paths, validation status, review warnings, rejected
+13. Return final package paths, validation status, review warnings, rejected
     candidate summary, preview path, and remaining limitations.
 
 ## Required Package Paths
@@ -71,6 +76,7 @@ anim8gen/assets/<animation-id>/reference/
 anim8gen/assets/<animation-id>/raw/frame-000.retry-001.png
 anim8gen/assets/<animation-id>/aligned/frame-000.<label>.png
 anim8gen/assets/<animation-id>/review/contact-sheet.png
+anim8gen/assets/<animation-id>/review/frame-reviews.json
 anim8gen/assets/<animation-id>/manifests/candidates.jsonl
 anim8gen/assets/<animation-id>/manifests/accepted-frames.json
 anim8gen/reports/<animation-id>.validation.json
@@ -97,6 +103,40 @@ Keep prompts frame-specific and continuity-aware:
   subjects, no shadows that prevent segmentation, and no baked runtime effects.
 
 Use `references/prompting.md` when a task needs a prompt template.
+
+## Candidate State Model
+
+Treat `imagegen2` output metadata and review decisions as different records.
+`candidates.jsonl` is append-only provenance for every attempt. Each record
+must include at least `prompt`, `frameIndex`, `frameLabel`, `outputPath`,
+`retry`, `reviewStatus`, and `reviewNotes`.
+
+Allowed `reviewStatus` values:
+
+- `candidate`: generated or staged but not reviewed yet.
+- `accepted`: accepted as the source for that spec frame.
+- `accepted-with-warning`: usable source frame with documented limits.
+- `rejected-pose`: wrong or unreadable requested pose.
+- `rejected-identity`: different subject, style, or character identity.
+- `rejected-background`: background is not segmentable or contains scene
+  elements.
+- `rejected-artifact`: text, watermark, labels, extra subjects, baked effects,
+  crop failure, or other unusable artifact.
+
+Normal alignment requires one `accepted` or `accepted-with-warning` candidate
+for every spec frame. If that cannot be achieved within `generation.retryBudget`
+then set the package state to `partial` or `blocked` and explain the gap.
+
+`review/frame-reviews.json` is the visual review ledger. It records
+`packageStatus` as `complete`, `partial`, or `blocked`, plus per-frame pose,
+identity, camera, hygiene, background, decision, retry reason, and notes.
+Validate these records with:
+
+```bash
+python3 .codex/skills/anim8gen/scripts/validate_review_records.py \
+  --candidates anim8gen/assets/<id>/manifests/candidates.jsonl \
+  --reviews anim8gen/assets/<id>/review/frame-reviews.json
+```
 
 ## Agentic Review
 
