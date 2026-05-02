@@ -446,7 +446,7 @@ test_fake_success() {
   local repo run_dir summary expected_tracking_id
   repo=$(make_repo)
   expected_tracking_id=$(runner_tracking_id "$repo" phase-1)
-  CODEX_BIN="$FAKE_CODEX" FAKE_CODEX_MODE=progress "$SCRIPT" run-plan plans/example.md finish auto --repo "$repo" >"$outdir"/zskills-runner-fake-success.out
+  CODEX_BIN="$FAKE_CODEX" FAKE_CODEX_MODE=progress FAKE_CODEX_REQUIRE_TRACKING_DIR=1 "$SCRIPT" run-plan plans/example.md finish auto --repo "$repo" >"$outdir"/zskills-runner-fake-success.out
   run_dir=$(latest_run_dir "$repo")
   summary="$run_dir/chunk-001.summary.json"
   [ -f "$run_dir/chunk-001.events.jsonl" ]
@@ -474,6 +474,8 @@ import json, sys
 argv = json.load(open(sys.argv[1]))
 prompt = argv[-1]
 assert "Resolved landing mode: cherry-pick" in prompt
+assert "RUNNER-MANAGED CHUNK" in prompt
+assert "Do not invoke zskills-runner.sh again" in prompt
 assert "You must use this mode" in prompt
 assert "Do not commit phase source changes directly in the main repo for cherry-pick mode." in prompt
 assert "Do not claim in the report that work was committed, cherry-picked, pushed, or fully landed until that git operation has actually succeeded." in prompt

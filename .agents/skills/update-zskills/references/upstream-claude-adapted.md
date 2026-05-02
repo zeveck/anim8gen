@@ -13,13 +13,13 @@ Runtime mappings:
 - Claude `Agent` or `Task` dispatch maps to Codex sub-agents only when the current Codex session exposes `spawn_agent`/`wait_agent`. If those tools are unavailable or the task is too tightly coupled, run the workflow inline and clearly state the reduced freshness or isolation.
 - Claude cron tools such as `CronCreate`, `CronList`, and `CronDelete` have no guaranteed Codex equivalent. For scheduled modes, explain the requested schedule and either implement it with available local tools after explicit user approval or ask the user to re-run the skill manually.
 - Claude `isolation: "worktree"` means create/use a git worktree explicitly with normal git commands when isolation is needed.
-- Claude `.claude/*`, hooks, settings, and statusline files are upstream references. Codex does not run Claude hooks or read `.claude/settings.json`. Supporting upstream assets are bundled at `/workspaces/anim8gen/.agents/zskills-support` for inspection or manual project adaptation.
-- If a workflow references helper commands like `scripts/briefing.cjs`, prefer project-local scripts when present. Otherwise inspect the bundled upstream copy under `/workspaces/anim8gen/.agents/zskills-support/scripts` and decide whether to run it from there or copy/adapt it into the current project.
+- Claude `.claude/*`, hooks, settings, and statusline files are upstream references. Codex does not run Claude hooks or read `.claude/settings.json`. Supporting upstream assets are bundled at `/workspaces/zimulinkCodexZ/.agents/zskills-support` for inspection or manual project adaptation.
+- If a workflow references helper commands like `scripts/briefing.cjs`, prefer project-local scripts when present. Otherwise inspect the bundled upstream copy under `/workspaces/zimulinkCodexZ/.agents/zskills-support/scripts` and decide whether to run it from there or copy/adapt it into the current project.
 - Keep Codex’s normal safety rules in force: do not revert unrelated work, do not run destructive git commands without an explicit user request, and verify using actual diffs/tests rather than memory.
 
 ## Codex Maintenance Warning
 
-`update-zskills` was originally an installer for Claude Code. In this Codex conversion, do not execute its Claude-specific installation steps literally. Use it as a maintenance/reference workflow: inspect upstream assets, update `~/.codex/skills/<skill-name>/SKILL.md`, update support files under `/workspaces/anim8gen/.agents/zskills-support`, and preserve Codex frontmatter plus these adaptation notes. Do not create or rely on `.claude/settings.json` as a Codex runtime configuration file.
+`update-zskills` was originally an installer for Claude Code. In this Codex conversion, do not execute its Claude-specific installation steps literally. Use it as a maintenance/reference workflow: inspect upstream assets, update `~/.codex/skills/<skill-name>/SKILL.md`, update support files under `/workspaces/zimulinkCodexZ/.agents/zskills-support`, and preserve Codex frontmatter plus these adaptation notes. Do not create or rely on `.claude/settings.json` as a Codex runtime configuration file.
 
 
 # Update Z Skills Infrastructure

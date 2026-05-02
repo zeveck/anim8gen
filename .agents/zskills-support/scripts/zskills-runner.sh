@@ -834,9 +834,12 @@ run_one_chunk() {
   report=$(report_path "$REPO_ROOT" "$PLAN_REPORT_SLUG")
   plan_path=$(resolve_plan_path "$REPO_ROOT" "$PLAN")
 
+  mkdir -p "$tracking"
   collect_state_file "$before_file"
   child_prompt=$(cat <<EOF
 run-plan $PLAN finish auto
+
+RUNNER-MANAGED CHUNK: You are running under zskills-runner.sh. Do not invoke zskills-runner.sh again. Execute exactly one incomplete phase, then stop after writing the required report, tracking markers, and landing evidence.
 
 External ZSkills runner contract for this chunk:
 - Execute exactly one incomplete phase from $PLAN, then stop.

@@ -26,18 +26,18 @@ The upstream Z Skills `finish auto` behavior relied on Claude Code scheduling/re
 
 ## Assumptions
 
-- The runner will live under `/workspaces/anim8gen/.agents/zskills-support/scripts/zskills-runner.sh` unless a project-local script is preferred during implementation.
-- Tests and fixtures can live under `/workspaces/anim8gen/.agents/zskills-support/tests/runner/`.
-- Config schema changes go in `/workspaces/anim8gen/.agents/zskills-support/config/zskills-config.schema.json`.
-- Documentation updates go in `/workspaces/anim8gen/.agents/zskills-support/docs/CODEX_PORT.md`, `run-plan/SKILL.md`, `zskills-codex/SKILL.md`, and `update-zskills/SKILL.md` as needed.
+- The runner will live under `/workspaces/zimulinkCodexZ/.agents/zskills-support/scripts/zskills-runner.sh` unless a project-local script is preferred during implementation.
+- Tests and fixtures can live under `/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/`.
+- Config schema changes go in `/workspaces/zimulinkCodexZ/.agents/zskills-support/config/zskills-config.schema.json`.
+- Documentation updates go in `/workspaces/zimulinkCodexZ/.agents/zskills-support/docs/CODEX_PORT.md`, `run-plan/SKILL.md`, `zskills-codex/SKILL.md`, and `update-zskills/SKILL.md` as needed.
 - The current workspace `/workspaces/zimulinkCodexZ` is not a Git repository. `run-plan` execution therefore needs an explicit Git context: either the external repo the user is preparing, or a disposable/local Git repo created specifically to track this Codex port work.
 
 ## Execution Setup
 
 Before running this plan with `run-plan`, choose one execution context:
 
-1. Preferred: use the external Git repository the user is preparing for this work, then run the plan from that repo while editing the installed Codex files under `/workspaces/anim8gen/.agents/...`.
-2. Fallback: create a local disposable Git repository that tracks copies or patches of the zskills support files, then apply completed changes back to `/workspaces/anim8gen/.agents/...` after verification.
+1. Preferred: use the external Git repository the user is preparing for this work, then run the plan from that repo while editing the installed Codex files under `/workspaces/zimulinkCodexZ/.agents/...`.
+2. Fallback: create a local disposable Git repository that tracks copies or patches of the zskills support files, then apply completed changes back to `/workspaces/zimulinkCodexZ/.agents/...` after verification.
 
 Do not run this plan from `/workspaces/zimulinkCodexZ` unless that directory has first been initialized as the intended Git repo and configured for the work. If no Git context exists, the first action is setup, not implementation.
 
@@ -129,10 +129,10 @@ Define the runner contract before implementation.
 
 Likely files:
 
-- `/workspaces/anim8gen/.agents/zskills-support/config/zskills-config.schema.json`
-- `/workspaces/anim8gen/.agents/zskills-support/docs/CODEX_PORT.md`
-- `/workspaces/anim8gen/.agents/skills/run-plan/SKILL.md`
-- `/workspaces/anim8gen/.agents/skills/zskills-codex/SKILL.md`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/config/zskills-config.schema.json`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/docs/CODEX_PORT.md`
+- `/workspaces/zimulinkCodexZ/.agents/skills/run-plan/SKILL.md`
+- `/workspaces/zimulinkCodexZ/.agents/skills/zskills-codex/SKILL.md`
 
 Acceptance criteria:
 
@@ -145,7 +145,7 @@ Acceptance criteria:
 Verification:
 
 ```bash
-python3 -m json.tool /workspaces/anim8gen/.agents/zskills-support/config/zskills-config.schema.json >/dev/null
+python3 -m json.tool /workspaces/zimulinkCodexZ/.agents/zskills-support/config/zskills-config.schema.json >/dev/null
 ```
 
 Manual review: search active docs/wrappers for `CronCreate`, `CronList`, `CronDelete`, `dangerously-bypass`, and `.claude/settings`; any matches must be refusal/compatibility language, not executable instructions or defaults.
@@ -160,9 +160,9 @@ Add the runner script with argument parsing, config discovery, dry-run, status, 
 
 Likely files:
 
-- `/workspaces/anim8gen/.agents/zskills-support/scripts/zskills-runner.sh`
-- `/workspaces/anim8gen/.agents/zskills-support/scripts/sanitize-pipeline-id.sh`
-- `/workspaces/anim8gen/.agents/zskills-support/tests/runner/`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/scripts/zskills-runner.sh`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/scripts/sanitize-pipeline-id.sh`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/`
 
 Acceptance criteria:
 
@@ -176,9 +176,9 @@ Acceptance criteria:
 Verification:
 
 ```bash
-bash -n /workspaces/anim8gen/.agents/zskills-support/scripts/zskills-runner.sh
-/workspaces/anim8gen/.agents/zskills-support/scripts/zskills-runner.sh --help
-/workspaces/anim8gen/.agents/zskills-support/scripts/zskills-runner.sh run-plan plans/example.md finish auto --repo /tmp/nonrepo --dry-run
+bash -n /workspaces/zimulinkCodexZ/.agents/zskills-support/scripts/zskills-runner.sh
+/workspaces/zimulinkCodexZ/.agents/zskills-support/scripts/zskills-runner.sh --help
+/workspaces/zimulinkCodexZ/.agents/zskills-support/scripts/zskills-runner.sh run-plan plans/example.md finish auto --repo /tmp/nonrepo --dry-run
 ```
 
 Rollback:
@@ -191,8 +191,8 @@ Implement preflight checks before any `codex exec` launch.
 
 Likely files:
 
-- `/workspaces/anim8gen/.agents/zskills-support/scripts/zskills-runner.sh`
-- `/workspaces/anim8gen/.agents/zskills-support/tests/runner/fixtures/`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/scripts/zskills-runner.sh`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/fixtures/`
 
 Acceptance criteria:
 
@@ -207,9 +207,9 @@ Acceptance criteria:
 Verification:
 
 ```bash
-bash -n /workspaces/anim8gen/.agents/zskills-support/scripts/zskills-runner.sh
+bash -n /workspaces/zimulinkCodexZ/.agents/zskills-support/scripts/zskills-runner.sh
 # fixture tests should cover lock conflict, non-git repo, dirty tree, merge residue, and direct-mode refusal
-/workspaces/anim8gen/.agents/zskills-support/tests/runner/run.sh preflight
+/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/run.sh preflight
 ```
 
 Rollback:
@@ -222,8 +222,8 @@ Wire one fresh `codex exec` chunk with structured logs.
 
 Likely files:
 
-- `/workspaces/anim8gen/.agents/zskills-support/scripts/zskills-runner.sh`
-- `/workspaces/anim8gen/.agents/zskills-support/tests/runner/fake-codex.sh`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/scripts/zskills-runner.sh`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/fake-codex.sh`
 
 Acceptance criteria:
 
@@ -240,8 +240,8 @@ Acceptance criteria:
 Verification:
 
 ```bash
-/workspaces/anim8gen/.agents/zskills-support/tests/runner/run.sh fake-success
-/workspaces/anim8gen/.agents/zskills-support/tests/runner/run.sh fake-timeout
+/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/run.sh fake-success
+/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/run.sh fake-timeout
 python3 -m json.tool <chunk-summary.json> >/dev/null
 ```
 
@@ -255,9 +255,9 @@ Validate one completed chunk and decide whether another fresh invocation is allo
 
 Likely files:
 
-- `/workspaces/anim8gen/.agents/zskills-support/scripts/zskills-runner.sh`
-- `/workspaces/anim8gen/.agents/zskills-support/scripts/zskills-gate.sh`
-- `/workspaces/anim8gen/.agents/zskills-support/tests/runner/fixtures/`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/scripts/zskills-runner.sh`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/scripts/zskills-gate.sh`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/fixtures/`
 
 Acceptance criteria:
 
@@ -275,10 +275,10 @@ Acceptance criteria:
 Verification:
 
 ```bash
-/workspaces/anim8gen/.agents/zskills-support/tests/runner/run.sh progress-detected
-/workspaces/anim8gen/.agents/zskills-support/tests/runner/run.sh no-progress-blocks
-/workspaces/anim8gen/.agents/zskills-support/tests/runner/run.sh missing-handoff-blocks
-/workspaces/anim8gen/.agents/zskills-support/scripts/zskills-gate.sh --repo /tmp/zskills-codex-canary --mode pre-continue --pipeline run-plan.canary-plan --tracking-id canary-plan.phase-2 --plan-slug canary-plan
+/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/run.sh progress-detected
+/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/run.sh no-progress-blocks
+/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/run.sh missing-handoff-blocks
+/workspaces/zimulinkCodexZ/.agents/zskills-support/scripts/zskills-gate.sh --repo /tmp/zskills-codex-canary --mode pre-continue --pipeline run-plan.canary-plan --tracking-id canary-plan.phase-2 --plan-slug canary-plan
 ```
 
 Rollback:
@@ -291,9 +291,9 @@ Exercise the runner against disposable repos for direct refusal, cherry-pick, an
 
 Likely files:
 
-- `/workspaces/anim8gen/.agents/zskills-support/tests/runner/run.sh`
-- `/workspaces/anim8gen/.agents/zskills-support/tests/runner/fixtures/`
-- `/workspaces/anim8gen/.agents/zskills-support/docs/CODEX_PORT.md`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/run.sh`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/fixtures/`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/docs/CODEX_PORT.md`
 
 Acceptance criteria:
 
@@ -307,7 +307,7 @@ Acceptance criteria:
 Verification:
 
 ```bash
-/workspaces/anim8gen/.agents/zskills-support/tests/runner/run.sh all
+/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/run.sh all
 ```
 
 Manual review: search support scripts and active `SKILL.md` wrappers for dangerous bypass and Claude scheduling terms. Legitimate matches must be explicit refusal/safety text; executable defaults or positive instructions are blockers.
@@ -322,9 +322,9 @@ Make the runner part of the Codex Z Skills maintenance contract.
 
 Likely files:
 
-- `/workspaces/anim8gen/.agents/skills/update-zskills/SKILL.md`
-- `/workspaces/anim8gen/.agents/skills/zskills-codex/SKILL.md`
-- `/workspaces/anim8gen/.agents/zskills-support/docs/CODEX_PORT.md`
+- `/workspaces/zimulinkCodexZ/.agents/skills/update-zskills/SKILL.md`
+- `/workspaces/zimulinkCodexZ/.agents/skills/zskills-codex/SKILL.md`
+- `/workspaces/zimulinkCodexZ/.agents/zskills-support/docs/CODEX_PORT.md`
 
 Acceptance criteria:
 
@@ -351,11 +351,11 @@ Rollback:
 Minimum checks before completion:
 
 ```bash
-for f in /workspaces/anim8gen/.agents/zskills-support/scripts/{zskills-runner.sh,zskills-gate.sh,post-run-invariants.sh,land-phase.sh,worktree-add-safe.sh,clear-tracking.sh}; do
+for f in /workspaces/zimulinkCodexZ/.agents/zskills-support/scripts/{zskills-runner.sh,zskills-gate.sh,post-run-invariants.sh,land-phase.sh,worktree-add-safe.sh,clear-tracking.sh}; do
   bash -n "$f" || exit 1
 done
-python3 -m json.tool /workspaces/anim8gen/.agents/zskills-support/config/zskills-config.schema.json >/dev/null
-/workspaces/anim8gen/.agents/zskills-support/tests/runner/run.sh all
+python3 -m json.tool /workspaces/zimulinkCodexZ/.agents/zskills-support/config/zskills-config.schema.json >/dev/null
+/workspaces/zimulinkCodexZ/.agents/zskills-support/tests/runner/run.sh all
 ```
 
 Manual review:
@@ -392,7 +392,7 @@ After the external Git repo is available:
 
 ```bash
 cd <target-git-repo>
-run-plan /workspaces/anim8gen/.agents/zskills-support/plans/codex-external-runner.md phase 1
+run-plan /workspaces/zimulinkCodexZ/.agents/zskills-support/plans/codex-external-runner.md phase 1
 ```
 
 If no target repo is available yet, first create or choose the Git execution context described in **Execution Setup**.

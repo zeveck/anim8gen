@@ -30,15 +30,15 @@ This is a Codex maintenance workflow for the installed port. It is not the upstr
 
 ## Workflow
 
-1. Fetch or clone `github.com/zeveck/zskills` to a temporary location and record the commit.
-2. Compare upstream skill folders, block-diagram add-ons, `playwright-cli`, scripts, hooks, config schema, and docs against the installed Codex copy.
-3. Preserve Codex-native `SKILL.md` wrappers unless upstream changed the workflow intent.
+1. Fetch or clone `github.com/zeveck/zskills-codex` to a temporary location and record the distribution commit.
+2. Compare the distribution's `.agents/skills`, `.agents/zskills-support`, `.agents/zskills-config.json`, and install docs against the installed Codex copy.
+3. Preserve project-local install metadata such as `.agents/README.md`, updating it to the new `zskills-codex` commit after refresh.
 4. Refresh `references/upstream-claude-adapted.md` for changed skills and refresh `.agents/zskills-support` assets in project-local installs, or `$CODEX_HOME/zskills-support` assets in explicit global installs.
 5. Keep Claude-only mechanics out of active Codex instructions: no `.claude/settings.json`, no Claude hooks as runtime config, no Claude cron tools, no `allowed-tools` frontmatter.
 6. Re-run validation: frontmatter, skill count, reference existence, no temp paths, no Claude-only executable instructions in active wrappers, and line counts.
 7. Run or refresh the external runner canaries from `.agents/zskills-support/tests/runner/run.sh` or `$CODEX_HOME/zskills-support/tests/runner/run.sh`: `all`, plus any slow/optional cases called out by the current runner plan. At minimum this must cover multi-chunk `finish auto`, direct unattended refusal, cherry-pick completion evidence, PR dry-run immutability, tracking/report gates, post-run invariants, no-progress blocking, stale worktree refusal, dirty artifact blocking, missing report/verifier markers, nonzero child exit, and timeout/idle-timeout stops.
 8. Run or refresh the broader Codex canary parity checklist: direct refusal/protection, cherry-pick landing, PR mode dry run, chunked `finish`, tracking marker enforcement, report landing, final verification, CI fix cycle where feasible, and at least one failure-injection stop.
-9. Report changed skills, upstream commit, compatibility risks, runner canary result, broader canary result, and whether Codex should be restarted.
+9. Report changed skills, distribution commit, upstream provenance commit if changed, compatibility risks, runner canary result, broader canary result, and whether Codex should be restarted.
 
 ## Project Setup Checks
 
@@ -52,7 +52,8 @@ Do not copy upstream `update-zskills` instructions directly into active Codex be
 
 ## Preserved Z Skills Invariants
 
-- Preserve upstream provenance and commit ID.
+- Preserve distribution provenance and commit ID.
+- Preserve upstream Claude Z Skills provenance in archived references.
 - Keep archived upstream references diffable.
 - Refresh support assets without making Claude hooks active Codex runtime.
 - Tell the user to restart Codex when skill metadata changes.
