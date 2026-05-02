@@ -12,7 +12,7 @@
       "label": "sit-idle",
       "source": "sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-000.retry-001.png",
       "output": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-000.sit-idle.png",
-      "anchorStrategy": "body_bottom_center",
+      "anchorStrategy": "manual",
       "sourceDimensions": [
         1024,
         1024
@@ -29,7 +29,7 @@
         572.34
       ],
       "sourceAnchor": [
-        324.5,
+        513.0,
         841.0
       ],
       "scaledSize": [
@@ -37,14 +37,14 @@
         94
       ],
       "alignedBBox": [
-        48,
+        21,
         18,
-        127,
+        104,
         111
       ],
-      "alignedVisibleArea": 4139,
+      "alignedVisibleArea": 4203,
       "appliedOffset": [
-        48,
+        21,
         18
       ]
     },
@@ -217,7 +217,7 @@
       "label": "lying-head-up",
       "source": "sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-005.retry-001.png",
       "output": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-005.lying-head-up.png",
-      "anchorStrategy": "body_center",
+      "anchorStrategy": "manual",
       "sourceDimensions": [
         1024,
         1024
@@ -234,23 +234,23 @@
         628.392
       ],
       "sourceAnchor": [
-        577.693,
-        628.392
+        494.0,
+        771.0
       ],
       "scaledSize": [
         120,
         58
       ],
       "alignedBBox": [
-        0,
-        27,
-        111,
-        84
+        4,
+        54,
+        123,
+        111
       ],
-      "alignedVisibleArea": 3630,
+      "alignedVisibleArea": 3693,
       "appliedOffset": [
-        -8,
-        27
+        4,
+        54
       ]
     },
     {
@@ -258,7 +258,7 @@
       "label": "lying-head-down",
       "source": "sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-006.retry-001.png",
       "output": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-006.lying-head-down.png",
-      "anchorStrategy": "body_center",
+      "anchorStrategy": "manual",
       "sourceDimensions": [
         1024,
         1024
@@ -275,23 +275,23 @@
         572.218
       ],
       "sourceAnchor": [
-        513.812,
-        572.218
+        510.0,
+        707.0
       ],
       "scaledSize": [
         111,
         42
       ],
       "alignedBBox": [
-        8,
-        42,
-        118,
-        83
+        9,
+        70,
+        119,
+        111
       ],
       "alignedVisibleArea": 3810,
       "appliedOffset": [
-        8,
-        42
+        9,
+        70
       ]
     },
     {
@@ -299,7 +299,7 @@
       "label": "sleep-loop",
       "source": "sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-007.retry-001.png",
       "output": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-007.sleep-loop.png",
-      "anchorStrategy": "body_center",
+      "anchorStrategy": "manual",
       "sourceDimensions": [
         1024,
         1024
@@ -316,23 +316,23 @@
         594.804
       ],
       "sourceAnchor": [
-        520.579,
-        594.804
+        510.0,
+        743.0
       ],
       "scaledSize": [
         98,
         48
       ],
       "alignedBBox": [
-        13,
-        37,
-        110,
-        84
+        15,
+        64,
+        112,
+        111
       ],
       "alignedVisibleArea": 3656,
       "appliedOffset": [
-        13,
-        37
+        15,
+        64
       ]
     }
   ]

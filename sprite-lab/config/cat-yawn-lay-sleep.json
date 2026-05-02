@@ -50,7 +50,36 @@
       "head_center",
       "manual"
     ],
-    "manualOverrides": {}
+    "manualOverrides": {
+      "0": {
+        "anchor": [
+          513,
+          841
+        ],
+        "reason": "Manual review found the automatic bottom-band anchor pulled the sitting sprite right and clipped the face."
+      },
+      "5": {
+        "anchor": [
+          494,
+          771
+        ],
+        "reason": "Manual review keeps the lying pose on the same floor line as the sitting and lowering frames."
+      },
+      "6": {
+        "anchor": [
+          510,
+          707
+        ],
+        "reason": "Manual review keeps the sleep pose on the same floor line as the accepted lying pose."
+      },
+      "7": {
+        "anchor": [
+          510,
+          743
+        ],
+        "reason": "Manual review keeps the sleep-loop hold on the same floor line as the accepted lying pose."
+      }
+    }
   },
   "validation": {
     "defaultThresholds": {
@@ -157,19 +186,19 @@
       "index": 5,
       "label": "lying-head-up",
       "pose": "lying down, head still slightly raised",
-      "anchor": "body_center"
+      "anchor": "manual"
     },
     {
       "index": 6,
       "label": "lying-head-down",
       "pose": "lying down, head resting on paws, eyes closed",
-      "anchor": "body_center"
+      "anchor": "manual"
     },
     {
       "index": 7,
       "label": "sleep-loop",
       "pose": "lying still asleep, eyes closed, calm breathing pose",
-      "anchor": "body_center"
+      "anchor": "manual"
     }
   ]
 }

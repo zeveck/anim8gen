@@ -483,3 +483,118 @@ Notes:
 - Phase 8: Manual review and iteration loop.
 - Phase 9: Package prototype result.
 - Phase 10: Second animation readiness check.
+
+## Phase 8: Manual Review And Iteration Loop
+
+Status: complete
+
+Branch/worktree:
+
+- Branch: `zskills/prototype-cat-sprite-animation-pipeline-phase-8`
+- Worktree: `/tmp/anim8gen-cp-prototype-cat-sprite-animation-pipeline-phase-8`
+
+Files changed:
+
+- `plans/prototype-cat-sprite-animation-pipeline.md`
+- `reports/plan-prototype-cat-sprite-animation-pipeline.md`
+- `sprite-lab/config/cat-yawn-lay-sleep.json`
+- `sprite-lab/assets/cat-yawn-lay-sleep/manifests/accepted-frames.json`
+- `sprite-lab/assets/cat-yawn-lay-sleep/manifests/alignment-metrics.json`
+- `sprite-lab/reports/cat-yawn-lay-sleep.validation.json`
+- `sprite-lab/reports/cat-yawn-lay-sleep.summary.md`
+- `sprite-lab/preview/cat-yawn-lay-sleep.html`
+
+Generated local artifacts:
+
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-000.sit-idle.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-001.yawn-start.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-002.yawn-wide.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-003.yawn-end.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-004.lowering.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-005.lying-head-up.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-006.lying-head-down.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-007.sleep-loop.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/review/contact-sheet.png`
+
+Implementation notes:
+
+- Manual review found frame 000 clipped on the right edge and frames 005
+  through 007 vertically centered above the intended shared floor line.
+- Added spec-level manual anchor overrides for frames 000, 005, 006, and 007,
+  then reran alignment, validation, contact sheet generation, and preview
+  generation.
+- Wrote `accepted-frames.json` and `cat-yawn-lay-sleep.summary.md` as the
+  durable manual review record.
+
+Tests run:
+
+```bash
+python3 -m json.tool sprite-lab/config/cat-yawn-lay-sleep.json >/dev/null
+python3 -W error::DeprecationWarning sprite-lab/tools/align_frames.py \
+  --spec sprite-lab/config/cat-yawn-lay-sleep.json \
+  --input sprite-lab/assets/cat-yawn-lay-sleep/raw \
+  --output sprite-lab/assets/cat-yawn-lay-sleep/aligned
+python3 -W error::DeprecationWarning sprite-lab/tools/validate_sprites.py \
+  --spec sprite-lab/config/cat-yawn-lay-sleep.json \
+  --frames sprite-lab/assets/cat-yawn-lay-sleep/aligned \
+  --out sprite-lab/reports/cat-yawn-lay-sleep.validation.json
+python3 -W error::DeprecationWarning sprite-lab/tools/make_contact_sheet.py \
+  --spec sprite-lab/config/cat-yawn-lay-sleep.json \
+  --raw sprite-lab/assets/cat-yawn-lay-sleep/raw \
+  --aligned sprite-lab/assets/cat-yawn-lay-sleep/aligned \
+  --validation sprite-lab/reports/cat-yawn-lay-sleep.validation.json \
+  --out sprite-lab/assets/cat-yawn-lay-sleep/review/contact-sheet.png
+python3 -W error::DeprecationWarning sprite-lab/tools/make_preview.py \
+  --spec sprite-lab/config/cat-yawn-lay-sleep.json \
+  --frames sprite-lab/assets/cat-yawn-lay-sleep/aligned \
+  --validation sprite-lab/reports/cat-yawn-lay-sleep.validation.json \
+  --out sprite-lab/preview/cat-yawn-lay-sleep.html
+file sprite-lab/assets/cat-yawn-lay-sleep/review/contact-sheet.png \
+  sprite-lab/preview/cat-yawn-lay-sleep.html
+python3 -m json.tool \
+  sprite-lab/assets/cat-yawn-lay-sleep/manifests/accepted-frames.json >/dev/null
+```
+
+Manual browser verification:
+
+```bash
+python3 -m http.server 8766 --bind 127.0.0.1
+playwright-cli open http://127.0.0.1:8766/preview/cat-yawn-lay-sleep.html
+playwright-cli snapshot
+playwright-cli eval '() => ({label: document.querySelector("#frameLabel")?.textContent, pose: document.querySelector("#pose")?.textContent, canvasBytes: document.querySelector("#sprite")?.toDataURL().length, thumbs: document.querySelectorAll(".thumb").length, zsActive: document.querySelector("#zs")?.classList.contains("active")})'
+playwright-cli click e38
+playwright-cli eval '() => ({label: document.querySelector("#frameLabel")?.textContent, zsActive: document.querySelector("#zs")?.classList.contains("active"), canvasBytes: document.querySelector("#sprite")?.toDataURL().length})'
+playwright-cli click e12
+playwright-cli eval '() => document.querySelector("#play")?.textContent'
+playwright-cli click e13
+playwright-cli eval '() => ({label: document.querySelector("#frameLabel")?.textContent, zsActive: document.querySelector("#zs")?.classList.contains("active")})'
+```
+
+Verification result: passed with inline verification. The updated contact sheet
+shows no right-edge clipping and the lying frames now sit on the shared floor
+line. The validation report has zero structural failures and 14 advisory
+warnings, all documented in the summary report. Browser verification confirmed
+non-empty canvas rendering, eight thumbnail frames, frame selection,
+play/pause, next-frame stepping, and sleep-frame Z activation. The only browser
+console error was the expected missing `favicon.ico` request from the temporary
+static server.
+
+Landing result: landed on `main` by local cherry-pick.
+
+Scope assessment: Phase 8 stayed within manual review and iteration outputs:
+spec-level manual anchors, regenerated derived alignment/validation/preview
+artifacts, accepted-frame provenance, summary report, and plan/report tracking.
+It did not regenerate source candidate images or change tool code.
+
+Notes:
+
+- No separate verifier agent was used in this chunk; verification was run
+  inline from the actual diff.
+- Raw, aligned, reference, and review PNG/JPG assets remain ignored by git per
+  the generated-asset rule and must be copied into the main workspace after
+  landing for local Phase 9 packaging.
+
+## Remaining Phases
+
+- Phase 9: Package prototype result.
+- Phase 10: Second animation readiness check.

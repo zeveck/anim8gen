@@ -7,7 +7,7 @@
     "frameCount": 8,
     "expectedFrameCount": 8,
     "structuralFailureCount": 0,
-    "warningCount": 13
+    "warningCount": 14
   },
   "structuralFailures": [],
   "frames": [
@@ -20,24 +20,24 @@
         128
       ],
       "bbox": [
-        48,
+        21,
         18,
-        127,
+        104,
         111
       ],
-      "bboxWidth": 80,
+      "bboxWidth": 84,
       "bboxHeight": 94,
-      "visibleArea": 4139,
+      "visibleArea": 4203,
       "centroid": [
-        94.494,
-        73.178
+        68.022,
+        72.708
       ],
       "anchorStrategy": "body_bottom_center",
       "anchor": [
-        82.0,
+        55.0,
         111.0
       ],
-      "meanLuminance": 102.313,
+      "meanLuminance": 101.479,
       "dominantHueDegrees": 28
     },
     {
@@ -165,24 +165,24 @@
         128
       ],
       "bbox": [
-        0,
-        27,
-        111,
-        84
+        4,
+        54,
+        123,
+        111
       ],
-      "bboxWidth": 112,
+      "bboxWidth": 120,
       "bboxHeight": 58,
-      "visibleArea": 3630,
+      "visibleArea": 3693,
       "centroid": [
-        64.722,
-        63.651
+        75.552,
+        90.915
       ],
-      "anchorStrategy": "body_center",
+      "anchorStrategy": "manual",
       "anchor": [
-        64.722,
-        63.651
+        75.552,
+        90.915
       ],
-      "meanLuminance": 102.864,
+      "meanLuminance": 102.159,
       "dominantHueDegrees": 30
     },
     {
@@ -194,22 +194,22 @@
         128
       ],
       "bbox": [
-        8,
-        42,
-        118,
-        83
+        9,
+        70,
+        119,
+        111
       ],
       "bboxWidth": 111,
       "bboxHeight": 42,
       "visibleArea": 3810,
       "centroid": [
-        63.27,
-        63.93
+        64.27,
+        91.93
       ],
-      "anchorStrategy": "body_center",
+      "anchorStrategy": "manual",
       "anchor": [
-        63.27,
-        63.93
+        64.27,
+        91.93
       ],
       "meanLuminance": 99.947,
       "dominantHueDegrees": 29
@@ -223,22 +223,22 @@
         128
       ],
       "bbox": [
-        13,
-        37,
-        110,
-        84
+        15,
+        64,
+        112,
+        111
       ],
       "bboxWidth": 98,
       "bboxHeight": 48,
       "visibleArea": 3656,
       "centroid": [
-        62.852,
-        63.327
+        64.852,
+        90.327
       ],
-      "anchorStrategy": "body_center",
+      "anchorStrategy": "manual",
       "anchor": [
-        62.852,
-        63.327
+        64.852,
+        90.327
       ],
       "meanLuminance": 99.897,
       "dominantHueDegrees": 29
@@ -266,38 +266,31 @@
         "headTopDriftPx": 8
       },
       "metrics": {
-        "anchorXJumpPx": 20.0,
+        "anchorXJumpPx": 7.0,
         "anchorYJumpPx": 0.0,
-        "bboxWidthVariancePct": 15.029,
+        "bboxWidthVariancePct": 10.169,
         "bboxHeightVariancePct": 3.243,
-        "visibleAreaVariancePct": 0.412,
-        "centroidJumpPx": 18.575,
+        "visibleAreaVariancePct": 1.946,
+        "centroidJumpPx": 8.285,
         "headTopDriftPx": 3,
-        "adjacentSilhouetteIou": 0.443,
-        "meanLuminanceShiftPct": 0.557,
+        "adjacentSilhouetteIou": 0.654,
+        "meanLuminanceShiftPct": 0.262,
         "dominantHueShiftDegrees": 0
       },
       "warnings": [
         {
           "metric": "anchorXJumpPx",
           "severity": "warning",
-          "value": 20.0,
+          "value": 7.0,
           "threshold": 3,
           "message": "anchor x jump exceeds threshold"
         },
         {
           "metric": "centroidJumpPx",
           "severity": "warning",
-          "value": 18.575,
+          "value": 8.285,
           "threshold": 5,
           "message": "centroid jump exceeds threshold"
-        },
-        {
-          "metric": "adjacentSilhouetteIouMin",
-          "severity": "warning",
-          "value": 0.443,
-          "threshold": 0.45,
-          "message": "adjacent silhouette overlap is low"
         }
       ],
       "notes": [
@@ -473,38 +466,31 @@
         "dominantHueShiftDegrees": 12
       },
       "metrics": {
-        "anchorXJumpPx": 1.222,
-        "anchorYJumpPx": 47.349,
-        "bboxWidthVariancePct": 0.897,
+        "anchorXJumpPx": 12.052,
+        "anchorYJumpPx": 20.085,
+        "bboxWidthVariancePct": 7.792,
         "bboxHeightVariancePct": 14.4,
-        "visibleAreaVariancePct": 8.721,
-        "centroidJumpPx": 19.975,
-        "headTopDriftPx": 18,
-        "adjacentSilhouetteIou": 0.284,
-        "meanLuminanceShiftPct": 5.69,
+        "visibleAreaVariancePct": 7.003,
+        "centroidJumpPx": 9.857,
+        "headTopDriftPx": 9,
+        "adjacentSilhouetteIou": 0.545,
+        "meanLuminanceShiftPct": 5.003,
         "dominantHueShiftDegrees": 2
       },
       "warnings": [
         {
+          "metric": "anchorXJumpPx",
+          "severity": "warning",
+          "value": 12.052,
+          "threshold": 3,
+          "message": "anchor x jump exceeds threshold"
+        },
+        {
           "metric": "anchorYJumpPx",
           "severity": "warning",
-          "value": 47.349,
+          "value": 20.085,
           "threshold": 2,
           "message": "anchor y jump exceeds threshold"
-        },
-        {
-          "metric": "centroidJumpPx",
-          "severity": "warning",
-          "value": 19.975,
-          "threshold": 12,
-          "message": "centroid jump exceeds threshold"
-        },
-        {
-          "metric": "adjacentSilhouetteIouMin",
-          "severity": "warning",
-          "value": 0.284,
-          "threshold": 0.35,
-          "message": "adjacent silhouette overlap is low"
         }
       ],
       "notes": []
@@ -529,24 +515,38 @@
         "dominantHueShiftDegrees": 12
       },
       "metrics": {
-        "anchorXJumpPx": 1.452,
-        "anchorYJumpPx": 0.279,
-        "bboxWidthVariancePct": 0.897,
+        "anchorXJumpPx": 11.282,
+        "anchorYJumpPx": 1.015,
+        "bboxWidthVariancePct": 7.792,
         "bboxHeightVariancePct": 32.0,
-        "visibleAreaVariancePct": 4.839,
-        "centroidJumpPx": 1.479,
-        "headTopDriftPx": 15,
-        "adjacentSilhouetteIou": 0.627,
-        "meanLuminanceShiftPct": 2.877,
+        "visibleAreaVariancePct": 3.119,
+        "centroidJumpPx": 11.328,
+        "headTopDriftPx": 16,
+        "adjacentSilhouetteIou": 0.64,
+        "meanLuminanceShiftPct": 2.189,
         "dominantHueShiftDegrees": 1
       },
       "warnings": [
+        {
+          "metric": "anchorXJumpPx",
+          "severity": "warning",
+          "value": 11.282,
+          "threshold": 3,
+          "message": "anchor x jump exceeds threshold"
+        },
         {
           "metric": "bboxHeightVariancePct",
           "severity": "warning",
           "value": 32.0,
           "threshold": 12,
           "message": "bbox height changed more than expected"
+        },
+        {
+          "metric": "centroidJumpPx",
+          "severity": "warning",
+          "value": 11.328,
+          "threshold": 5,
+          "message": "centroid jump exceeds threshold"
         }
       ],
       "notes": []
@@ -571,18 +571,25 @@
         "dominantHueShiftDegrees": 12
       },
       "metrics": {
-        "anchorXJumpPx": 0.418,
-        "anchorYJumpPx": 0.603,
+        "anchorXJumpPx": 0.582,
+        "anchorYJumpPx": 1.603,
         "bboxWidthVariancePct": 12.44,
         "bboxHeightVariancePct": 13.333,
         "visibleAreaVariancePct": 4.125,
-        "centroidJumpPx": 0.734,
-        "headTopDriftPx": 5,
-        "adjacentSilhouetteIou": 0.828,
+        "centroidJumpPx": 1.705,
+        "headTopDriftPx": 6,
+        "adjacentSilhouetteIou": 0.821,
         "meanLuminanceShiftPct": 0.05,
         "dominantHueShiftDegrees": 0
       },
       "warnings": [
+        {
+          "metric": "anchorYJumpPx",
+          "severity": "warning",
+          "value": 1.603,
+          "threshold": 1,
+          "message": "anchor y jump exceeds threshold"
+        },
         {
           "metric": "bboxWidthVariancePct",
           "severity": "warning",
