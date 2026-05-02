@@ -2,64 +2,77 @@
 
 ## Phase
 
-Phase 3: Create the `.codex/skills/anim8gen` skill skeleton.
+Phase 4: Add spec and package initialization helper.
 
 Status: Done.
 
 ## Scope Assessment
 
-The phase stayed within the requested skill-skeleton scope. It added
-`.codex/skills/anim8gen/SKILL.md` with the required `anim8gen` frontmatter,
-natural-language short animation trigger, `imagegen2` integration guidance,
-agentic candidate review requirements, local packaging commands, package paths,
-quality statuses, and limits.
+The phase stayed within the requested helper scope. It added deterministic
+package initialization and synthetic-frame helper scripts under the
+repo-local `anim8gen` skill. The helpers do not call image generation APIs.
 
-It also added directly useful skill resources:
-`.codex/skills/anim8gen/references/prompting.md`,
-`.codex/skills/anim8gen/references/review-checklist.md`, and
-`.codex/skills/anim8gen/scripts/resolve_paths.sh`. No extra skill README was
-added. Phase 3 is marked `✅ Done` in the plan tracker.
+The initializer validates prepared brief fields, contiguous frame indexes,
+lowercase kebab-case ids and labels, frame anchors, view values, canvas size,
+working size, FPS, and retry budget. It creates the spec JSON, package
+directories, `.gitkeep` files, package `.gitignore`, empty candidate manifest,
+accepted-frame manifest, and package manifest. It refuses to overwrite existing
+package files unless `--force` is passed.
+
+The synthetic helper creates deterministic chroma-keyed raw PNG candidates and
+candidate manifest records for local smoke tests. The skill and README now
+document both helpers and clearly label synthetic frames as test fixtures, not
+live `imagegen2` output. Phase 4 is marked `✅ Done` in the plan tracker.
 
 ## Tests Run
 
 ```bash
-python3 - <<'PY'
-from pathlib import Path
-text = Path('.codex/skills/anim8gen/SKILL.md').read_text()
-assert 'name: anim8gen' in text
-assert 'imagegen2' in text
-assert 'agentic' in text.lower() or 'review' in text.lower()
-for token in ['repo root', 'generate.cjs', 'align', 'validate', 'contact sheet', 'preview', 'package paths']:
-    assert token.lower() in text.lower(), token
-assert 'sprite-lab' not in text
-print('skill ok')
-PY
-tmp_codex_home="$(mktemp -d)"
-CODEX_HOME="$tmp_codex_home" bash scripts/install-codex-skills.sh
-test -s "$tmp_codex_home/skills/anim8gen/SKILL.md"
-rm -rf "$tmp_codex_home"
-.codex/skills/anim8gen/scripts/resolve_paths.sh .
-rg -n "sprite-lab|Sprite Lab" .codex/skills/anim8gen || true
+cat >/tmp/anim8gen-test-brief.json <<'JSON'
+{
+  "id": "test-animation",
+  "subject": "test square",
+  "style": "pixel art",
+  "view": "side",
+  "canvas": [128, 128],
+  "workingSize": [1024, 1024],
+  "fps": 8,
+  "frames": [
+    {"index": 0, "label": "idle", "pose": "idle pose"},
+    {"index": 1, "label": "move", "pose": "simple moved pose"}
+  ]
+}
+JSON
+rm -rf /tmp/anim8gen-test
+python3 .codex/skills/anim8gen/scripts/init_package.py --help
+python3 .codex/skills/anim8gen/scripts/create_synthetic_frames.py --help
+python3 .codex/skills/anim8gen/scripts/init_package.py --brief /tmp/anim8gen-test-brief.json --root /tmp/anim8gen-test
+python3 -m json.tool /tmp/anim8gen-test/config/test-animation.json >/dev/null
+python3 .codex/skills/anim8gen/scripts/create_synthetic_frames.py --spec /tmp/anim8gen-test/config/test-animation.json --root /tmp/anim8gen-test
+test -s /tmp/anim8gen-test/assets/test-animation/raw/frame-000.retry-001.png
+test -s /tmp/anim8gen-test/assets/test-animation/manifests/candidates.jsonl
+find /tmp/anim8gen-test -maxdepth 3 -type d | sort
+python3 -m py_compile .codex/skills/anim8gen/scripts/init_package.py .codex/skills/anim8gen/scripts/create_synthetic_frames.py
+python3 .codex/skills/anim8gen/scripts/init_package.py --brief /tmp/anim8gen-test-brief.json --root /tmp/anim8gen-test >/tmp/anim8gen-overwrite.out 2>&1 && exit 1 || rg -n "already exists" /tmp/anim8gen-overwrite.out
 ```
 
 ## Verification Result
 
-Passed. The skill metadata and required runbook terms are present, the skill
-contains `imagegen2` and review guidance, obsolete prototype naming is absent,
-the project installer installs `anim8gen` into a temporary `CODEX_HOME`, and
-the path resolver locates the repo root and vendored `imagegen2` CLI.
+Passed. The required help commands work, package initialization succeeds under
+an arbitrary root, the generated spec parses as JSON, the synthetic helper
+creates raw PNG frames and candidate manifest records, the expected package
+directories exist, both helper scripts compile, and overwrite refusal is
+covered.
 
 ## Landing Result
 
-Landed. Worktree commit `634ace6` was cherry-picked to local `main` as
-`a5add38`, then this final landing result was amended into the current `main`
+Landed. Worktree commit `4ed5607` was cherry-picked to local `main` as
+`9162eb8`, then this final landing result was amended into the current `main`
 commit.
 
 ## Remaining Phases
 
-Phase 4 through Phase 8 remain:
+Phase 5 through Phase 8 remain:
 
-- Phase 4: Add spec and package initialization helper.
 - Phase 5: Define imagegen2 prompt and candidate review loop.
 - Phase 6: Improve preview packaging for agentic alignment.
 - Phase 7: End-to-end skill trials on short animations.

@@ -29,8 +29,10 @@ requests where the user only wants a single static image.
    action is ambiguous. Narrow or decline requests that exceed the first
    Anim8gen scope.
 4. Initialize the package paths under `anim8gen/config/<id>.json` and
-   `anim8gen/assets/<id>/` using the conventions in `anim8gen/README.md` and
-   the reusable shape in `anim8gen/config/template.animation-spec.json`.
+   `anim8gen/assets/<id>/` with
+   `.codex/skills/anim8gen/scripts/init_package.py --brief <brief.json>`.
+   Use the conventions in `anim8gen/README.md` and the reusable shape in
+   `anim8gen/config/template.animation-spec.json`.
 5. Locate `imagegen2`. In this repository use
    `.codex/skills/imagegen2/generate.cjs`; in an installed environment search
    `${CODEX_HOME:-$HOME/.codex}/skills/imagegen2/generate.cjs` and then any
@@ -115,6 +117,33 @@ Minimum review checks:
   the user explicitly requested baked pixels.
 
 Use `references/review-checklist.md` for candidate acceptance notes.
+
+## Package Initialization
+
+After parsing the user's request, write a prepared brief JSON and initialize
+the package deterministically:
+
+```bash
+python3 .codex/skills/anim8gen/scripts/init_package.py \
+  --brief /tmp/<id>.brief.json \
+  --root anim8gen
+```
+
+The initializer creates the spec, package directories, `.gitkeep` files,
+package `.gitignore`, empty candidate manifest, accepted-frame manifest, and
+package manifest. It refuses to overwrite an existing package unless `--force`
+is passed.
+
+For local smoke tests only, create synthetic chroma-keyed raw frames without
+calling image generation:
+
+```bash
+python3 .codex/skills/anim8gen/scripts/create_synthetic_frames.py \
+  --spec anim8gen/config/<id>.json \
+  --root anim8gen
+```
+
+Do not present synthetic helper frames as `imagegen2` output.
 
 ## Local Tool Commands
 

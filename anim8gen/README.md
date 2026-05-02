@@ -395,8 +395,36 @@ For the completed cat package, manual review added explicit anchors for frames
 
 To add another sequence:
 
-1. Create `anim8gen/config/<animation-id>.json`.
-2. Create these folders:
+1. Translate the request into a prepared brief JSON. The brief must follow
+   `anim8gen/config/brief.schema.json`, with contiguous frame indexes and
+   lowercase kebab-case frame labels.
+2. Initialize the package skeleton:
+
+```bash
+python3 .codex/skills/anim8gen/scripts/init_package.py \
+  --brief /tmp/<animation-id>.brief.json \
+  --root anim8gen
+```
+
+The initializer writes `anim8gen/config/<animation-id>.json`, creates package
+folders, adds `.gitkeep` files, adds a package `.gitignore`, initializes
+`manifests/candidates.jsonl`, and creates initial accepted-frame and package
+manifests. It refuses to overwrite an existing package unless `--force` is
+passed.
+
+For deterministic smoke tests without paid image generation, create synthetic
+chroma-keyed raw frames:
+
+```bash
+python3 .codex/skills/anim8gen/scripts/create_synthetic_frames.py \
+  --spec anim8gen/config/<animation-id>.json \
+  --root anim8gen
+```
+
+Synthetic frames are test fixtures only. They are not a substitute for live
+`imagegen2` coverage.
+
+The initializer creates these folders:
 
 ```text
 anim8gen/assets/<animation-id>/reference/
@@ -406,18 +434,18 @@ anim8gen/assets/<animation-id>/review/
 anim8gen/assets/<animation-id>/manifests/
 ```
 
-3. Add `.gitkeep` files if the folders should exist in git before generated
-   images are present.
-4. Add or generate a canonical reference image in `reference/`.
-5. Generate raw candidates into `raw/` using `frame-<index>.retry-<n>.png`
+Then:
+
+3. Add or generate a canonical reference image in `reference/`.
+4. Generate raw candidates into `raw/` using `frame-<index>.retry-<n>.png`
    names.
-6. Write `manifests/candidates.jsonl` with enough provenance to understand how
+5. Write `manifests/candidates.jsonl` with enough provenance to understand how
    each candidate was produced.
-7. Run alignment, validation, contact-sheet, and preview commands with the new
+6. Run alignment, validation, contact-sheet, and preview commands with the new
    spec path and animation id.
-8. Use validation reports and contact sheets to tune thresholds or manual
+7. Use validation reports and contact sheets to tune thresholds or manual
    anchors.
-9. Write accepted-frame and package manifests once the sequence is ready.
+8. Write accepted-frame and package manifests once the sequence is ready.
 
 The `cat-sit-lick-paw-sit` readiness sequence is a minimal example of a second
 spec using the same tools. Its report is

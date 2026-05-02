@@ -666,7 +666,7 @@ sanity pass.
 - ✅ Done Phase 1: Rename prototype workspace to Anim8gen.
 - ✅ Done Phase 2: Extract reusable Anim8gen package conventions.
 - ✅ Done Phase 3: Create the `.codex/skills/anim8gen` skill skeleton.
-- [ ] Phase 4: Add spec and package initialization helper.
+- ✅ Done Phase 4: Add spec and package initialization helper.
 - [ ] Phase 5: Define imagegen2 prompt and candidate review loop.
 - [ ] Phase 6: Improve preview packaging for agentic alignment.
 - [ ] Phase 7: End-to-end skill trials on short animations.
