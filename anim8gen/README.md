@@ -6,6 +6,12 @@ spec-driven: each sequence has a JSON spec, raw candidate images, aligned
 128x128 RGBA sprite frames, validation reports, review artifacts, and optional
 HTML previews.
 
+A natural-language request such as "make a four-frame pixel art cat that sits,
+lifts a paw, licks it, and sits again" is first expanded into a small brief,
+then into a reusable animation spec and package folder. The cat packages in
+this repo are examples and regression fixtures for that pipeline; the product
+is the package convention and review workflow, not cat-specific tooling.
+
 The current completed package is `cat-yawn-lay-sleep`, a 16-bit pixel-art cat
 that sits, yawns, lies down, and sleeps. The sleeping Zs are a runtime preview
 effect, not pixels baked into the sprite frames.
@@ -63,9 +69,70 @@ Then visit:
 http://127.0.0.1:8765/preview/cat-yawn-lay-sleep.html
 ```
 
-## What Is In The Package
+## Request To Package Flow
 
-The final `cat-yawn-lay-sleep` package consists of:
+Anim8gen keeps the agentic part explicit:
+
+1. Parse the user request into an animation brief with subject, style, view,
+   frame count, frame labels, per-frame pose descriptions, canvas size, FPS,
+   and preview-only effects.
+2. Convert the brief into `anim8gen/config/<animation-id>.json` using the
+   reusable spec shape in `anim8gen/config/template.animation-spec.json`.
+3. Create `anim8gen/assets/<animation-id>/` with `reference/`, `raw/`,
+   `aligned/`, `review/`, and `manifests/` folders.
+4. Generate or place raw candidates as
+   `raw/frame-<index>.retry-<retry>.png`.
+5. Record candidate provenance in `manifests/candidates.jsonl`; accepted
+   frames and review decisions are tracked separately.
+6. Align frames, validate the aligned sprites, generate a contact sheet, and
+   create `preview/<animation-id>.html`.
+7. Review the contact sheet and preview before declaring the package complete.
+
+The structured brief schema lives at `anim8gen/config/brief.schema.json`.
+Defaults are intentionally narrow: side-view pixel art, a 128x128 final
+canvas, 1024x1024 raw generation size, 8 FPS, and a maximum of eight frames for
+the first milestone. Codex should ask for clarification when subject, view,
+frame count, or the core action is ambiguous. Requests for long cinematic
+animation, complex scenes, four-direction packs, or production-grade motion
+should be narrowed or rejected with a clear limitation.
+
+## Package Conventions
+
+Use lowercase kebab-case animation ids:
+
+```text
+anim8gen/config/<animation-id>.json
+anim8gen/assets/<animation-id>/reference/
+anim8gen/assets/<animation-id>/raw/frame-000.retry-001.png
+anim8gen/assets/<animation-id>/aligned/frame-000.<label>.png
+anim8gen/assets/<animation-id>/review/contact-sheet.png
+anim8gen/assets/<animation-id>/manifests/candidates.jsonl
+anim8gen/assets/<animation-id>/manifests/accepted-frames.json
+anim8gen/assets/<animation-id>/manifests/alignment-metrics.json
+anim8gen/assets/<animation-id>/manifests/package-manifest.json
+anim8gen/reports/<animation-id>.validation.json
+anim8gen/reports/<animation-id>.summary.md
+anim8gen/reports/<animation-id>.package.md
+anim8gen/preview/<animation-id>.html
+```
+
+Raw candidate filenames preserve retries. Accepted aligned frame filenames use
+the spec frame label:
+
+```text
+raw/frame-002.retry-001.png
+raw/frame-002.retry-002.png
+aligned/frame-002.yawn-wide.png
+```
+
+Tracked provenance is JSON, JSONL, Markdown, specs, and generated HTML preview
+files. Live generated bitmap assets are ignored inside each package folder:
+`reference/`, `raw/`, `aligned/`, and `review/` image outputs remain local
+package artifacts while `.gitkeep` files preserve the directory shape.
+
+## Example Packages
+
+The completed `cat-yawn-lay-sleep` example package consists of:
 
 - `assets/cat-yawn-lay-sleep/aligned/frame-000.sit-idle.png` through
   `assets/cat-yawn-lay-sleep/aligned/frame-007.sleep-loop.png`
@@ -87,6 +154,10 @@ image files.
 
 For a concise package inventory, see
 `anim8gen/reports/cat-yawn-lay-sleep.package.md`.
+
+The `cat-sit-lick-paw-sit` package is a synthetic readiness fixture. It proves
+that the same spec, alignment, validation, and reporting conventions work for
+another short animation without changing tool code.
 
 ## Directory Layout
 
@@ -131,6 +202,31 @@ Important fields:
   `sleeping-zs`.
 - `frames`: ordered frame definitions with `index`, `label`, `pose`, and
   optional `anchor`.
+
+Start from `anim8gen/config/template.animation-spec.json` for a new package.
+The template includes frame labels, pose descriptions, alignment settings,
+validation thresholds, preview strategy, runtime effects, and image generation
+manifest paths. The cat specs are examples of the same schema, not required
+inputs for the tools.
+
+Brief-to-spec expansion uses these defaults unless the user request says
+otherwise:
+
+- `style`: `pixel art`
+- `view`: `side`
+- `canvas`: `[128, 128]`
+- `workingSize`: `[1024, 1024]`
+- `fps`: `8`
+- `maxFrameCount`: `8`
+- `segmentation.strategy`: `chroma-key`
+- `segmentation.chromaKey`: `#ff00ff`
+- `alignment.defaultAnchor`: `body_bottom_center`
+
+Ask for clarification instead of guessing when a request omits the subject,
+uses an unclear camera direction, asks for an unspecified number of distinct
+poses, or combines unrelated actions that cannot fit the max frame count.
+Unsupported broad requests should be narrowed into a short loop or reported as
+out of scope.
 
 Output file names are derived from each frame definition:
 

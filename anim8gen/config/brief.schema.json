@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/anim8gen/brief.schema.json",
+  "title": "Anim8gen Animation Brief",
+  "description": "Structured brief produced by Codex from a natural-language request before initializing an Anim8gen package.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "subject", "style", "view", "frames"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Lowercase package id used for config, asset, preview, and report paths.",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "minLength": 3,
+      "maxLength": 64
+    },
+    "subject": {
+      "type": "string",
+      "description": "Main character or object that should appear in every accepted frame.",
+      "minLength": 2,
+      "maxLength": 80
+    },
+    "style": {
+      "type": "string",
+      "description": "Visual style, usually concise enough to fit directly into frame prompts.",
+      "default": "pixel art",
+      "minLength": 2,
+      "maxLength": 80
+    },
+    "view": {
+      "type": "string",
+      "description": "Camera/view direction to preserve across frames.",
+      "default": "side",
+      "enum": ["side", "front", "three-quarter", "top-down", "isometric"]
+    },
+    "canvas": {
+      "type": "array",
+      "description": "Final aligned sprite canvas size in pixels.",
+      "default": [128, 128],
+      "prefixItems": [
+        {"type": "integer", "minimum": 32, "maximum": 512},
+        {"type": "integer", "minimum": 32, "maximum": 512}
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "workingSize": {
+      "type": "array",
+      "description": "Raw generation size expected from the image generator.",
+      "default": [1024, 1024],
+      "prefixItems": [
+        {"type": "integer", "minimum": 256, "maximum": 2048},
+        {"type": "integer", "minimum": 256, "maximum": 2048}
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "fps": {
+      "type": "integer",
+      "description": "Default preview playback rate.",
+      "default": 8,
+      "minimum": 1,
+      "maximum": 24
+    },
+    "maxFrameCount": {
+      "type": "integer",
+      "description": "Initial bounded scope for one request. Codex should ask to split broader actions.",
+      "default": 8,
+      "minimum": 2,
+      "maximum": 8
+    },
+    "runtimeEffects": {
+      "type": "array",
+      "description": "Preview-only overlays or effects that must not be baked into source sprite pixels unless explicitly requested.",
+      "default": [],
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      }
+    },
+    "clarificationPolicy": {
+      "type": "string",
+      "description": "When to ask the user instead of guessing.",
+      "default": "Ask for clarification when subject, view, frame count, or core action is ambiguous; otherwise choose conservative defaults and document them."
+    },
+    "unsupportedHandling": {
+      "type": "string",
+      "description": "How to handle requests outside the first Anim8gen scope.",
+      "default": "Decline or narrow requests for long cinematic animation, multi-character scenes, four-direction packs, complex physics, or production-grade motion."
+    },
+    "frames": {
+      "type": "array",
+      "description": "Ordered pose plan. Indexes must be contiguous from 0 and labels become file-name slugs.",
+      "minItems": 2,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["index", "label", "pose"],
+        "properties": {
+          "index": {"type": "integer", "minimum": 0, "maximum": 7},
+          "label": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "minLength": 2,
+            "maxLength": 40
+          },
+          "pose": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 160
+          },
+          "anchor": {
+            "type": "string",
+            "default": "body_bottom_center",
+            "enum": ["body_bottom_center", "feet_center", "body_center", "head_center", "manual"]
+          }
+        }
+      }
+    }
+  }
+}
