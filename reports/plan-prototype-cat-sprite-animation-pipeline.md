@@ -1,5 +1,13 @@
 # Plan Report: Prototype Cat Sprite Animation Pipeline
 
+## Continuation
+
+The original prototype plan produced the reusable sprite-package pipeline.
+Continuation now lives in `plans/build-anim8gen-skill.md`, which turns that
+prototype into the repo-local `anim8gen` Codex skill under
+`.codex/skills/anim8gen/` and keeps `anim8gen/` as the working package output
+area.
+
 ## Phase 1: Scaffold The Prototype Workspace
 
 Status: complete

@@ -2,68 +2,78 @@
 
 ## Phase
 
-Phase 7: End-to-end skill trials on short animations.
+Phase 8: Documentation and handoff.
 
 Status: Done.
 
 ## Scope Assessment
 
-The phase stayed within the two required skill-trial workflows. Trial A adds
-`deterministic-square-hop` as a deterministic local package that exercises
-brief-to-spec initialization, synthetic candidate records, alignment,
-validation, contact-sheet generation, preview generation, preview-only display
-offset metadata, frame review JSON, accepted-frame metadata, and package
-reporting.
+The phase stayed within documentation and handoff scope. It updates
+`anim8gen/README.md` to distinguish the public `/anim8gen` natural-language
+skill intent from the `anim8gen/` working output area, documents the
+`.codex/skills/anim8gen/` Codex skill, explains preview, validation, contact
+sheet, and review-report interpretation, and records why `imagegen2` requires
+agentic candidate review instead of blind acceptance.
 
-Trial B adds `live-cat-paw-loop` as a live `imagegen2` trial scaffold. The
-required dry-run preflight succeeded, but `OPENAI_API_KEY` was absent, so the
-live run is honestly marked blocked. Its package includes blocked-trial
-candidate and frame-review records that exercise `accepted-with-warning` and
-`rejected-pose` semantics without claiming live candidate pixels exist.
+The older prototype plan report now points to `plans/build-anim8gen-skill.md`
+as the continuation path. Phase 7 Trial A and Trial B reports already existed;
+the README now references the deterministic package result and the blocked
+live `imagegen2` trial result.
 
-Phase 7 is marked `✅ Done` in the plan tracker.
+Phase 8 is marked `✅ Done` in the plan tracker.
 
 ## Tests Run
 
 ```bash
-python3 .codex/skills/anim8gen/scripts/init_package.py --brief <deterministic-square-hop brief>
-python3 .codex/skills/anim8gen/scripts/create_synthetic_frames.py --spec anim8gen/config/deterministic-square-hop.json --root anim8gen
-python3 anim8gen/tools/align_frames.py --spec anim8gen/config/deterministic-square-hop.json --input anim8gen/assets/deterministic-square-hop/raw --output anim8gen/assets/deterministic-square-hop/aligned
-python3 anim8gen/tools/validate_sprites.py --spec anim8gen/config/deterministic-square-hop.json --frames anim8gen/assets/deterministic-square-hop/aligned --out anim8gen/reports/deterministic-square-hop.validation.json
-python3 anim8gen/tools/make_contact_sheet.py --spec anim8gen/config/deterministic-square-hop.json --raw anim8gen/assets/deterministic-square-hop/raw --aligned anim8gen/assets/deterministic-square-hop/aligned --validation anim8gen/reports/deterministic-square-hop.validation.json --out anim8gen/assets/deterministic-square-hop/review/contact-sheet.png
-python3 anim8gen/tools/make_preview.py --spec anim8gen/config/deterministic-square-hop.json --frames anim8gen/assets/deterministic-square-hop/aligned --validation anim8gen/reports/deterministic-square-hop.validation.json --out anim8gen/preview/deterministic-square-hop.html
-node .codex/skills/imagegen2/generate.cjs --prompt "dry-run preflight for live-cat-paw-loop frame 0" --output /tmp/live-cat-paw-loop-dry-run.png --quality low --dry-run
-python3 .codex/skills/anim8gen/scripts/init_package.py --brief <live-cat-paw-loop brief>
-python3 -m json.tool anim8gen/config/deterministic-square-hop.json >/dev/null
-python3 -m json.tool anim8gen/config/live-cat-paw-loop.json >/dev/null
-python3 -m json.tool anim8gen/reports/deterministic-square-hop.validation.json >/dev/null
-python3 .codex/skills/anim8gen/scripts/validate_review_records.py --candidates anim8gen/assets/deterministic-square-hop/manifests/candidates.jsonl --reviews anim8gen/assets/deterministic-square-hop/review/frame-reviews.json
-python3 .codex/skills/anim8gen/scripts/validate_review_records.py --candidates anim8gen/assets/live-cat-paw-loop/manifests/candidates.jsonl --reviews anim8gen/assets/live-cat-paw-loop/review/frame-reviews.json
-test -s anim8gen/assets/deterministic-square-hop/review/frame-reviews.json
-test -s anim8gen/reports/deterministic-square-hop.package.md
-if [ -z "${OPENAI_API_KEY:-}" ]; then test -s anim8gen/reports/live-cat-paw-loop.blocked.md; fi
-test -s anim8gen/reports/live-cat-paw-loop.package.md || test -s anim8gen/reports/live-cat-paw-loop.blocked.md
+test -s anim8gen/README.md
+test -s .codex/skills/anim8gen/SKILL.md
+rg -n "natural language|imagegen2|review|preview|contact sheet|validation|Codex skill" anim8gen/README.md .codex/skills/anim8gen/SKILL.md >/tmp/phase8-doc-keywords.txt
+rg -n "deterministic-square-hop|live-cat-paw-loop|Trial A|Trial B|blocked|temporary CODEX_HOME" anim8gen/README.md anim8gen/reports >/tmp/phase8-trial-keywords.txt
+! rg -n "sprite-lab|Sprite Lab" anim8gen .codex/skills/anim8gen
+```
+
+Final cross-phase verification after landing:
+
+```bash
+python3 -m py_compile anim8gen/tools/align_frames.py anim8gen/tools/validate_sprites.py anim8gen/tools/make_contact_sheet.py anim8gen/tools/make_preview.py
+python3 -m json.tool anim8gen/config/cat-yawn-lay-sleep.json >/dev/null
+python3 -m json.tool anim8gen/config/cat-sit-lick-paw-sit.json >/dev/null
+python3 anim8gen/tools/align_frames.py --spec anim8gen/config/cat-yawn-lay-sleep.json --input anim8gen/assets/cat-yawn-lay-sleep/raw --output anim8gen/assets/cat-yawn-lay-sleep/aligned
+python3 anim8gen/tools/validate_sprites.py --spec anim8gen/config/cat-yawn-lay-sleep.json --frames anim8gen/assets/cat-yawn-lay-sleep/aligned --out anim8gen/reports/cat-yawn-lay-sleep.validation.json
+python3 anim8gen/tools/align_frames.py --spec anim8gen/config/cat-sit-lick-paw-sit.json --input anim8gen/assets/cat-sit-lick-paw-sit/raw --output anim8gen/assets/cat-sit-lick-paw-sit/aligned
+python3 anim8gen/tools/validate_sprites.py --spec anim8gen/config/cat-sit-lick-paw-sit.json --frames anim8gen/assets/cat-sit-lick-paw-sit/aligned --out anim8gen/reports/cat-sit-lick-paw-sit.validation.json
+python3 - <<'PY'
+from pathlib import Path
+skill = Path('.codex/skills/anim8gen/SKILL.md').read_text()
+assert 'name: anim8gen' in skill
+assert 'imagegen2' in skill
+assert 'sprite-lab' not in skill
+print('anim8gen skill metadata ok')
+PY
+tmp_codex_home="$(mktemp -d)"
+CODEX_HOME="$tmp_codex_home" bash scripts/install-codex-skills.sh
+test -s "$tmp_codex_home/skills/anim8gen/SKILL.md"
 ```
 
 ## Verification Result
 
-Passed with inline verification. The deterministic trial generated four raw
-synthetic PNGs, four aligned PNGs, a validation report with zero warnings, a
-contact sheet, and a static preview. Both deterministic and blocked live-trial
-candidate/review records passed the local review-record validator.
+Passed with inline verification. The documentation contains the required skill
+handoff language, trial references, validation/review/preview terms, and no
+stale `sprite-lab` or `Sprite Lab` references under active Anim8gen paths.
+Final cross-phase verification also passed on `main`; the cat package
+validators preserved the known advisory warnings for intentional motion, and
+the temporary `CODEX_HOME` installer check installed the vendored Anim8gen
+skill successfully.
 
-Live image generation was blocked by missing `OPENAI_API_KEY`; the dry-run
-preflight itself passed and is recorded in
-`anim8gen/reports/live-cat-paw-loop.blocked.md`.
+Remote freshness could not be checked because the repository has no usable
+`origin` remote configured.
 
 ## Landing Result
 
-Landed. Worktree commit `1fb4c39` was cherry-picked to local `main` as
-`fe2ee41`, then this final landing result was amended into the current `main`
-commit.
+Landed. Worktree commit `c919fca` was cherry-picked to local `main` as
+`d4def3b`, then this final landing and cross-phase verification result was
+amended into the current local `main` commit.
 
 ## Remaining Phases
 
-Phase 8 remains:
-
-- Phase 8: Documentation and handoff.
+None. Phase 8 was the final planned phase.

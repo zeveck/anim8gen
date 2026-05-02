@@ -670,4 +670,4 @@ sanity pass.
 - ✅ Done Phase 5: Define imagegen2 prompt and candidate review loop.
 - ✅ Done Phase 6: Improve preview packaging for agentic alignment.
 - ✅ Done Phase 7: End-to-end skill trials on short animations.
-- [ ] Phase 8: Documentation and handoff.
+- ✅ Done Phase 8: Documentation and handoff.

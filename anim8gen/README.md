@@ -1,16 +1,22 @@
 # Anim8gen
 
-Anim8gen is a prototype workspace for building fixed-canvas sprite animation
-packages from generated still frames. It keeps animation behavior
-spec-driven: each sequence has a JSON spec, raw candidate images, aligned
-128x128 RGBA sprite frames, validation reports, review artifacts, and optional
-HTML previews.
+Anim8gen is both a repo-local Codex skill and a working output area for
+building fixed-canvas sprite animation packages from generated still frames.
+The public intent is a natural-language `/anim8gen` workflow for short,
+simple sprite actions. It keeps animation behavior spec-driven: each sequence
+has a JSON spec, raw candidate images, aligned 128x128 RGBA sprite frames,
+validation reports, review artifacts, and optional HTML previews.
 
 A natural-language request such as "make a four-frame pixel art cat that sits,
 lifts a paw, licks it, and sits again" is first expanded into a small brief,
 then into a reusable animation spec and package folder. The cat packages in
 this repo are examples and regression fixtures for that pipeline; the product
 is the package convention and review workflow, not cat-specific tooling.
+
+The `.codex/skills/anim8gen/` directory is the Codex skill interface. It tells
+Codex how to parse a request, call `imagegen2`, review generated candidates,
+run local tools, and report results. The `anim8gen/` directory is the package
+workspace where specs, assets, previews, reports, and reusable tools live.
 
 The current completed package is `cat-yawn-lay-sleep`, a 16-bit pixel-art cat
 that sits, yawns, lies down, and sleeps. The sleeping Zs are a runtime preview
@@ -419,6 +425,96 @@ pause, frame stepping, FPS control, frame thumbnails, checkerboard background
 toggle, frame labels, validation warning indicators, preview-only display
 offsets, and runtime overlays such as sleeping Zs when requested by the spec.
 
+## Codex Skill Handoff
+
+The repo-local skill lives at `.codex/skills/anim8gen/SKILL.md`. In this
+repository, Codex can use that skill directly when the user asks for
+`anim8gen` or a short sprite animation. Installing the skill into the real
+`${CODEX_HOME:-$HOME/.codex}` is optional handoff for a developer who wants to
+use it outside this checkout. Verification should use a temporary
+`CODEX_HOME` so it does not modify a developer's live Codex setup:
+
+```bash
+tmp_codex_home="$(mktemp -d)"
+CODEX_HOME="$tmp_codex_home" bash scripts/install-codex-skills.sh
+test -s "$tmp_codex_home/skills/anim8gen/SKILL.md"
+```
+
+The skill resolves helper scripts from `.codex/skills/anim8gen/scripts/` and
+uses `anim8gen/config/brief.schema.json` plus
+`anim8gen/config/template.animation-spec.json` as the bridge from a natural
+language request to an executable package.
+
+`imagegen2` is intentionally treated as a candidate generator, not as an
+animation engine. It can produce useful still frames, but it may miss a pose,
+change the subject, drift camera angle, bake in text or effects, or return a
+background that does not segment cleanly. The skill therefore requires
+agentic review: inspect candidates, record accepted and rejected attempts,
+retry with revised prompts within the retry budget, and report `partial` or
+`blocked` when the result is not good enough.
+
+## Skill Trial Runs
+
+Trial A, `deterministic-square-hop`, is the no-credentials smoke trial. It
+initializes a package from a brief, creates synthetic chroma-keyed raw frames,
+aligns them, validates them, creates a contact sheet, creates an HTML preview,
+and validates review records. It proves the local package pipeline without
+paid image generation:
+
+```bash
+python3 .codex/skills/anim8gen/scripts/init_package.py \
+  --brief /tmp/deterministic-square-hop.brief.json \
+  --root anim8gen
+python3 .codex/skills/anim8gen/scripts/create_synthetic_frames.py \
+  --spec anim8gen/config/deterministic-square-hop.json \
+  --root anim8gen
+python3 anim8gen/tools/align_frames.py \
+  --spec anim8gen/config/deterministic-square-hop.json \
+  --input anim8gen/assets/deterministic-square-hop/raw \
+  --output anim8gen/assets/deterministic-square-hop/aligned
+python3 anim8gen/tools/validate_sprites.py \
+  --spec anim8gen/config/deterministic-square-hop.json \
+  --frames anim8gen/assets/deterministic-square-hop/aligned \
+  --out anim8gen/reports/deterministic-square-hop.validation.json
+python3 anim8gen/tools/make_contact_sheet.py \
+  --spec anim8gen/config/deterministic-square-hop.json \
+  --raw anim8gen/assets/deterministic-square-hop/raw \
+  --aligned anim8gen/assets/deterministic-square-hop/aligned \
+  --validation anim8gen/reports/deterministic-square-hop.validation.json \
+  --out anim8gen/assets/deterministic-square-hop/review/contact-sheet.png
+python3 anim8gen/tools/make_preview.py \
+  --spec anim8gen/config/deterministic-square-hop.json \
+  --frames anim8gen/assets/deterministic-square-hop/aligned \
+  --validation anim8gen/reports/deterministic-square-hop.validation.json \
+  --out anim8gen/preview/deterministic-square-hop.html
+python3 .codex/skills/anim8gen/scripts/validate_review_records.py \
+  --candidates anim8gen/assets/deterministic-square-hop/manifests/candidates.jsonl \
+  --reviews anim8gen/assets/deterministic-square-hop/review/frame-reviews.json
+```
+
+The latest Trial A package report is
+`anim8gen/reports/deterministic-square-hop.package.md`; it passed locally with
+zero validation warnings.
+
+Trial B, `live-cat-paw-loop`, is the live `imagegen2` gate for a cat that sits,
+lifts a paw, licks it, and returns to sitting. Always run the dry-run preflight
+first:
+
+```bash
+node .codex/skills/imagegen2/generate.cjs \
+  --prompt "dry-run preflight for live-cat-paw-loop frame 0" \
+  --output /tmp/live-cat-paw-loop-dry-run.png \
+  --quality low \
+  --dry-run
+```
+
+If `OPENAI_API_KEY` is set, continue with real frame generation, review,
+alignment, validation, contact-sheet generation, preview generation, and
+package reporting. If credentials are absent, record a blocked report instead
+of claiming live coverage. The latest Trial B report is
+`anim8gen/reports/live-cat-paw-loop.blocked.md`; the dry-run preflight passed,
+but live generation was blocked because `OPENAI_API_KEY` was not set.
+
 ## Manual Review Loop
 
 Use this loop after generating or changing frames:
@@ -626,3 +722,11 @@ python3 -m http.server 8765 --bind 127.0.0.1 --directory anim8gen
   check.
 - `reports/cat-sit-lick-paw-sit.validation.json`: validation evidence for the
   three-frame synthetic readiness sequence.
+- `reports/deterministic-square-hop.package.md`: Trial A deterministic skill
+  smoke package report.
+- `reports/deterministic-square-hop.validation.json`: Trial A validation
+  evidence.
+- `reports/live-cat-paw-loop.package.md`: Trial B live `imagegen2` scaffold
+  package report.
+- `reports/live-cat-paw-loop.blocked.md`: Trial B blocked live-generation
+  report when `OPENAI_API_KEY` is absent.
