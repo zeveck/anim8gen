@@ -2,79 +2,62 @@
 
 ## Phase
 
-Phase 5: Define imagegen2 prompt and candidate review loop.
+Phase 6: Improve preview packaging for agentic alignment.
 
 Status: Done.
 
 ## Scope Assessment
 
-The phase stayed within the candidate review and prompt-loop scope. It refined
-the skill runbook and README so `imagegen2` transport metadata is separate from
-Anim8gen review decisions, documented bounded retry states, and required
-`review/frame-reviews.json` before claiming frame acceptance.
+The phase stayed within preview packaging and agentic alignment scope. It
+keeps canvas playback as the default preview strategy, adds spec-level
+`preview.displayOffsets` for playback-only x/y shifts, and makes
+`preview.runtimeEffects` drive whether runtime overlays such as sleeping Zs
+are shown.
 
-The package initializer now creates a review ledger, package ignore rules allow
-review JSON and Markdown to be tracked, the synthetic helper emits candidate
-review status plus `frame-reviews.json`, and a validator checks candidate JSONL
-and frame review JSON records. Existing cat example packages now include
-tracked frame review ledgers.
+The implementation keeps preview metadata separate from accepted-frame review
+metadata: display offsets affect only HTML playback and do not change source
+sprite pixels, accepted candidate quality, or validation results. The README,
+skill runbook, template spec, brief schema, package initializer, cat specs, and
+cat package report now document that separation.
 
-Phase 5 is marked `✅ Done` in the plan tracker.
+Phase 6 is marked `✅ Done` in the plan tracker.
 
 ## Tests Run
 
 ```bash
-python3 -m py_compile .codex/skills/anim8gen/scripts/init_package.py .codex/skills/anim8gen/scripts/create_synthetic_frames.py .codex/skills/anim8gen/scripts/validate_review_records.py
-rg -n "candidate|accepted|rejected|retry|imagegen2|reference|pose|packageStatus|frame-reviews|retry budget" .codex/skills/anim8gen anim8gen/README.md
-python3 -m json.tool anim8gen/assets/cat-yawn-lay-sleep/manifests/accepted-frames.json >/dev/null
-python3 -m json.tool anim8gen/assets/cat-yawn-lay-sleep/review/frame-reviews.json >/dev/null
-python3 -m json.tool anim8gen/assets/cat-sit-lick-paw-sit/review/frame-reviews.json >/dev/null
-python3 - <<'PY'
-from pathlib import Path
-text = Path('.codex/skills/anim8gen/SKILL.md').read_text()
-for token in ['rejected-pose', 'rejected-identity', 'accepted-with-warning', 'retry budget', 'packageStatus', 'frame-reviews.json']:
-    assert token in text
-print('candidate review guidance ok')
-PY
-cat >/tmp/anim8gen-phase5-brief.json <<'JSON'
-{
-  "id": "phase-five-test",
-  "subject": "test square",
-  "style": "pixel art",
-  "view": "side",
-  "canvas": [128, 128],
-  "workingSize": [1024, 1024],
-  "fps": 8,
-  "frames": [
-    {"index": 0, "label": "idle", "pose": "idle pose"},
-    {"index": 1, "label": "hop", "pose": "hop pose"}
-  ]
-}
-JSON
-rm -rf /tmp/anim8gen-phase5-test
-python3 .codex/skills/anim8gen/scripts/init_package.py --brief /tmp/anim8gen-phase5-brief.json --root /tmp/anim8gen-phase5-test
-python3 .codex/skills/anim8gen/scripts/create_synthetic_frames.py --spec /tmp/anim8gen-phase5-test/config/phase-five-test.json --root /tmp/anim8gen-phase5-test
-python3 .codex/skills/anim8gen/scripts/validate_review_records.py --candidates /tmp/anim8gen-phase5-test/assets/phase-five-test/manifests/candidates.jsonl --reviews /tmp/anim8gen-phase5-test/assets/phase-five-test/review/frame-reviews.json
-test -s /tmp/anim8gen-phase5-test/assets/phase-five-test/review/frame-reviews.json
+python3 -m py_compile anim8gen/tools/make_preview.py .codex/skills/anim8gen/scripts/init_package.py
+python3 -m json.tool anim8gen/config/cat-yawn-lay-sleep.json >/dev/null
+python3 -m json.tool anim8gen/config/cat-sit-lick-paw-sit.json >/dev/null
+python3 -m json.tool anim8gen/config/brief.schema.json >/dev/null
+python3 anim8gen/tools/make_preview.py --spec anim8gen/config/cat-yawn-lay-sleep.json --frames anim8gen/assets/cat-yawn-lay-sleep/aligned --validation anim8gen/reports/cat-yawn-lay-sleep.validation.json --out anim8gen/preview/cat-yawn-lay-sleep.html
+python3 -m http.server 8765 --bind 127.0.0.1 --directory anim8gen
+playwright-cli open http://127.0.0.1:8765/preview/cat-yawn-lay-sleep.html
+playwright-cli eval '() => ({canvasBytes: document.querySelector("canvas")?.toDataURL().length, thumbs: document.querySelectorAll(".thumb").length, zHidden: document.querySelector("#zToggle")?.closest(".toggle")?.hidden, frameLabel: document.querySelector("#frameLabel")?.textContent})'
+playwright-cli snapshot
+playwright-cli click e13
+playwright-cli eval '() => document.querySelector("#frameLabel")?.textContent'
+rg -n "displayOffsets|runtimeEffects|canvas-playback|preview-only offsets|preview-only display offsets|wrong identity|wrong pose|wrong camera" anim8gen/README.md .codex/skills/anim8gen/SKILL.md anim8gen/config anim8gen/reports/cat-yawn-lay-sleep.package.md
 ```
+
+The Playwright console contained one expected static-server 404 for
+`/favicon.ico`; sprite frame assets loaded successfully.
 
 ## Verification Result
 
-Passed with inline verification. The required Phase 5 grep and metadata checks
-pass, both existing review ledgers parse as JSON, the new scripts compile, and
-the validator accepts a deterministic initialized package after synthetic frame
-generation.
+Passed with inline verification. The preview generator compiled, all changed
+JSON parsed, the cat preview regenerated, Playwright confirmed a non-empty
+canvas data URL, eight thumbnails, visible sleeping-Z controls for the package
+that requests them, and working Next-frame interaction.
 
 ## Landing Result
 
-Landed. Worktree commit `e32383b` was cherry-picked to local `main` as
-`9a5c506`, then this final landing result was amended into the current `main`
+Landed. Worktree commit `5cad89f` was cherry-picked to local `main` as
+`9fc3eb1`, then this final landing result was amended into the current `main`
 commit.
 
 ## Remaining Phases
 
-Phase 6 through Phase 8 remain:
+Phase 7 through Phase 8 remain:
 
-- Phase 6: Improve preview packaging for agentic alignment.
 - Phase 7: End-to-end skill trials on short animations.
 - Phase 8: Documentation and handoff.

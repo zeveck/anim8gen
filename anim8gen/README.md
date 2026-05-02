@@ -204,6 +204,10 @@ Important fields:
   frames that need hand alignment.
 - `validation.defaultThresholds`: structural and advisory continuity checks.
 - `validation.motionPhases`: threshold overrides for known large movements.
+- `preview.strategy`: preview renderer, currently `canvas-playback` by default.
+- `preview.displayOffsets`: preview-only `{x, y, reason}` adjustments by frame
+  index or label. These affect playback layout only and do not change source
+  frames, accepted candidate quality, or validation results.
 - `preview.runtimeEffects`: non-sprite effects rendered by the preview, such as
   `sleeping-zs`.
 - `frames`: ordered frame definitions with `index`, `label`, `pose`, and
@@ -410,9 +414,10 @@ Then open:
 http://127.0.0.1:8765/preview/<animation-id>.html
 ```
 
-The current preview includes playback, pause, frame stepping, FPS control,
-frame thumbnails, checkerboard background toggle, frame labels, validation
-warning indicators, and runtime sleeping Zs for sleep frames.
+The current preview uses canvas playback by default. It includes playback,
+pause, frame stepping, FPS control, frame thumbnails, checkerboard background
+toggle, frame labels, validation warning indicators, preview-only display
+offsets, and runtime overlays such as sleeping Zs when requested by the spec.
 
 ## Manual Review Loop
 
@@ -425,8 +430,12 @@ Use this loop after generating or changing frames:
 5. Review the contact sheet for clipping, drift, and inconsistent silhouette.
 6. Review the preview for readable motion at the intended FPS.
 7. If needed, add `alignment.manualOverrides` to the spec and rerun the tools.
+   Use `preview.displayOffsets` only when the accepted aligned frame is
+   fundamentally correct but needs playback polish; regenerate images for wrong
+   pose, wrong identity, wrong camera angle, or dirty source pixels.
 8. Record accepted frames in `assets/<animation-id>/manifests/accepted-frames.json`.
-9. Record review decisions in `reports/<animation-id>.summary.md`.
+9. Record review decisions plus any preview-only offsets or runtime effects in
+   `reports/<animation-id>.summary.md` or the package report.
 10. Update or create `assets/<animation-id>/manifests/package-manifest.json`
     when the package is ready to hand off.
 

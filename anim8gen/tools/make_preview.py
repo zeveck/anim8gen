@@ -40,8 +40,31 @@ def warning_counts(validation: dict[str, Any]) -> dict[int, int]:
     return counts
 
 
+def preview_offset(preview: dict[str, Any], frame: dict[str, Any]) -> dict[str, Any]:
+    offsets = preview.get("displayOffsets", {})
+    if not isinstance(offsets, dict):
+        raise ValueError("preview.displayOffsets must be an object when provided")
+
+    raw = offsets.get(str(frame["index"]), offsets.get(frame["label"], {}))
+    if raw is None:
+        raw = {}
+    if not isinstance(raw, dict):
+        raise ValueError(f"preview display offset for frame {frame['index']} must be an object")
+
+    x = raw.get("x", 0)
+    y = raw.get("y", 0)
+    if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+        raise ValueError(f"preview display offset for frame {frame['index']} must use numeric x and y")
+
+    offset: dict[str, Any] = {"x": x, "y": y}
+    if raw.get("reason"):
+        offset["reason"] = str(raw["reason"])
+    return offset
+
+
 def build_payload(spec: dict[str, Any], validation: dict[str, Any], frames_dir: Path, out_path: Path) -> dict[str, Any]:
     counts = warning_counts(validation)
+    preview = spec.get("preview", {})
     frames = []
     for frame in spec["frames"]:
         path = frames_dir / aligned_name(frame)
@@ -54,6 +77,7 @@ def build_payload(spec: dict[str, Any], validation: dict[str, Any], frames_dir: 
                 "pose": frame.get("pose", ""),
                 "sleep": "sleep" in frame["label"] or "eyes closed" in frame.get("pose", ""),
                 "warnings": counts.get(frame["index"], 0),
+                "displayOffset": preview_offset(preview, frame),
                 "src": relative_src(path, out_path),
             }
         )
@@ -61,6 +85,8 @@ def build_payload(spec: dict[str, Any], validation: dict[str, Any], frames_dir: 
         "id": spec["id"],
         "canvas": spec["render"]["canvas"],
         "fps": spec["render"].get("fps", 8),
+        "previewStrategy": preview.get("strategy", "canvas-playback"),
+        "runtimeEffects": preview.get("runtimeEffects", []),
         "validationSummary": validation.get("summary", {}),
         "frames": frames,
     }
@@ -216,6 +242,9 @@ def render_html(payload: dict[str, Any]) -> str:
       display: grid;
       gap: 8px;
     }}
+    .toggle[hidden] {{
+      display: none;
+    }}
     .toggle {{
       display: flex;
       align-items: center;
@@ -356,12 +385,12 @@ def render_html(payload: dict[str, Any]) -> str:
       const frame = payload.frames[frameIndex];
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(images[frameIndex], 0, 0);
+      ctx.drawImage(images[frameIndex], frame.displayOffset.x, frame.displayOffset.y);
       frameLabel.textContent = `${{String(frame.index).padStart(3, "0")}} ${{frame.label}}`;
       pose.textContent = frame.pose;
       warningLabel.textContent = frame.warnings ? `${{frame.warnings}} linked validation warnings` : "No linked validation warnings";
       warningLabel.classList.toggle("warn", frame.warnings > 0);
-      zs.classList.toggle("active", zToggle.checked && frame.sleep);
+      zs.classList.toggle("active", hasSleepingZs && zToggle.checked && frame.sleep);
       [...strip.children].forEach((child, index) => child.classList.toggle("active", index === frameIndex));
     }}
 
@@ -387,6 +416,8 @@ def render_html(payload: dict[str, Any]) -> str:
     }});
     checkerInput.addEventListener("change", () => stage.classList.toggle("plain", !checkerInput.checked));
     zToggle.addEventListener("change", render);
+    const hasSleepingZs = payload.runtimeEffects.includes("sleeping-zs");
+    zToggle.closest(".toggle").hidden = !hasSleepingZs;
 
     loadImages().then(() => {{
       renderStrip();

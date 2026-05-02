@@ -17,6 +17,10 @@
 - Package manifest:
   `anim8gen/assets/cat-yawn-lay-sleep/manifests/package-manifest.json`
 
+Preview packaging uses the default `canvas-playback` strategy. It has no
+preview-only display offsets; the sleeping Zs are a `preview.runtimeEffects`
+overlay rendered by the HTML preview and are not baked into sprite frames.
+
 The raw candidates and canonical reference image are intermediate assets. Keep
 them with the package for provenance and future regeneration, but do not treat
 them as final sprite frames.

@@ -108,6 +108,16 @@ def build_spec(brief: dict[str, Any]) -> dict[str, Any]:
     runtime_effects = brief.get("runtimeEffects", [])
     if not isinstance(runtime_effects, list) or not all(isinstance(item, str) for item in runtime_effects):
         raise SystemExit("brief.runtimeEffects must be an array of strings")
+    display_offsets = brief.get("displayOffsets", {})
+    if not isinstance(display_offsets, dict):
+        raise SystemExit("brief.displayOffsets must be an object")
+    for key, offset in display_offsets.items():
+        if not isinstance(key, str) or not isinstance(offset, dict):
+            raise SystemExit("brief.displayOffsets must map frame indexes or labels to objects")
+        if not isinstance(offset.get("x"), (int, float)) or not isinstance(offset.get("y"), (int, float)):
+            raise SystemExit(f"brief.displayOffsets.{key} must include numeric x and y")
+        if "reason" in offset and not isinstance(offset["reason"], str):
+            raise SystemExit(f"brief.displayOffsets.{key}.reason must be a string")
 
     floor_y = brief.get("floorY", max(0, canvas[1] - 16))
     if not isinstance(floor_y, int) or not (0 <= floor_y < canvas[1]):
@@ -171,6 +181,7 @@ def build_spec(brief: dict[str, Any]) -> dict[str, Any]:
         },
         "preview": {
             "strategy": "canvas-playback",
+            "displayOffsets": display_offsets,
             "runtimeEffects": runtime_effects,
             "minimalControls": ["playPause", "fps", "step", "frameLabel", "checkerboard"],
         },

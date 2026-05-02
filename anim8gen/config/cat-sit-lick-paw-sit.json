@@ -69,6 +69,8 @@
     ]
   },
   "preview": {
+    "strategy": "canvas-playback",
+    "displayOffsets": {},
     "runtimeEffects": [],
     "minimalControls": [
       "playPause",

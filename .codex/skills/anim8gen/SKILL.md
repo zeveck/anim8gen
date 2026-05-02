@@ -60,11 +60,13 @@ requests where the user only wants a single static image.
     `anim8gen/tools/make_contact_sheet.py`, and create an HTML preview with
     `anim8gen/tools/make_preview.py`.
 12. Review the contact sheet and preview. Use spec manual anchors or
-    preview-only offsets only for alignment and playback polish; regenerate
-    images for wrong identity, wrong pose, wrong camera angle, or unclean
-    sprite pixels.
+    `preview.displayOffsets` only for alignment and playback polish;
+    regenerate images for wrong identity, wrong pose, wrong camera angle, or
+    unclean sprite pixels. Keep `preview.runtimeEffects` separate from sprite
+    pixels unless the user explicitly asks for baked effects.
 13. Return final package paths, validation status, review warnings, rejected
-    candidate summary, preview path, and remaining limitations.
+    candidate summary, preview path, preview-only offsets/effects, and
+    remaining limitations.
 
 ## Required Package Paths
 
@@ -155,6 +157,9 @@ Minimum review checks:
   changes are acceptable or documented.
 - Runtime separation: preview effects stay out of source sprite pixels unless
   the user explicitly requested baked pixels.
+- Preview layout separation: `preview.displayOffsets` may shift an accepted
+  frame during playback, but it does not upgrade a weak pose or replace review
+  evidence.
 
 Use `references/review-checklist.md` for candidate acceptance notes.
 

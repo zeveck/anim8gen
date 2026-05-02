@@ -80,6 +80,21 @@
         "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
       }
     },
+    "displayOffsets": {
+      "type": "object",
+      "description": "Optional preview-only x/y playback offsets keyed by frame index or label. These do not change source frames or review verdicts.",
+      "default": {},
+      "additionalProperties": {
+        "type": "object",
+        "required": ["x", "y"],
+        "properties": {
+          "x": {"type": "number"},
+          "y": {"type": "number"},
+          "reason": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
     "clarificationPolicy": {
       "type": "string",
       "description": "When to ask the user instead of guessing.",
