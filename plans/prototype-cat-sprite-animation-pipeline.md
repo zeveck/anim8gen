@@ -742,11 +742,11 @@ After the first cat animation works:
 
 ## Progress Tracker
 
-- [x] Phase 1: Scaffold prototype workspace and animation spec.
-- [x] Phase 2: Create canonical cat reference.
-- [x] Phase 3: Generate candidate still frames.
-- [x] Phase 4: Segment, crop, and align frames.
-- [ ] Phase 5: Validate sprite consistency.
+- ✅ Done Phase 1: Scaffold prototype workspace and animation spec.
+- ✅ Done Phase 2: Create canonical cat reference.
+- ✅ Done Phase 3: Generate candidate still frames.
+- ✅ Done Phase 4: Segment, crop, and align frames.
+- ✅ Done Phase 5: Validate sprite consistency.
 - [ ] Phase 6: Produce review artifacts.
 - [ ] Phase 7: Build HTML preview.
 - [ ] Phase 8: Manual review and iteration loop.

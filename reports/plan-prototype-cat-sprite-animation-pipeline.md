@@ -275,3 +275,68 @@ Notes:
 - Phase 8: Manual review and iteration loop.
 - Phase 9: Package prototype result.
 - Phase 10: Second animation readiness check.
+
+## Phase 5: Validate Sprite Consistency
+
+Status: complete
+
+Branch/worktree:
+
+- Branch: `zskills/prototype-cat-sprite-animation-pipeline-phase-5`
+- Worktree: `/tmp/anim8gen-cp-prototype-cat-sprite-animation-pipeline-phase-5`
+
+Files changed:
+
+- `plans/prototype-cat-sprite-animation-pipeline.md`
+- `reports/plan-prototype-cat-sprite-animation-pipeline.md`
+- `sprite-lab/tools/validate_sprites.py`
+- `sprite-lab/reports/cat-yawn-lay-sleep.validation.json`
+
+Implementation notes:
+
+- Added a spec-driven validator for aligned RGBA sprite frames.
+- Structural failures are limited to missing frames, unreadable images,
+  inconsistent dimensions, and empty sprite masks.
+- Drift and style checks are emitted as warnings with phase context and the
+  effective numeric thresholds used for each adjacent-frame comparison.
+- Phase-specific overrides are visible in the validation JSON for `yawn`,
+  `lower-to-floor`, and `sleep-hold` comparisons.
+
+Tests run:
+
+```bash
+python3 -m py_compile sprite-lab/tools/validate_sprites.py
+python3 -W error::DeprecationWarning sprite-lab/tools/validate_sprites.py \
+  --spec sprite-lab/config/cat-yawn-lay-sleep.json \
+  --frames sprite-lab/assets/cat-yawn-lay-sleep/aligned \
+  --out sprite-lab/reports/cat-yawn-lay-sleep.validation.json
+python3 -m json.tool sprite-lab/reports/cat-yawn-lay-sleep.validation.json >/dev/null
+```
+
+Verification result: passed with inline verification. The validation report
+contains all eight expected frames, zero structural failures, and 13 warnings
+for review. The warnings highlight likely motion or alignment review targets on
+`000->001`, `003->004`, `004->005`, `005->006`, and `006->007`; they do not
+block this phase because warnings are advisory by design.
+
+Landing result: landed on `main` by local cherry-pick.
+
+Scope assessment: Phase 5 stayed within the validator, its generated validation
+report, and plan/report tracking. It did not modify generation, alignment, raw
+assets, aligned assets, or animation spec semantics.
+
+Notes:
+
+- No separate verifier agent was used in this chunk; verification was run
+  inline from the actual diff.
+- Raw and aligned generated PNGs remain ignored by git per the generated-asset
+  rule. The validation JSON is tracked because it is project report evidence
+  required by later review and preview phases.
+
+## Remaining Phases
+
+- Phase 6: Produce review artifacts.
+- Phase 7: Build HTML preview.
+- Phase 8: Manual review and iteration loop.
+- Phase 9: Package prototype result.
+- Phase 10: Second animation readiness check.
