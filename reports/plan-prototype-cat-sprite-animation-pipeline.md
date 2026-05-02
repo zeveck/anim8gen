@@ -406,3 +406,80 @@ Notes:
 - Phase 8: Manual review and iteration loop.
 - Phase 9: Package prototype result.
 - Phase 10: Second animation readiness check.
+
+## Phase 7: Build HTML Preview
+
+Status: complete
+
+Branch/worktree:
+
+- Branch: `zskills/prototype-cat-sprite-animation-pipeline-phase-7`
+- Worktree: `/tmp/anim8gen-cp-prototype-cat-sprite-animation-pipeline-phase-7`
+
+Files changed:
+
+- `plans/prototype-cat-sprite-animation-pipeline.md`
+- `reports/plan-prototype-cat-sprite-animation-pipeline.md`
+- `sprite-lab/tools/make_preview.py`
+- `sprite-lab/preview/cat-yawn-lay-sleep.html`
+
+Implementation notes:
+
+- Added a spec-driven static HTML preview generator for aligned frames.
+- The generated preview uses a canvas with pixelated rendering, play/pause,
+  previous/next stepping, FPS control, current frame label and pose text,
+  checkerboard toggle, thumbnail frame selection, and a separate CSS sleeping
+  Zs overlay for sleep frames.
+- The preview references local aligned PNGs by relative path instead of
+  embedding generated image bytes in git.
+
+Tests run:
+
+```bash
+python3 -m py_compile sprite-lab/tools/make_preview.py
+python3 -W error::DeprecationWarning sprite-lab/tools/make_preview.py \
+  --spec sprite-lab/config/cat-yawn-lay-sleep.json \
+  --frames sprite-lab/assets/cat-yawn-lay-sleep/aligned \
+  --validation sprite-lab/reports/cat-yawn-lay-sleep.validation.json \
+  --out sprite-lab/preview/cat-yawn-lay-sleep.html
+file sprite-lab/preview/cat-yawn-lay-sleep.html
+rg -n "image-rendering|Sleeping Zs|\\.png|data:image" \
+  sprite-lab/preview/cat-yawn-lay-sleep.html
+python3 -m http.server 8765 --bind 127.0.0.1
+playwright-cli open http://127.0.0.1:8765/preview/cat-yawn-lay-sleep.html
+playwright-cli snapshot
+playwright-cli eval '() => ({label: document.querySelector("#frameLabel")?.textContent, canvas: document.querySelector("#sprite")?.toDataURL().length, thumbs: document.querySelectorAll(".thumb").length})'
+playwright-cli click lying-head-down
+playwright-cli eval '() => ({label: document.querySelector("#frameLabel")?.textContent, zsActive: document.querySelector("#zs")?.classList.contains("active")})'
+playwright-cli click Pause
+playwright-cli eval '() => document.querySelector("#play")?.textContent'
+```
+
+Verification result: passed with inline verification. The generator produced
+`sprite-lab/preview/cat-yawn-lay-sleep.html`, the HTML contains pixelated image
+rendering and relative aligned-frame paths, Chromium loaded all eight frame
+PNGs through a local static server, the canvas rendered non-empty frame data,
+thumbnail selection moved to `006 lying-head-down`, sleeping Zs activated on
+that sleep frame, and the play/pause button toggled back to `Play`.
+
+Landing result: landed on `main` by local cherry-pick.
+
+Scope assessment: Phase 7 stayed within the preview generator, its generated
+HTML preview, and plan/report tracking. It did not modify generation,
+alignment, validation, contact sheet generation, raw assets, aligned assets, or
+animation spec semantics.
+
+Notes:
+
+- No separate verifier agent was used in this chunk; verification was run
+  inline from the actual diff.
+- The Playwright CLI blocks direct `file://` navigation, so browser
+  verification used a temporary `python3 -m http.server` from `sprite-lab/`.
+  The generated HTML still uses relative paths and is intended to open locally
+  without a project dev server in normal browsers.
+
+## Remaining Phases
+
+- Phase 8: Manual review and iteration loop.
+- Phase 9: Package prototype result.
+- Phase 10: Second animation readiness check.
