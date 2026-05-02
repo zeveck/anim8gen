@@ -1,0 +1,11 @@
+# Generated or externally produced image assets stay out of source control.
+reference/*
+raw/*
+aligned/*
+review/*
+
+# Keep the prototype folder structure visible.
+!reference/.gitkeep
+!raw/.gitkeep
+!aligned/.gitkeep
+!review/.gitkeep

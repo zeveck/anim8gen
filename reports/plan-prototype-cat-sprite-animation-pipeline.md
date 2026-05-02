@@ -664,3 +664,101 @@ Notes:
 ## Remaining Phases
 
 - Phase 10: Second animation readiness check.
+
+## Phase 10: Second Animation Readiness Check
+
+Status: complete
+
+Branch/worktree:
+
+- Branch: `zskills/prototype-cat-sprite-animation-pipeline-phase-10`
+- Worktree: `/tmp/anim8gen-cp-prototype-cat-sprite-animation-pipeline-phase-10`
+
+Files changed:
+
+- `plans/prototype-cat-sprite-animation-pipeline.md`
+- `reports/plan-prototype-cat-sprite-animation-pipeline.md`
+- `sprite-lab/README.md`
+- `sprite-lab/config/cat-sit-lick-paw-sit.json`
+- `sprite-lab/assets/cat-sit-lick-paw-sit/.gitignore`
+- `sprite-lab/assets/cat-sit-lick-paw-sit/*/.gitkeep`
+- `sprite-lab/assets/cat-sit-lick-paw-sit/manifests/candidates.jsonl`
+- `sprite-lab/assets/cat-sit-lick-paw-sit/manifests/alignment-metrics.json`
+- `sprite-lab/reports/cat-sit-lick-paw-sit.validation.json`
+- `sprite-lab/reports/cat-sit-lick-paw-sit.readiness.md`
+
+Generated local artifacts:
+
+- `sprite-lab/assets/cat-sit-lick-paw-sit/reference/synthetic-reference.png`
+- `sprite-lab/assets/cat-sit-lick-paw-sit/raw/frame-000.retry-001.png`
+- `sprite-lab/assets/cat-sit-lick-paw-sit/raw/frame-001.retry-001.png`
+- `sprite-lab/assets/cat-sit-lick-paw-sit/raw/frame-002.retry-001.png`
+- `sprite-lab/assets/cat-sit-lick-paw-sit/aligned/frame-000.sit-idle.png`
+- `sprite-lab/assets/cat-sit-lick-paw-sit/aligned/frame-001.lick-paw.png`
+- `sprite-lab/assets/cat-sit-lick-paw-sit/aligned/frame-002.sit-return.png`
+
+Implementation notes:
+
+- Added a second stationary animation spec, `cat-sit-lick-paw-sit`, using the
+  same reusable spec sections as the accepted cat prototype.
+- Created three local synthetic 1024x1024 chromakey raw frames for sit, lick
+  paw, and sit return so the readiness check does not depend on generation
+  budget or external image services.
+- Ran the existing alignment and validation tools unchanged against the second
+  spec and folder layout.
+- Documented the readiness check and the ignored synthetic image convention.
+
+Tests run:
+
+```bash
+python3 -m json.tool sprite-lab/config/cat-sit-lick-paw-sit.json >/dev/null
+python3 -m py_compile sprite-lab/tools/align_frames.py sprite-lab/tools/validate_sprites.py
+python3 -W error::DeprecationWarning sprite-lab/tools/align_frames.py \
+  --spec sprite-lab/config/cat-sit-lick-paw-sit.json \
+  --input sprite-lab/assets/cat-sit-lick-paw-sit/raw \
+  --output sprite-lab/assets/cat-sit-lick-paw-sit/aligned
+python3 -W error::DeprecationWarning sprite-lab/tools/validate_sprites.py \
+  --spec sprite-lab/config/cat-sit-lick-paw-sit.json \
+  --frames sprite-lab/assets/cat-sit-lick-paw-sit/aligned \
+  --out sprite-lab/reports/cat-sit-lick-paw-sit.validation.json
+python3 -m json.tool sprite-lab/reports/cat-sit-lick-paw-sit.validation.json >/dev/null
+file sprite-lab/assets/cat-sit-lick-paw-sit/aligned/*.png \
+  sprite-lab/reports/cat-sit-lick-paw-sit.validation.json
+python3 - <<'PY'
+import json
+from pathlib import Path
+report = json.loads(Path('sprite-lab/reports/cat-sit-lick-paw-sit.validation.json').read_text())
+assert report['summary']['frameCount'] == 3, report['summary']
+assert report['summary']['structuralFailureCount'] == 0, report['summary']
+assert report['status'] == 'passed', report['status']
+print(report['summary'])
+PY
+```
+
+Verification result: passed with inline verification. The second spec parses,
+the existing aligner produced three 128x128 RGBA aligned PNGs, and the
+validation report has three expected frames, zero structural failures, and zero
+warnings.
+
+Landing result: pending local cherry-pick to `main`.
+
+Scope assessment: Phase 10 stayed within the second-animation readiness check,
+its spec, generated local synthetic fixtures, validation evidence,
+documentation, and plan/report tracking. It did not change first-sequence
+outputs, existing tool behavior, accepted-frame decisions, or packaging
+semantics.
+
+Notes:
+
+- No separate verifier agent was used in this chunk; verification was run
+  inline from the actual diff.
+- The runner contract named `origin` as the execution remote, but this local
+  repository has no configured remote. Cherry-pick landing will be completed
+  locally from the phase worktree to `main`.
+- Synthetic reference, raw, and aligned PNGs remain ignored by git per the
+  generated-asset convention and must be copied into the main workspace after
+  landing for local re-runs.
+
+## Remaining Phases
+
+- None. The plan is complete.
