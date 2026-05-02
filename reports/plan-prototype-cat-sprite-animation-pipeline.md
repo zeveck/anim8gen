@@ -340,3 +340,69 @@ Notes:
 - Phase 8: Manual review and iteration loop.
 - Phase 9: Package prototype result.
 - Phase 10: Second animation readiness check.
+
+## Phase 6: Produce Review Artifacts
+
+Status: complete
+
+Branch/worktree:
+
+- Branch: `zskills/prototype-cat-sprite-animation-pipeline-phase-6`
+- Worktree: `/tmp/anim8gen-cp-prototype-cat-sprite-animation-pipeline-phase-6`
+
+Files changed:
+
+- `plans/prototype-cat-sprite-animation-pipeline.md`
+- `reports/plan-prototype-cat-sprite-animation-pipeline.md`
+- `sprite-lab/tools/make_contact_sheet.py`
+
+Generated local artifact:
+
+- `sprite-lab/assets/cat-yawn-lay-sleep/review/contact-sheet.png`
+
+Implementation notes:
+
+- Added a spec-driven contact sheet generator that renders raw candidates,
+  aligned frames with bbox/anchor/floor overlays, per-frame warning markers,
+  and onion-skin composites with previous frame in red and next frame in blue.
+- The tool reads existing validation JSON and alignment-ready frame paths
+  without changing raw, aligned, or validation outputs.
+
+Tests run:
+
+```bash
+python3 -m py_compile sprite-lab/tools/make_contact_sheet.py
+python3 -W error::DeprecationWarning sprite-lab/tools/make_contact_sheet.py \
+  --spec sprite-lab/config/cat-yawn-lay-sleep.json \
+  --raw sprite-lab/assets/cat-yawn-lay-sleep/raw \
+  --aligned sprite-lab/assets/cat-yawn-lay-sleep/aligned \
+  --validation sprite-lab/reports/cat-yawn-lay-sleep.validation.json \
+  --out sprite-lab/assets/cat-yawn-lay-sleep/review/contact-sheet.png
+file sprite-lab/assets/cat-yawn-lay-sleep/review/contact-sheet.png
+```
+
+Verification result: passed with inline verification. The contact sheet was
+generated as a 2338x944 RGB PNG and includes all eight frames across raw,
+aligned overlay, and onion-skin rows.
+
+Landing result: landed on `main` by local cherry-pick.
+
+Scope assessment: Phase 6 stayed within the review artifact generator, its
+ignored generated contact sheet, and plan/report tracking. It did not modify
+generation, alignment, validation, raw assets, aligned assets, or animation spec
+semantics.
+
+Notes:
+
+- No separate verifier agent was used in this chunk; verification was run
+  inline from the actual diff.
+- The generated contact sheet remains ignored by git per the generated-asset
+  rule and must be copied from the phase worktree into the main workspace after
+  landing so later manual review can use it locally.
+
+## Remaining Phases
+
+- Phase 7: Build HTML preview.
+- Phase 8: Manual review and iteration loop.
+- Phase 9: Package prototype result.
+- Phase 10: Second animation readiness check.

@@ -747,7 +747,7 @@ After the first cat animation works:
 - ✅ Done Phase 3: Generate candidate still frames.
 - ✅ Done Phase 4: Segment, crop, and align frames.
 - ✅ Done Phase 5: Validate sprite consistency.
-- [ ] Phase 6: Produce review artifacts.
+- ✅ Done Phase 6: Produce review artifacts.
 - [ ] Phase 7: Build HTML preview.
 - [ ] Phase 8: Manual review and iteration loop.
 - [ ] Phase 9: Package prototype result.
