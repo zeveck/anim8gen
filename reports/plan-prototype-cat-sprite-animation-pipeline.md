@@ -740,7 +740,7 @@ the existing aligner produced three 128x128 RGBA aligned PNGs, and the
 validation report has three expected frames, zero structural failures, and zero
 warnings.
 
-Landing result: pending local cherry-pick to `main`.
+Landing result: landed on `main` as commit `2a22005` by local cherry-pick.
 
 Scope assessment: Phase 10 stayed within the second-animation readiness check,
 its spec, generated local synthetic fixtures, validation evidence,
@@ -753,7 +753,7 @@ Notes:
 - No separate verifier agent was used in this chunk; verification was run
   inline from the actual diff.
 - The runner contract named `origin` as the execution remote, but this local
-  repository has no configured remote. Cherry-pick landing will be completed
+  repository has no configured remote. Cherry-pick landing was completed
   locally from the phase worktree to `main`.
 - Synthetic reference, raw, and aligned PNGs remain ignored by git per the
   generated-asset convention and must be copied into the main workspace after
