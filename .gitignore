@@ -1,0 +1,8 @@
+.env
+
+# Local assistant/tool state
+.claude/
+.zskills/
+
+# Playwright runtime output
+.playwright/output/
