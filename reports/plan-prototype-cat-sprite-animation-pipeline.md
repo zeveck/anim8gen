@@ -648,7 +648,7 @@ regenerated eight 128x128 RGBA aligned frames, validation, contact sheet, and
 HTML preview from the local accepted assets. The contact sheet is a 2338x944
 PNG and the preview is an ASCII HTML document.
 
-Landing result: pending local cherry-pick to `main`.
+Landing result: landed on `main` as commit `6c53798` by local cherry-pick.
 
 Scope assessment: Phase 9 stayed within packaging and provenance. It did not
 change generated source images, accepted-frame decisions, validation thresholds,
