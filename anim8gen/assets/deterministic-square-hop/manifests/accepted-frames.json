@@ -1,0 +1,42 @@
+{
+  "id": "deterministic-square-hop",
+  "status": "complete",
+  "generator": {
+    "skill": "anim8gen-test-helper",
+    "candidateManifest": "anim8gen/assets/deterministic-square-hop/manifests/candidates.jsonl"
+  },
+  "frames": [
+    {
+      "index": 0,
+      "label": "idle",
+      "raw": "anim8gen/assets/deterministic-square-hop/raw/frame-000.retry-001.png",
+      "aligned": "anim8gen/assets/deterministic-square-hop/aligned/frame-000.idle.png",
+      "reviewStatus": "accepted",
+      "notes": "Deterministic synthetic helper frame accepted for local plumbing tests."
+    },
+    {
+      "index": 1,
+      "label": "squash",
+      "raw": "anim8gen/assets/deterministic-square-hop/raw/frame-001.retry-001.png",
+      "aligned": "anim8gen/assets/deterministic-square-hop/aligned/frame-001.squash.png",
+      "reviewStatus": "accepted",
+      "notes": "Deterministic synthetic helper frame accepted for local plumbing tests."
+    },
+    {
+      "index": 2,
+      "label": "hop-up",
+      "raw": "anim8gen/assets/deterministic-square-hop/raw/frame-002.retry-001.png",
+      "aligned": "anim8gen/assets/deterministic-square-hop/aligned/frame-002.hop-up.png",
+      "reviewStatus": "accepted",
+      "notes": "Preview uses a display offset for this frame only; source pixels and aligned frame are unchanged."
+    },
+    {
+      "index": 3,
+      "label": "land",
+      "raw": "anim8gen/assets/deterministic-square-hop/raw/frame-003.retry-001.png",
+      "aligned": "anim8gen/assets/deterministic-square-hop/aligned/frame-003.land.png",
+      "reviewStatus": "accepted",
+      "notes": "Deterministic synthetic helper frame accepted for local plumbing tests."
+    }
+  ]
+}

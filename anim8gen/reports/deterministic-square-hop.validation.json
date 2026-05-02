@@ -1,0 +1,235 @@
+{
+  "id": "deterministic-square-hop",
+  "spec": "anim8gen/config/deterministic-square-hop.json",
+  "framesDir": "anim8gen/assets/deterministic-square-hop/aligned",
+  "status": "passed",
+  "summary": {
+    "frameCount": 4,
+    "expectedFrameCount": 4,
+    "structuralFailureCount": 0,
+    "warningCount": 0
+  },
+  "structuralFailures": [],
+  "frames": [
+    {
+      "index": 0,
+      "label": "idle",
+      "path": "anim8gen/assets/deterministic-square-hop/aligned/frame-000.idle.png",
+      "dimensions": [
+        128,
+        128
+      ],
+      "bbox": [
+        4,
+        0,
+        123,
+        112
+      ],
+      "bboxWidth": 120,
+      "bboxHeight": 113,
+      "visibleArea": 13560,
+      "centroid": [
+        63.5,
+        56.0
+      ],
+      "anchorStrategy": "body_bottom_center",
+      "anchor": [
+        63.5,
+        112.0
+      ],
+      "meanLuminance": 115.684,
+      "dominantHueDegrees": 217
+    },
+    {
+      "index": 1,
+      "label": "squash",
+      "path": "anim8gen/assets/deterministic-square-hop/aligned/frame-001.squash.png",
+      "dimensions": [
+        128,
+        128
+      ],
+      "bbox": [
+        4,
+        0,
+        123,
+        112
+      ],
+      "bboxWidth": 120,
+      "bboxHeight": 113,
+      "visibleArea": 13560,
+      "centroid": [
+        63.5,
+        56.0
+      ],
+      "anchorStrategy": "body_bottom_center",
+      "anchor": [
+        63.5,
+        112.0
+      ],
+      "meanLuminance": 115.684,
+      "dominantHueDegrees": 217
+    },
+    {
+      "index": 2,
+      "label": "hop-up",
+      "path": "anim8gen/assets/deterministic-square-hop/aligned/frame-002.hop-up.png",
+      "dimensions": [
+        128,
+        128
+      ],
+      "bbox": [
+        4,
+        0,
+        123,
+        112
+      ],
+      "bboxWidth": 120,
+      "bboxHeight": 113,
+      "visibleArea": 13560,
+      "centroid": [
+        63.5,
+        56.0
+      ],
+      "anchorStrategy": "body_bottom_center",
+      "anchor": [
+        63.5,
+        112.0
+      ],
+      "meanLuminance": 115.684,
+      "dominantHueDegrees": 217
+    },
+    {
+      "index": 3,
+      "label": "land",
+      "path": "anim8gen/assets/deterministic-square-hop/aligned/frame-003.land.png",
+      "dimensions": [
+        128,
+        128
+      ],
+      "bbox": [
+        4,
+        0,
+        123,
+        112
+      ],
+      "bboxWidth": 120,
+      "bboxHeight": 113,
+      "visibleArea": 13560,
+      "centroid": [
+        63.5,
+        56.0
+      ],
+      "anchorStrategy": "body_bottom_center",
+      "anchor": [
+        63.5,
+        112.0
+      ],
+      "meanLuminance": 115.684,
+      "dominantHueDegrees": 217
+    }
+  ],
+  "comparisons": [
+    {
+      "from": 0,
+      "to": 1,
+      "labels": [
+        "idle",
+        "squash"
+      ],
+      "phase": "default",
+      "effectiveThresholds": {
+        "anchorXJumpPx": 3,
+        "anchorYJumpPx": 2,
+        "bboxHeightVariancePct": 12,
+        "bboxWidthVariancePct": 18,
+        "visibleAreaVariancePct": 20,
+        "centroidJumpPx": 5,
+        "adjacentSilhouetteIouMin": 0.55,
+        "meanLuminanceShiftPct": 15,
+        "dominantHueShiftDegrees": 12
+      },
+      "metrics": {
+        "anchorXJumpPx": 0.0,
+        "anchorYJumpPx": 0.0,
+        "bboxWidthVariancePct": 0.0,
+        "bboxHeightVariancePct": 0.0,
+        "visibleAreaVariancePct": 0.0,
+        "centroidJumpPx": 0.0,
+        "headTopDriftPx": 0,
+        "adjacentSilhouetteIou": 1.0,
+        "meanLuminanceShiftPct": 0.0,
+        "dominantHueShiftDegrees": 0
+      },
+      "warnings": [],
+      "notes": []
+    },
+    {
+      "from": 1,
+      "to": 2,
+      "labels": [
+        "squash",
+        "hop-up"
+      ],
+      "phase": "default",
+      "effectiveThresholds": {
+        "anchorXJumpPx": 3,
+        "anchorYJumpPx": 2,
+        "bboxHeightVariancePct": 12,
+        "bboxWidthVariancePct": 18,
+        "visibleAreaVariancePct": 20,
+        "centroidJumpPx": 5,
+        "adjacentSilhouetteIouMin": 0.55,
+        "meanLuminanceShiftPct": 15,
+        "dominantHueShiftDegrees": 12
+      },
+      "metrics": {
+        "anchorXJumpPx": 0.0,
+        "anchorYJumpPx": 0.0,
+        "bboxWidthVariancePct": 0.0,
+        "bboxHeightVariancePct": 0.0,
+        "visibleAreaVariancePct": 0.0,
+        "centroidJumpPx": 0.0,
+        "headTopDriftPx": 0,
+        "adjacentSilhouetteIou": 1.0,
+        "meanLuminanceShiftPct": 0.0,
+        "dominantHueShiftDegrees": 0
+      },
+      "warnings": [],
+      "notes": []
+    },
+    {
+      "from": 2,
+      "to": 3,
+      "labels": [
+        "hop-up",
+        "land"
+      ],
+      "phase": "default",
+      "effectiveThresholds": {
+        "anchorXJumpPx": 3,
+        "anchorYJumpPx": 2,
+        "bboxHeightVariancePct": 12,
+        "bboxWidthVariancePct": 18,
+        "visibleAreaVariancePct": 20,
+        "centroidJumpPx": 5,
+        "adjacentSilhouetteIouMin": 0.55,
+        "meanLuminanceShiftPct": 15,
+        "dominantHueShiftDegrees": 12
+      },
+      "metrics": {
+        "anchorXJumpPx": 0.0,
+        "anchorYJumpPx": 0.0,
+        "bboxWidthVariancePct": 0.0,
+        "bboxHeightVariancePct": 0.0,
+        "visibleAreaVariancePct": 0.0,
+        "centroidJumpPx": 0.0,
+        "headTopDriftPx": 0,
+        "adjacentSilhouetteIou": 1.0,
+        "meanLuminanceShiftPct": 0.0,
+        "dominantHueShiftDegrees": 0
+      },
+      "warnings": [],
+      "notes": []
+    }
+  ]
+}

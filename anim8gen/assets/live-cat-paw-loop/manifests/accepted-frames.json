@@ -1,0 +1,10 @@
+{
+  "id": "live-cat-paw-loop",
+  "status": "blocked",
+  "generator": {
+    "skill": "imagegen2",
+    "candidateManifest": "anim8gen/assets/live-cat-paw-loop/manifests/candidates.jsonl"
+  },
+  "frames": [],
+  "notes": "No accepted live frames exist because OPENAI_API_KEY was absent during Trial B."
+}

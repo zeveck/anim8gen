@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>deterministic-square-hop preview</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1d1d22;
+      --muted: #66666f;
+      --panel: #f6f4ee;
+      --line: #cbc8bd;
+      --accent: #2776b8;
+      --warn: #c94a36;
+      --checker-a: #d9d9d9;
+      --checker-b: #f5f5f5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #ece8dc;
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      width: min(980px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 32px;
+    }
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.15;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+    .stage-row {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) 280px;
+      gap: 20px;
+      align-items: start;
+    }
+    .stage {
+      position: relative;
+      min-height: 540px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      background-color: var(--checker-b);
+      background-image:
+        linear-gradient(45deg, var(--checker-a) 25%, transparent 25%),
+        linear-gradient(-45deg, var(--checker-a) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, var(--checker-a) 75%),
+        linear-gradient(-45deg, transparent 75%, var(--checker-a) 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+      overflow: hidden;
+    }
+    .stage.plain {
+      background: #f4f0e6;
+    }
+    canvas {
+      width: min(512px, calc(100vw - 64px));
+      height: auto;
+      aspect-ratio: 1 / 1;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .zs {
+      position: absolute;
+      left: 50%;
+      top: 39%;
+      width: 160px;
+      height: 140px;
+      pointer-events: none;
+      transform: translate(-4%, -50%);
+      opacity: 0;
+    }
+    .zs.active {
+      opacity: 1;
+    }
+    .z {
+      position: absolute;
+      color: #5b6db7;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 700;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, 0.75);
+      animation: drift 1600ms linear infinite;
+    }
+    .z:nth-child(1) { left: 18px; bottom: 12px; font-size: 22px; animation-delay: 0ms; }
+    .z:nth-child(2) { left: 60px; bottom: 44px; font-size: 28px; animation-delay: 260ms; }
+    .z:nth-child(3) { left: 106px; bottom: 82px; font-size: 36px; animation-delay: 520ms; }
+    @keyframes drift {
+      from { transform: translateY(16px); opacity: 0; }
+      20% { opacity: 1; }
+      78% { opacity: 1; }
+      to { transform: translateY(-26px); opacity: 0; }
+    }
+    .controls {
+      display: grid;
+      gap: 12px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 14px;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    button {
+      min-height: 38px;
+      border: 1px solid #a8a496;
+      background: #fffdf8;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--accent); }
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    input[type="range"] { width: 100%; }
+    .toggles {
+      display: grid;
+      gap: 8px;
+    }
+    .toggle[hidden] {
+      display: none;
+    }
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink);
+    }
+    .frame-card {
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+      display: grid;
+      gap: 4px;
+    }
+    .frame-label {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .pose, .warnings {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .warnings.warn { color: var(--warn); font-weight: 650; }
+    .strip {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 6px;
+    }
+    .thumb {
+      border: 2px solid transparent;
+      background: #fffdf8;
+      padding: 2px;
+      cursor: pointer;
+    }
+    .thumb.active { border-color: var(--accent); }
+    .thumb img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    @media (max-width: 760px) {
+      .stage-row { grid-template-columns: 1fr; }
+      .stage { min-height: min(520px, calc(100vw - 32px)); }
+      header { align-items: start; flex-direction: column; }
+      .meta { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>deterministic-square-hop</h1>
+      <div class="meta" id="meta"></div>
+    </header>
+    <div class="stage-row">
+      <section class="stage" id="stage" aria-label="Sprite preview stage">
+        <canvas id="sprite" width="128" height="128"></canvas>
+        <div class="zs" id="zs" aria-hidden="true"><span class="z">Z</span><span class="z">Z</span><span class="z">Z</span></div>
+      </section>
+      <section class="controls" aria-label="Playback controls">
+        <div class="buttons">
+          <button type="button" id="prev" title="Previous frame">Prev</button>
+          <button type="button" id="play" title="Play or pause">Pause</button>
+          <button type="button" id="next" title="Next frame">Next</button>
+        </div>
+        <label>FPS <input type="range" id="fps" min="1" max="16" step="1"></label>
+        <div class="toggles">
+          <label class="toggle"><input type="checkbox" id="checker" checked> Checkerboard</label>
+          <label class="toggle"><input type="checkbox" id="zToggle" checked> Sleeping Zs</label>
+        </div>
+        <div class="frame-card">
+          <div class="frame-label" id="frameLabel"></div>
+          <div class="pose" id="pose"></div>
+          <div class="warnings" id="warnings"></div>
+        </div>
+        <div class="strip" id="strip"></div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const payload = {"id":"deterministic-square-hop","canvas":[128,128],"fps":8,"previewStrategy":"canvas-playback","runtimeEffects":[],"validationSummary":{"frameCount":4,"expectedFrameCount":4,"structuralFailureCount":0,"warningCount":0},"frames":[{"index":0,"label":"idle","pose":"square rests on the baseline","sleep":false,"warnings":0,"displayOffset":{"x":0,"y":0},"src":"../assets/deterministic-square-hop/aligned/frame-000.idle.png"},{"index":1,"label":"squash","pose":"square compresses before hopping","sleep":false,"warnings":0,"displayOffset":{"x":0,"y":0},"src":"../assets/deterministic-square-hop/aligned/frame-001.squash.png"},{"index":2,"label":"hop-up","pose":"square rises above the baseline with a small pose marker","sleep":false,"warnings":0,"displayOffset":{"x":0,"y":-6,"reason":"Preview-only lift exaggeration for hop apex; source sprite pixels remain unchanged."},"src":"../assets/deterministic-square-hop/aligned/frame-002.hop-up.png"},{"index":3,"label":"land","pose":"square returns to the baseline","sleep":false,"warnings":0,"displayOffset":{"x":0,"y":0},"src":"../assets/deterministic-square-hop/aligned/frame-003.land.png"}]};
+    const canvas = document.getElementById("sprite");
+    const ctx = canvas.getContext("2d");
+    const stage = document.getElementById("stage");
+    const zs = document.getElementById("zs");
+    const frameLabel = document.getElementById("frameLabel");
+    const pose = document.getElementById("pose");
+    const warningLabel = document.getElementById("warnings");
+    const playButton = document.getElementById("play");
+    const fpsInput = document.getElementById("fps");
+    const checkerInput = document.getElementById("checker");
+    const zToggle = document.getElementById("zToggle");
+    const meta = document.getElementById("meta");
+    const strip = document.getElementById("strip");
+    const images = [];
+    let frameIndex = 0;
+    let playing = true;
+    let lastTime = 0;
+
+    ctx.imageSmoothingEnabled = false;
+    fpsInput.value = payload.fps;
+    meta.textContent = `${payload.frames.length} frames, ${payload.validationSummary.warningCount || 0} validation warnings`;
+
+    function loadImages() {
+      return Promise.all(payload.frames.map((frame, index) => new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          images[index] = img;
+          resolve();
+        };
+        img.onerror = reject;
+        img.src = frame.src;
+      })));
+    }
+
+    function renderStrip() {
+      strip.innerHTML = "";
+      payload.frames.forEach((frame, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "thumb";
+        button.title = `${frame.index} ${frame.label}`;
+        const img = document.createElement("img");
+        img.alt = frame.label;
+        img.src = frame.src;
+        button.appendChild(img);
+        button.addEventListener("click", () => {
+          frameIndex = index;
+          render();
+        });
+        strip.appendChild(button);
+      });
+    }
+
+    function render() {
+      const frame = payload.frames[frameIndex];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(images[frameIndex], frame.displayOffset.x, frame.displayOffset.y);
+      frameLabel.textContent = `${String(frame.index).padStart(3, "0")} ${frame.label}`;
+      pose.textContent = frame.pose;
+      warningLabel.textContent = frame.warnings ? `${frame.warnings} linked validation warnings` : "No linked validation warnings";
+      warningLabel.classList.toggle("warn", frame.warnings > 0);
+      zs.classList.toggle("active", hasSleepingZs && zToggle.checked && frame.sleep);
+      [...strip.children].forEach((child, index) => child.classList.toggle("active", index === frameIndex));
+    }
+
+    function step(delta) {
+      frameIndex = (frameIndex + delta + payload.frames.length) % payload.frames.length;
+      render();
+    }
+
+    function tick(time) {
+      const interval = 1000 / Number(fpsInput.value || payload.fps);
+      if (playing && time - lastTime >= interval) {
+        step(1);
+        lastTime = time;
+      }
+      requestAnimationFrame(tick);
+    }
+
+    document.getElementById("prev").addEventListener("click", () => step(-1));
+    document.getElementById("next").addEventListener("click", () => step(1));
+    playButton.addEventListener("click", () => {
+      playing = !playing;
+      playButton.textContent = playing ? "Pause" : "Play";
+    });
+    checkerInput.addEventListener("change", () => stage.classList.toggle("plain", !checkerInput.checked));
+    zToggle.addEventListener("change", render);
+    const hasSleepingZs = payload.runtimeEffects.includes("sleeping-zs");
+    zToggle.closest(".toggle").hidden = !hasSleepingZs;
+
+    loadImages().then(() => {
+      renderStrip();
+      render();
+      requestAnimationFrame(tick);
+    }).catch((error) => {
+      frameLabel.textContent = "Preview failed to load";
+      pose.textContent = String(error);
+    });
+  </script>
+</body>
+</html>

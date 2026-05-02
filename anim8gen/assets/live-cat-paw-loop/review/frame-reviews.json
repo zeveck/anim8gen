@@ -1,0 +1,36 @@
+{
+  "id": "live-cat-paw-loop",
+  "reviewSchemaVersion": 1,
+  "packageStatus": "blocked",
+  "retryBudget": 2,
+  "frames": [
+    {
+      "frameIndex": 0,
+      "frameLabel": "sit-idle",
+      "candidatePath": "anim8gen/assets/live-cat-paw-loop/raw/frame-000.retry-001.mock.png",
+      "retry": 1,
+      "poseVerdict": "plausible dry-run placeholder",
+      "identityVerdict": "not verifiable without live pixels",
+      "cameraVerdict": "not verifiable without live pixels",
+      "hygieneVerdict": "not verifiable without live pixels",
+      "backgroundVerdict": "not verifiable without live pixels",
+      "decision": "accepted-with-warning",
+      "retryReason": null,
+      "notes": "Mocked review record kept only to exercise blocked-trial review semantics after dry-run preflight; no live image was generated."
+    },
+    {
+      "frameIndex": 1,
+      "frameLabel": "paw-lift",
+      "candidatePath": "anim8gen/assets/live-cat-paw-loop/raw/frame-001.retry-001.mock.png",
+      "retry": 1,
+      "poseVerdict": "missing live candidate",
+      "identityVerdict": "not verifiable without live pixels",
+      "cameraVerdict": "not verifiable without live pixels",
+      "hygieneVerdict": "not verifiable without live pixels",
+      "backgroundVerdict": "not verifiable without live pixels",
+      "decision": "rejected-pose",
+      "retryReason": "OPENAI_API_KEY was absent, so live imagegen2 generation could not produce the requested paw-lift pose.",
+      "notes": "Rejected mock record documents the retry/rejection branch without pretending a live candidate exists."
+    }
+  ]
+}

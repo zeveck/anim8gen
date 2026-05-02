@@ -1,0 +1,13 @@
+# Generated or externally produced image assets stay out of source control.
+reference/*
+raw/*
+aligned/*
+review/*
+
+# Keep the package folder structure visible.
+!reference/.gitkeep
+!raw/.gitkeep
+!aligned/.gitkeep
+!review/.gitkeep
+!review/*.json
+!review/*.md

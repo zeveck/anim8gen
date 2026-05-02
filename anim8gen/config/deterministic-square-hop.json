@@ -1,0 +1,113 @@
+{
+  "id": "deterministic-square-hop",
+  "asset": {
+    "subject": "blue square game sprite",
+    "style": "pixel art",
+    "canonicalReference": "anim8gen/assets/deterministic-square-hop/reference/reference.png",
+    "promptTraits": [
+      "single subject",
+      "side-view",
+      "compact readable silhouette",
+      "solid chroma-key background",
+      "no text"
+    ]
+  },
+  "render": {
+    "canvas": [
+      128,
+      128
+    ],
+    "workingSize": [
+      1024,
+      1024
+    ],
+    "exportScale": 8,
+    "fps": 8,
+    "paletteLimit": 48
+  },
+  "generation": {
+    "preferredSkill": "imagegen2",
+    "fallbackSkills": [
+      "imagegen"
+    ],
+    "candidateManifest": "anim8gen/assets/deterministic-square-hop/manifests/candidates.jsonl",
+    "acceptedManifest": "anim8gen/assets/deterministic-square-hop/manifests/accepted-frames.json",
+    "retryBudget": 2
+  },
+  "segmentation": {
+    "strategy": "chroma-key",
+    "chromaKey": "#ff00ff",
+    "alphaThreshold": 8,
+    "chromaTolerance": 32
+  },
+  "alignment": {
+    "defaultAnchor": "body_bottom_center",
+    "floorY": 112,
+    "supportedAnchors": [
+      "body_bottom_center",
+      "body_center",
+      "feet_center",
+      "head_center",
+      "manual"
+    ],
+    "manualOverrides": {}
+  },
+  "validation": {
+    "defaultThresholds": {
+      "anchorXJumpPx": 3,
+      "anchorYJumpPx": 2,
+      "bboxHeightVariancePct": 12,
+      "bboxWidthVariancePct": 18,
+      "visibleAreaVariancePct": 20,
+      "centroidJumpPx": 5,
+      "adjacentSilhouetteIouMin": 0.55,
+      "meanLuminanceShiftPct": 15,
+      "dominantHueShiftDegrees": 12
+    },
+    "motionPhases": []
+  },
+  "preview": {
+    "strategy": "canvas-playback",
+    "displayOffsets": {
+      "hop-up": {
+        "x": 0,
+        "y": -6,
+        "reason": "Preview-only lift exaggeration for hop apex; source sprite pixels remain unchanged."
+      }
+    },
+    "runtimeEffects": [],
+    "minimalControls": [
+      "playPause",
+      "fps",
+      "step",
+      "frameLabel",
+      "checkerboard"
+    ]
+  },
+  "frames": [
+    {
+      "index": 0,
+      "label": "idle",
+      "pose": "square rests on the baseline",
+      "anchor": "body_bottom_center"
+    },
+    {
+      "index": 1,
+      "label": "squash",
+      "pose": "square compresses before hopping",
+      "anchor": "body_bottom_center"
+    },
+    {
+      "index": 2,
+      "label": "hop-up",
+      "pose": "square rises above the baseline with a small pose marker",
+      "anchor": "body_bottom_center"
+    },
+    {
+      "index": 3,
+      "label": "land",
+      "pose": "square returns to the baseline",
+      "anchor": "body_bottom_center"
+    }
+  ]
+}
