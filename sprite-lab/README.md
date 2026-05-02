@@ -21,18 +21,19 @@ preview/runtime layer instead of being baked into sprite frames.
 - `preview/` will contain generated local HTML previews.
 - `reports/` will contain validation and summary reports.
 
-Generated image outputs are ignored by default. Keep reviewed manifests and
-summary reports when they are needed for provenance.
+Generated image outputs are ignored by default. Keep reviewed manifests,
+package manifests, and summary reports when they are needed for provenance.
+For the accepted cat prototype package, start with
+`reports/cat-yawn-lay-sleep.package.md`.
 
 ## Dependency Approach
 
 Use Node.js for generation wrappers and static preview generation. Use Python 3
 for image alignment, validation, and contact sheets.
 
-Expected Python packages for later phases:
+Expected Python packages:
 
 - Pillow for image loading, segmentation, overlays, and contact sheets.
-- NumPy if later metrics need faster pixel operations.
 
-No package lockfile is required yet because Phase 1 does not add executable
-tools.
+No package lockfile is required for this prototype. The current scoped Python
+dependency list is `requirements.txt`.

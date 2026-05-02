@@ -598,3 +598,69 @@ Notes:
 
 - Phase 9: Package prototype result.
 - Phase 10: Second animation readiness check.
+
+## Phase 9: Package Prototype Result
+
+Status: complete
+
+Branch/worktree:
+
+- Branch: `zskills/prototype-cat-sprite-animation-pipeline-phase-9`
+- Worktree: `/tmp/anim8gen-cp-prototype-cat-sprite-animation-pipeline-phase-9`
+
+Files changed:
+
+- `plans/prototype-cat-sprite-animation-pipeline.md`
+- `reports/plan-prototype-cat-sprite-animation-pipeline.md`
+- `sprite-lab/README.md`
+- `sprite-lab/assets/cat-yawn-lay-sleep/manifests/package-manifest.json`
+- `sprite-lab/reports/cat-yawn-lay-sleep.package.md`
+
+Implementation notes:
+
+- Added a tracked package manifest that identifies final aligned frames,
+  validation output, contact sheet, HTML preview, summary report, intermediate
+  raw/reference assets, provenance manifests, and the tool scripts required to
+  rebuild the accepted package.
+- Added a concise package report that separates final outputs from
+  intermediate assets and records the exact rebuild, validation, review, and
+  preview commands.
+- Updated the Sprite Lab README to point reviewers at the package report and
+  current dependency file.
+
+Tests run:
+
+```bash
+python3 -m json.tool sprite-lab/assets/cat-yawn-lay-sleep/manifests/package-manifest.json >/dev/null
+python3 -m json.tool sprite-lab/assets/cat-yawn-lay-sleep/manifests/accepted-frames.json >/dev/null
+python3 -m json.tool sprite-lab/config/cat-yawn-lay-sleep.json >/dev/null
+python3 -W error::DeprecationWarning sprite-lab/tools/align_frames.py --spec sprite-lab/config/cat-yawn-lay-sleep.json --input sprite-lab/assets/cat-yawn-lay-sleep/raw --output sprite-lab/assets/cat-yawn-lay-sleep/aligned
+python3 -W error::DeprecationWarning sprite-lab/tools/validate_sprites.py --spec sprite-lab/config/cat-yawn-lay-sleep.json --frames sprite-lab/assets/cat-yawn-lay-sleep/aligned --out sprite-lab/reports/cat-yawn-lay-sleep.validation.json
+python3 -W error::DeprecationWarning sprite-lab/tools/make_contact_sheet.py --spec sprite-lab/config/cat-yawn-lay-sleep.json --raw sprite-lab/assets/cat-yawn-lay-sleep/raw --aligned sprite-lab/assets/cat-yawn-lay-sleep/aligned --validation sprite-lab/reports/cat-yawn-lay-sleep.validation.json --out sprite-lab/assets/cat-yawn-lay-sleep/review/contact-sheet.png
+python3 -W error::DeprecationWarning sprite-lab/tools/make_preview.py --spec sprite-lab/config/cat-yawn-lay-sleep.json --frames sprite-lab/assets/cat-yawn-lay-sleep/aligned --validation sprite-lab/reports/cat-yawn-lay-sleep.validation.json --out sprite-lab/preview/cat-yawn-lay-sleep.html
+file sprite-lab/assets/cat-yawn-lay-sleep/aligned/*.png sprite-lab/assets/cat-yawn-lay-sleep/review/contact-sheet.png sprite-lab/preview/cat-yawn-lay-sleep.html
+test -s sprite-lab/reports/cat-yawn-lay-sleep.package.md
+```
+
+Verification result: passed with inline verification. The package manifest and
+existing accepted-frame/spec JSON parse successfully. The rebuild commands
+regenerated eight 128x128 RGBA aligned frames, validation, contact sheet, and
+HTML preview from the local accepted assets. The contact sheet is a 2338x944
+PNG and the preview is an ASCII HTML document.
+
+Landing result: pending local cherry-pick to `main`.
+
+Scope assessment: Phase 9 stayed within packaging and provenance. It did not
+change generated source images, accepted-frame decisions, validation thresholds,
+alignment behavior, contact sheet generation, or preview behavior. Ignored
+bitmap assets were copied into the worktree only to verify package references
+and were not staged.
+
+Notes:
+
+- No separate verifier agent was used in this chunk; verification was run
+  inline from the actual diff.
+
+## Remaining Phases
+
+- Phase 10: Second animation readiness check.
