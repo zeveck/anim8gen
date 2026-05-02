@@ -1,6 +1,6 @@
-# Sprite Lab
+# Anim8gen
 
-Sprite Lab is a prototype workspace for building fixed-canvas sprite animation
+Anim8gen is a prototype workspace for building fixed-canvas sprite animation
 packages from generated still frames. It keeps animation behavior
 spec-driven: each sequence has a JSON spec, raw candidate images, aligned
 128x128 RGBA sprite frames, validation reports, review artifacts, and optional
@@ -21,40 +21,40 @@ Run commands from the repository root.
 Install the Python image dependency:
 
 ```bash
-python3 -m pip install -r sprite-lab/requirements.txt
+python3 -m pip install -r anim8gen/requirements.txt
 ```
 
 Regenerate the accepted `cat-yawn-lay-sleep` package:
 
 ```bash
-python3 sprite-lab/tools/align_frames.py \
-  --spec sprite-lab/config/cat-yawn-lay-sleep.json \
-  --input sprite-lab/assets/cat-yawn-lay-sleep/raw \
-  --output sprite-lab/assets/cat-yawn-lay-sleep/aligned
+python3 anim8gen/tools/align_frames.py \
+  --spec anim8gen/config/cat-yawn-lay-sleep.json \
+  --input anim8gen/assets/cat-yawn-lay-sleep/raw \
+  --output anim8gen/assets/cat-yawn-lay-sleep/aligned
 
-python3 sprite-lab/tools/validate_sprites.py \
-  --spec sprite-lab/config/cat-yawn-lay-sleep.json \
-  --frames sprite-lab/assets/cat-yawn-lay-sleep/aligned \
-  --out sprite-lab/reports/cat-yawn-lay-sleep.validation.json
+python3 anim8gen/tools/validate_sprites.py \
+  --spec anim8gen/config/cat-yawn-lay-sleep.json \
+  --frames anim8gen/assets/cat-yawn-lay-sleep/aligned \
+  --out anim8gen/reports/cat-yawn-lay-sleep.validation.json
 
-python3 sprite-lab/tools/make_contact_sheet.py \
-  --spec sprite-lab/config/cat-yawn-lay-sleep.json \
-  --raw sprite-lab/assets/cat-yawn-lay-sleep/raw \
-  --aligned sprite-lab/assets/cat-yawn-lay-sleep/aligned \
-  --validation sprite-lab/reports/cat-yawn-lay-sleep.validation.json \
-  --out sprite-lab/assets/cat-yawn-lay-sleep/review/contact-sheet.png
+python3 anim8gen/tools/make_contact_sheet.py \
+  --spec anim8gen/config/cat-yawn-lay-sleep.json \
+  --raw anim8gen/assets/cat-yawn-lay-sleep/raw \
+  --aligned anim8gen/assets/cat-yawn-lay-sleep/aligned \
+  --validation anim8gen/reports/cat-yawn-lay-sleep.validation.json \
+  --out anim8gen/assets/cat-yawn-lay-sleep/review/contact-sheet.png
 
-python3 sprite-lab/tools/make_preview.py \
-  --spec sprite-lab/config/cat-yawn-lay-sleep.json \
-  --frames sprite-lab/assets/cat-yawn-lay-sleep/aligned \
-  --validation sprite-lab/reports/cat-yawn-lay-sleep.validation.json \
-  --out sprite-lab/preview/cat-yawn-lay-sleep.html
+python3 anim8gen/tools/make_preview.py \
+  --spec anim8gen/config/cat-yawn-lay-sleep.json \
+  --frames anim8gen/assets/cat-yawn-lay-sleep/aligned \
+  --validation anim8gen/reports/cat-yawn-lay-sleep.validation.json \
+  --out anim8gen/preview/cat-yawn-lay-sleep.html
 ```
 
 Open the preview through a local static server:
 
 ```bash
-python3 -m http.server 8765 --bind 127.0.0.1 --directory sprite-lab
+python3 -m http.server 8765 --bind 127.0.0.1 --directory anim8gen
 ```
 
 Then visit:
@@ -86,7 +86,7 @@ local `reference/`, `raw/`, `aligned/`, and `review/` folders hold generated
 image files.
 
 For a concise package inventory, see
-`sprite-lab/reports/cat-yawn-lay-sleep.package.md`.
+`anim8gen/reports/cat-yawn-lay-sleep.package.md`.
 
 ## Directory Layout
 
@@ -108,7 +108,7 @@ For a concise package inventory, see
 
 ## Animation Specs
 
-Each animation is described by `sprite-lab/config/<animation-id>.json`.
+Each animation is described by `anim8gen/config/<animation-id>.json`.
 
 Important fields:
 
@@ -152,7 +152,7 @@ The current package was generated with AI image tooling, then reviewed and
 accepted as raw candidates. The tooling expects raw files in:
 
 ```text
-sprite-lab/assets/<animation-id>/raw/
+anim8gen/assets/<animation-id>/raw/
 ```
 
 Use this naming convention:
@@ -174,10 +174,10 @@ Raw frames should use the configured chroma-key background, currently magenta
 Run:
 
 ```bash
-python3 sprite-lab/tools/align_frames.py \
-  --spec sprite-lab/config/<animation-id>.json \
-  --input sprite-lab/assets/<animation-id>/raw \
-  --output sprite-lab/assets/<animation-id>/aligned
+python3 anim8gen/tools/align_frames.py \
+  --spec anim8gen/config/<animation-id>.json \
+  --input anim8gen/assets/<animation-id>/raw \
+  --output anim8gen/assets/<animation-id>/aligned
 ```
 
 The aligner:
@@ -199,10 +199,10 @@ floor drift, or bad centering.
 Run:
 
 ```bash
-python3 sprite-lab/tools/validate_sprites.py \
-  --spec sprite-lab/config/<animation-id>.json \
-  --frames sprite-lab/assets/<animation-id>/aligned \
-  --out sprite-lab/reports/<animation-id>.validation.json
+python3 anim8gen/tools/validate_sprites.py \
+  --spec anim8gen/config/<animation-id>.json \
+  --frames anim8gen/assets/<animation-id>/aligned \
+  --out anim8gen/reports/<animation-id>.validation.json
 ```
 
 The validator checks:
@@ -224,12 +224,12 @@ report.
 Run:
 
 ```bash
-python3 sprite-lab/tools/make_contact_sheet.py \
-  --spec sprite-lab/config/<animation-id>.json \
-  --raw sprite-lab/assets/<animation-id>/raw \
-  --aligned sprite-lab/assets/<animation-id>/aligned \
-  --validation sprite-lab/reports/<animation-id>.validation.json \
-  --out sprite-lab/assets/<animation-id>/review/contact-sheet.png
+python3 anim8gen/tools/make_contact_sheet.py \
+  --spec anim8gen/config/<animation-id>.json \
+  --raw anim8gen/assets/<animation-id>/raw \
+  --aligned anim8gen/assets/<animation-id>/aligned \
+  --validation anim8gen/reports/<animation-id>.validation.json \
+  --out anim8gen/assets/<animation-id>/review/contact-sheet.png
 ```
 
 The contact sheet is the fastest manual review surface. It shows raw
@@ -250,20 +250,20 @@ Use it to review:
 Run:
 
 ```bash
-python3 sprite-lab/tools/make_preview.py \
-  --spec sprite-lab/config/<animation-id>.json \
-  --frames sprite-lab/assets/<animation-id>/aligned \
-  --validation sprite-lab/reports/<animation-id>.validation.json \
-  --out sprite-lab/preview/<animation-id>.html
+python3 anim8gen/tools/make_preview.py \
+  --spec anim8gen/config/<animation-id>.json \
+  --frames anim8gen/assets/<animation-id>/aligned \
+  --validation anim8gen/reports/<animation-id>.validation.json \
+  --out anim8gen/preview/<animation-id>.html
 ```
 
 The preview is a static HTML file. It references the local aligned PNG files by
 relative path instead of embedding image bytes.
 
-Start a static server from `sprite-lab/`:
+Start a static server from `anim8gen/`:
 
 ```bash
-python3 -m http.server 8765 --bind 127.0.0.1 --directory sprite-lab
+python3 -m http.server 8765 --bind 127.0.0.1 --directory anim8gen
 ```
 
 Then open:
@@ -299,15 +299,15 @@ For the completed cat package, manual review added explicit anchors for frames
 
 To add another sequence:
 
-1. Create `sprite-lab/config/<animation-id>.json`.
+1. Create `anim8gen/config/<animation-id>.json`.
 2. Create these folders:
 
 ```text
-sprite-lab/assets/<animation-id>/reference/
-sprite-lab/assets/<animation-id>/raw/
-sprite-lab/assets/<animation-id>/aligned/
-sprite-lab/assets/<animation-id>/review/
-sprite-lab/assets/<animation-id>/manifests/
+anim8gen/assets/<animation-id>/reference/
+anim8gen/assets/<animation-id>/raw/
+anim8gen/assets/<animation-id>/aligned/
+anim8gen/assets/<animation-id>/review/
+anim8gen/assets/<animation-id>/manifests/
 ```
 
 3. Add `.gitkeep` files if the folders should exist in git before generated
@@ -325,7 +325,7 @@ sprite-lab/assets/<animation-id>/manifests/
 
 The `cat-sit-lick-paw-sit` readiness sequence is a minimal example of a second
 spec using the same tools. Its report is
-`sprite-lab/reports/cat-sit-lick-paw-sit.readiness.md`.
+`anim8gen/reports/cat-sit-lick-paw-sit.readiness.md`.
 
 ## Generated Asset Policy
 
@@ -357,7 +357,7 @@ provenance.
 
 ## Dependencies
 
-Sprite Lab uses Python 3 and Pillow:
+Anim8gen uses Python 3 and Pillow:
 
 ```text
 Pillow==12.2.0
@@ -369,7 +369,7 @@ resizing, alpha-mask checks, contact-sheet rendering, and overlay drawing.
 The prototype does not require a package lockfile. Install dependencies with:
 
 ```bash
-python3 -m pip install -r sprite-lab/requirements.txt
+python3 -m pip install -r anim8gen/requirements.txt
 ```
 
 ## Troubleshooting
@@ -379,7 +379,7 @@ python3 -m pip install -r sprite-lab/requirements.txt
 Install dependencies:
 
 ```bash
-python3 -m pip install -r sprite-lab/requirements.txt
+python3 -m pip install -r anim8gen/requirements.txt
 ```
 
 ### Missing Raw Frame
@@ -428,12 +428,12 @@ in the sequence summary report.
 
 ### Preview Does Not Show Images
 
-Serve `sprite-lab/` with a local HTTP server and open the preview through that
+Serve `anim8gen/` with a local HTTP server and open the preview through that
 server. The HTML uses relative paths to local aligned PNGs, so opening the file
 from another directory can break image loading.
 
 ```bash
-python3 -m http.server 8765 --bind 127.0.0.1 --directory sprite-lab
+python3 -m http.server 8765 --bind 127.0.0.1 --directory anim8gen
 ```
 
 ## Current Reports

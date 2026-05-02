@@ -1,7 +1,7 @@
 {
   "id": "cat-yawn-lay-sleep",
-  "spec": "sprite-lab/config/cat-yawn-lay-sleep.json",
-  "framesDir": "sprite-lab/assets/cat-yawn-lay-sleep/aligned",
+  "spec": "anim8gen/config/cat-yawn-lay-sleep.json",
+  "framesDir": "anim8gen/assets/cat-yawn-lay-sleep/aligned",
   "status": "passed",
   "summary": {
     "frameCount": 8,
@@ -14,7 +14,7 @@
     {
       "index": 0,
       "label": "sit-idle",
-      "path": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-000.sit-idle.png",
+      "path": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-000.sit-idle.png",
       "dimensions": [
         128,
         128
@@ -43,7 +43,7 @@
     {
       "index": 1,
       "label": "yawn-start",
-      "path": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-001.yawn-start.png",
+      "path": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-001.yawn-start.png",
       "dimensions": [
         128,
         128
@@ -72,7 +72,7 @@
     {
       "index": 2,
       "label": "yawn-wide",
-      "path": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-002.yawn-wide.png",
+      "path": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-002.yawn-wide.png",
       "dimensions": [
         128,
         128
@@ -101,7 +101,7 @@
     {
       "index": 3,
       "label": "yawn-end",
-      "path": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-003.yawn-end.png",
+      "path": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-003.yawn-end.png",
       "dimensions": [
         128,
         128
@@ -130,7 +130,7 @@
     {
       "index": 4,
       "label": "lowering",
-      "path": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-004.lowering.png",
+      "path": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-004.lowering.png",
       "dimensions": [
         128,
         128
@@ -159,7 +159,7 @@
     {
       "index": 5,
       "label": "lying-head-up",
-      "path": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-005.lying-head-up.png",
+      "path": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-005.lying-head-up.png",
       "dimensions": [
         128,
         128
@@ -188,7 +188,7 @@
     {
       "index": 6,
       "label": "lying-head-down",
-      "path": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-006.lying-head-down.png",
+      "path": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-006.lying-head-down.png",
       "dimensions": [
         128,
         128
@@ -217,7 +217,7 @@
     {
       "index": 7,
       "label": "sleep-loop",
-      "path": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-007.sleep-loop.png",
+      "path": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-007.sleep-loop.png",
       "dimensions": [
         128,
         128

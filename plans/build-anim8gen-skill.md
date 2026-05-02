@@ -663,7 +663,7 @@ sanity pass.
 
 ## Progress Tracker
 
-- [ ] Phase 1: Rename prototype workspace to Anim8gen.
+- ✅ Done Phase 1: Rename prototype workspace to Anim8gen.
 - [ ] Phase 2: Extract reusable Anim8gen package conventions.
 - [ ] Phase 3: Create the `.codex/skills/anim8gen` skill skeleton.
 - [ ] Phase 4: Add spec and package initialization helper.

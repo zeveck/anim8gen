@@ -2,19 +2,19 @@
 
 ## Purpose
 
-This second animation is a small synthetic check that the sprite-lab alignment
+This second animation is a small synthetic check that the anim8gen alignment
 and validation tools are driven by animation specs and folder paths, not by the
 first `cat-yawn-lay-sleep` sequence.
 
 ## Inputs
 
-- Spec: `sprite-lab/config/cat-sit-lick-paw-sit.json`
+- Spec: `anim8gen/config/cat-sit-lick-paw-sit.json`
 - Synthetic raw frames:
-  `sprite-lab/assets/cat-sit-lick-paw-sit/raw/frame-000.retry-001.png`
+  `anim8gen/assets/cat-sit-lick-paw-sit/raw/frame-000.retry-001.png`
   through
-  `sprite-lab/assets/cat-sit-lick-paw-sit/raw/frame-002.retry-001.png`
+  `anim8gen/assets/cat-sit-lick-paw-sit/raw/frame-002.retry-001.png`
 - Candidate metadata:
-  `sprite-lab/assets/cat-sit-lick-paw-sit/manifests/candidates.jsonl`
+  `anim8gen/assets/cat-sit-lick-paw-sit/manifests/candidates.jsonl`
 
 The raw and aligned PNGs are local generated assets and remain ignored by git,
 matching the first prototype package convention.
@@ -22,15 +22,15 @@ matching the first prototype package convention.
 ## Commands
 
 ```bash
-python3 -m json.tool sprite-lab/config/cat-sit-lick-paw-sit.json >/dev/null
-python3 sprite-lab/tools/align_frames.py \
-  --spec sprite-lab/config/cat-sit-lick-paw-sit.json \
-  --input sprite-lab/assets/cat-sit-lick-paw-sit/raw \
-  --output sprite-lab/assets/cat-sit-lick-paw-sit/aligned
-python3 sprite-lab/tools/validate_sprites.py \
-  --spec sprite-lab/config/cat-sit-lick-paw-sit.json \
-  --frames sprite-lab/assets/cat-sit-lick-paw-sit/aligned \
-  --out sprite-lab/reports/cat-sit-lick-paw-sit.validation.json
+python3 -m json.tool anim8gen/config/cat-sit-lick-paw-sit.json >/dev/null
+python3 anim8gen/tools/align_frames.py \
+  --spec anim8gen/config/cat-sit-lick-paw-sit.json \
+  --input anim8gen/assets/cat-sit-lick-paw-sit/raw \
+  --output anim8gen/assets/cat-sit-lick-paw-sit/aligned
+python3 anim8gen/tools/validate_sprites.py \
+  --spec anim8gen/config/cat-sit-lick-paw-sit.json \
+  --frames anim8gen/assets/cat-sit-lick-paw-sit/aligned \
+  --out anim8gen/reports/cat-sit-lick-paw-sit.validation.json
 ```
 
 ## Result

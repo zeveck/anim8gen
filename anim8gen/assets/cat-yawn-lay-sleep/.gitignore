@@ -4,7 +4,7 @@ raw/*
 aligned/*
 review/*
 
-# Keep the prototype folder structure visible.
+# Keep the package folder structure visible.
 !reference/.gitkeep
 !raw/.gitkeep
 !aligned/.gitkeep

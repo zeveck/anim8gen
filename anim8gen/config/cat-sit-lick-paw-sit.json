@@ -3,7 +3,7 @@
   "asset": {
     "subject": "cat",
     "style": "16-bit pixel art",
-    "canonicalReference": "sprite-lab/assets/cat-sit-lick-paw-sit/reference/synthetic-reference.png",
+    "canonicalReference": "anim8gen/assets/cat-sit-lick-paw-sit/reference/synthetic-reference.png",
     "promptTraits": [
       "small cat",
       "side-view",
@@ -22,8 +22,8 @@
   "generation": {
     "preferredSkill": "synthetic-placeholder",
     "fallbackSkills": ["nanogen", "imagegen2", "imagegen"],
-    "candidateManifest": "sprite-lab/assets/cat-sit-lick-paw-sit/manifests/candidates.jsonl",
-    "acceptedManifest": "sprite-lab/assets/cat-sit-lick-paw-sit/manifests/accepted-frames.json"
+    "candidateManifest": "anim8gen/assets/cat-sit-lick-paw-sit/manifests/candidates.jsonl",
+    "acceptedManifest": "anim8gen/assets/cat-sit-lick-paw-sit/manifests/accepted-frames.json"
   },
   "segmentation": {
     "strategy": "chroma-key",

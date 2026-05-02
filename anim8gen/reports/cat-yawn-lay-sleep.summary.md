@@ -19,9 +19,9 @@ All eight generated `imagegen2` candidates are accepted for the first prototype 
 
 - Generator: `imagegen2`
 - Model: `gpt-image-2`
-- Reference: `sprite-lab/assets/cat-yawn-lay-sleep/reference/cat-reference.jpg`
-- Candidate metadata: `sprite-lab/assets/cat-yawn-lay-sleep/manifests/candidates.jsonl`
-- Accepted manifest: `sprite-lab/assets/cat-yawn-lay-sleep/manifests/accepted-frames.json`
+- Reference: `anim8gen/assets/cat-yawn-lay-sleep/reference/cat-reference.jpg`
+- Candidate metadata: `anim8gen/assets/cat-yawn-lay-sleep/manifests/candidates.jsonl`
+- Accepted manifest: `anim8gen/assets/cat-yawn-lay-sleep/manifests/accepted-frames.json`
 
 ## Manual Approval Notes
 
@@ -50,6 +50,6 @@ Warnings accepted as intentional or acceptable for the first prototype:
 
 ## Verification
 
-- Contact sheet reviewed: `sprite-lab/assets/cat-yawn-lay-sleep/review/contact-sheet.png`
+- Contact sheet reviewed: `anim8gen/assets/cat-yawn-lay-sleep/review/contact-sheet.png`
 - Preview reviewed in Chromium through a local static server: `http://127.0.0.1:8766/preview/cat-yawn-lay-sleep.html`
 - Browser checks covered frame rendering, thumbnail frame selection, play/pause, next-frame stepping, and sleep-frame Z activation.

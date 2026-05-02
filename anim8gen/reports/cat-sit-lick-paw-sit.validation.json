@@ -1,7 +1,7 @@
 {
   "id": "cat-sit-lick-paw-sit",
-  "spec": "sprite-lab/config/cat-sit-lick-paw-sit.json",
-  "framesDir": "sprite-lab/assets/cat-sit-lick-paw-sit/aligned",
+  "spec": "anim8gen/config/cat-sit-lick-paw-sit.json",
+  "framesDir": "anim8gen/assets/cat-sit-lick-paw-sit/aligned",
   "status": "passed",
   "summary": {
     "frameCount": 3,
@@ -14,7 +14,7 @@
     {
       "index": 0,
       "label": "sit-idle",
-      "path": "sprite-lab/assets/cat-sit-lick-paw-sit/aligned/frame-000.sit-idle.png",
+      "path": "anim8gen/assets/cat-sit-lick-paw-sit/aligned/frame-000.sit-idle.png",
       "dimensions": [
         128,
         128
@@ -43,7 +43,7 @@
     {
       "index": 1,
       "label": "lick-paw",
-      "path": "sprite-lab/assets/cat-sit-lick-paw-sit/aligned/frame-001.lick-paw.png",
+      "path": "anim8gen/assets/cat-sit-lick-paw-sit/aligned/frame-001.lick-paw.png",
       "dimensions": [
         128,
         128
@@ -72,7 +72,7 @@
     {
       "index": 2,
       "label": "sit-return",
-      "path": "sprite-lab/assets/cat-sit-lick-paw-sit/aligned/frame-002.sit-return.png",
+      "path": "anim8gen/assets/cat-sit-lick-paw-sit/aligned/frame-002.sit-return.png",
       "dimensions": [
         128,
         128

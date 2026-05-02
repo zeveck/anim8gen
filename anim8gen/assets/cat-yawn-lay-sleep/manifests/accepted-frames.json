@@ -5,11 +5,11 @@
   "generator": {
     "skill": "imagegen2",
     "model": "gpt-image-2",
-    "reference": "sprite-lab/assets/cat-yawn-lay-sleep/reference/cat-reference.jpg",
-    "candidateManifest": "sprite-lab/assets/cat-yawn-lay-sleep/manifests/candidates.jsonl"
+    "reference": "anim8gen/assets/cat-yawn-lay-sleep/reference/cat-reference.jpg",
+    "candidateManifest": "anim8gen/assets/cat-yawn-lay-sleep/manifests/candidates.jsonl"
   },
   "alignment": {
-    "metricsManifest": "sprite-lab/assets/cat-yawn-lay-sleep/manifests/alignment-metrics.json",
+    "metricsManifest": "anim8gen/assets/cat-yawn-lay-sleep/manifests/alignment-metrics.json",
     "manualOverrides": {
       "0": "Moved the sitting frame left to remove right-edge face clipping caused by the automatic bottom-band anchor.",
       "5": "Placed the lying-head-up frame on the shared floor line.",
@@ -18,15 +18,15 @@
     }
   },
   "validation": {
-    "report": "sprite-lab/reports/cat-yawn-lay-sleep.validation.json",
+    "report": "anim8gen/reports/cat-yawn-lay-sleep.validation.json",
     "status": "passed",
     "structuralFailures": 0,
     "warningCount": 14,
     "warningDisposition": "documented-intentional-or-acceptable-for-first-prototype"
   },
   "review": {
-    "contactSheet": "sprite-lab/assets/cat-yawn-lay-sleep/review/contact-sheet.png",
-    "preview": "sprite-lab/preview/cat-yawn-lay-sleep.html",
+    "contactSheet": "anim8gen/assets/cat-yawn-lay-sleep/review/contact-sheet.png",
+    "preview": "anim8gen/preview/cat-yawn-lay-sleep.html",
     "decision": "accept",
     "notes": [
       "All frames match the planned yawn, lower, lie down, and sleep poses.",
@@ -39,64 +39,64 @@
     {
       "index": 0,
       "label": "sit-idle",
-      "raw": "sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-000.retry-001.png",
-      "aligned": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-000.sit-idle.png",
+      "raw": "anim8gen/assets/cat-yawn-lay-sleep/raw/frame-000.retry-001.png",
+      "aligned": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-000.sit-idle.png",
       "status": "accept",
       "reviewNote": "Accepted after manual anchor fix removed right-edge clipping."
     },
     {
       "index": 1,
       "label": "yawn-start",
-      "raw": "sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-001.retry-001.png",
-      "aligned": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-001.yawn-start.png",
+      "raw": "anim8gen/assets/cat-yawn-lay-sleep/raw/frame-001.retry-001.png",
+      "aligned": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-001.yawn-start.png",
       "status": "accept",
       "reviewNote": "Yawn begins clearly; residual motion warning is acceptable against frame 0 after manual centering."
     },
     {
       "index": 2,
       "label": "yawn-wide",
-      "raw": "sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-002.retry-001.png",
-      "aligned": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-002.yawn-wide.png",
+      "raw": "anim8gen/assets/cat-yawn-lay-sleep/raw/frame-002.retry-001.png",
+      "aligned": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-002.yawn-wide.png",
       "status": "accept",
       "reviewNote": "Full yawn reads clearly."
     },
     {
       "index": 3,
       "label": "yawn-end",
-      "raw": "sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-003.retry-001.png",
-      "aligned": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-003.yawn-end.png",
+      "raw": "anim8gen/assets/cat-yawn-lay-sleep/raw/frame-003.retry-001.png",
+      "aligned": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-003.yawn-end.png",
       "status": "accept",
       "reviewNote": "Sleepy-eye closing pose reads clearly."
     },
     {
       "index": 4,
       "label": "lowering",
-      "raw": "sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-004.retry-001.png",
-      "aligned": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-004.lowering.png",
+      "raw": "anim8gen/assets/cat-yawn-lay-sleep/raw/frame-004.retry-001.png",
+      "aligned": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-004.lowering.png",
       "status": "accept",
       "reviewNote": "Lowering pose bridges sitting and lying; large silhouette change is intentional."
     },
     {
       "index": 5,
       "label": "lying-head-up",
-      "raw": "sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-005.retry-001.png",
-      "aligned": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-005.lying-head-up.png",
+      "raw": "anim8gen/assets/cat-yawn-lay-sleep/raw/frame-005.retry-001.png",
+      "aligned": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-005.lying-head-up.png",
       "status": "accept",
       "reviewNote": "Accepted after manual floor-line anchor fix."
     },
     {
       "index": 6,
       "label": "lying-head-down",
-      "raw": "sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-006.retry-001.png",
-      "aligned": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-006.lying-head-down.png",
+      "raw": "anim8gen/assets/cat-yawn-lay-sleep/raw/frame-006.retry-001.png",
+      "aligned": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-006.lying-head-down.png",
       "status": "accept",
       "reviewNote": "Accepted sleep pose; separate preview Zs activate on this frame."
     },
     {
       "index": 7,
       "label": "sleep-loop",
-      "raw": "sprite-lab/assets/cat-yawn-lay-sleep/raw/frame-007.retry-001.png",
-      "aligned": "sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-007.sleep-loop.png",
+      "raw": "anim8gen/assets/cat-yawn-lay-sleep/raw/frame-007.retry-001.png",
+      "aligned": "anim8gen/assets/cat-yawn-lay-sleep/aligned/frame-007.sleep-loop.png",
       "status": "accept",
       "reviewNote": "Accepted as a calm breathing hold; size warning is documented as intentional."
     }
