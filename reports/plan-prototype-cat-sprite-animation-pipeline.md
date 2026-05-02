@@ -194,3 +194,84 @@ Notes:
 - Phase 8: Manual review and iteration loop.
 - Phase 9: Package prototype result.
 - Phase 10: Second animation readiness check.
+
+## Phase 4: Segment, Crop, And Align Frames
+
+Status: complete
+
+Branch/worktree:
+
+- Branch: `zskills/prototype-cat-sprite-animation-pipeline-phase-4`
+- Worktree: `/tmp/anim8gen-cp-prototype-cat-sprite-animation-pipeline-phase-4`
+
+Files changed:
+
+- `plans/prototype-cat-sprite-animation-pipeline.md`
+- `reports/plan-prototype-cat-sprite-animation-pipeline.md`
+- `sprite-lab/requirements.txt`
+- `sprite-lab/tools/align_frames.py`
+- `sprite-lab/assets/cat-yawn-lay-sleep/manifests/alignment-metrics.json`
+
+Generated local artifacts:
+
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-000.sit-idle.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-001.yawn-start.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-002.yawn-wide.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-003.yawn-end.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-004.lowering.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-005.lying-head-up.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-006.lying-head-down.png`
+- `sprite-lab/assets/cat-yawn-lay-sleep/aligned/frame-007.sleep-loop.png`
+
+Implementation notes:
+
+- The aligner uses Pillow 12.2.0, scoped to `sprite-lab/requirements.txt`.
+- Raw frames are converted to RGBA, chromakeyed against the configured magenta
+  background, reduced to the largest connected component, cropped, scaled, and
+  composited onto a 128x128 transparent canvas.
+- The metrics manifest records source and aligned bounding boxes, visible area,
+  centroid, anchor strategy, source anchor, scaled size, and applied offset.
+- Manual anchor overrides are supported through `alignment.manualOverrides` in
+  the animation spec.
+
+Verification:
+
+```bash
+python3 -m py_compile sprite-lab/tools/align_frames.py
+python3 -W error::DeprecationWarning sprite-lab/tools/align_frames.py \
+  --spec sprite-lab/config/cat-yawn-lay-sleep.json \
+  --input sprite-lab/assets/cat-yawn-lay-sleep/raw \
+  --output sprite-lab/assets/cat-yawn-lay-sleep/aligned
+python3 -m json.tool sprite-lab/assets/cat-yawn-lay-sleep/manifests/alignment-metrics.json >/dev/null
+file sprite-lab/assets/cat-yawn-lay-sleep/aligned/*.png
+```
+
+Result: passed with inline verification. All eight aligned frames are
+128x128 RGBA PNGs with transparent backgrounds, and the metrics manifest is
+valid JSON.
+
+Visual review:
+
+- Spot-checked `frame-002.yawn-wide.png` and `frame-006.lying-head-down.png`.
+- The yawn and lying silhouettes are readable, centered on the canvas, and
+  free of obvious magenta background residue at 128x128.
+
+Landing result: landed on `main` by local cherry-pick.
+
+Notes:
+
+- Raw and aligned generated PNGs remain ignored by git per the plan's
+  generated-asset rule; aligned outputs must be copied from the phase worktree
+  into the main workspace after landing so later phases can validate and
+  preview them locally.
+- No separate verifier agent was used in this chunk; verification was run
+  inline from the actual diff.
+
+## Remaining Phases
+
+- Phase 5: Validate sprite consistency.
+- Phase 6: Produce review artifacts.
+- Phase 7: Build HTML preview.
+- Phase 8: Manual review and iteration loop.
+- Phase 9: Package prototype result.
+- Phase 10: Second animation readiness check.
