@@ -1,0 +1,151 @@
+{
+  "id": "cat-yawn-lay-sleep",
+  "asset": {
+    "subject": "cat",
+    "style": "16-bit pixel art",
+    "canonicalReference": "sprite-lab/assets/cat-yawn-lay-sleep/reference/cat-reference.png",
+    "promptTraits": [
+      "small cat",
+      "side-view",
+      "compact readable silhouette",
+      "simple markings",
+      "no text"
+    ]
+  },
+  "render": {
+    "canvas": [128, 128],
+    "workingSize": [1024, 1024],
+    "exportScale": 8,
+    "fps": 8,
+    "paletteLimit": 48
+  },
+  "generation": {
+    "preferredSkill": "nanogen",
+    "fallbackSkills": ["imagegen2", "imagegen"],
+    "candidateManifest": "sprite-lab/assets/cat-yawn-lay-sleep/manifests/candidates.jsonl",
+    "acceptedManifest": "sprite-lab/assets/cat-yawn-lay-sleep/manifests/accepted-frames.json"
+  },
+  "segmentation": {
+    "strategy": "chroma-key",
+    "chromaKey": "#ff00ff",
+    "alphaThreshold": 8,
+    "chromaTolerance": 32
+  },
+  "alignment": {
+    "defaultAnchor": "body_bottom_center",
+    "floorY": 112,
+    "supportedAnchors": [
+      "body_bottom_center",
+      "feet_center",
+      "body_center",
+      "head_center",
+      "manual"
+    ],
+    "manualOverrides": {}
+  },
+  "validation": {
+    "defaultThresholds": {
+      "anchorXJumpPx": 3,
+      "anchorYJumpPx": 2,
+      "bboxHeightVariancePct": 12,
+      "bboxWidthVariancePct": 18,
+      "visibleAreaVariancePct": 20,
+      "centroidJumpPx": 5,
+      "adjacentSilhouetteIouMin": 0.55,
+      "meanLuminanceShiftPct": 15,
+      "dominantHueShiftDegrees": 12
+    },
+    "motionPhases": [
+      {
+        "name": "yawn",
+        "frames": [0, 1, 2, 3],
+        "thresholdOverrides": {
+          "headTopDriftPx": 8,
+          "adjacentSilhouetteIouMin": 0.45
+        },
+        "ignoredWarnings": ["mouthShapeChange"]
+      },
+      {
+        "name": "lower-to-floor",
+        "frames": [4, 5],
+        "thresholdOverrides": {
+          "bboxHeightVariancePct": 35,
+          "visibleAreaVariancePct": 35,
+          "centroidJumpPx": 12,
+          "adjacentSilhouetteIouMin": 0.35
+        }
+      },
+      {
+        "name": "sleep-hold",
+        "frames": [6, 7],
+        "thresholdOverrides": {
+          "anchorXJumpPx": 2,
+          "anchorYJumpPx": 1,
+          "bboxHeightVariancePct": 8,
+          "bboxWidthVariancePct": 8,
+          "visibleAreaVariancePct": 10
+        }
+      }
+    ]
+  },
+  "preview": {
+    "runtimeEffects": ["sleeping-zs"],
+    "minimalControls": [
+      "playPause",
+      "fps",
+      "step",
+      "frameLabel",
+      "checkerboard"
+    ]
+  },
+  "frames": [
+    {
+      "index": 0,
+      "label": "sit-idle",
+      "pose": "sitting, eyes open, relaxed",
+      "anchor": "body_bottom_center"
+    },
+    {
+      "index": 1,
+      "label": "yawn-start",
+      "pose": "sitting, mouth beginning to open, head starts to tilt up",
+      "anchor": "body_bottom_center"
+    },
+    {
+      "index": 2,
+      "label": "yawn-wide",
+      "pose": "sitting, full yawn, mouth wide open, body mostly unchanged",
+      "anchor": "body_bottom_center"
+    },
+    {
+      "index": 3,
+      "label": "yawn-end",
+      "pose": "sitting, mouth closing, sleepy eyes",
+      "anchor": "body_bottom_center"
+    },
+    {
+      "index": 4,
+      "label": "lowering",
+      "pose": "front legs bend, body lowering toward the floor",
+      "anchor": "body_bottom_center"
+    },
+    {
+      "index": 5,
+      "label": "lying-head-up",
+      "pose": "lying down, head still slightly raised",
+      "anchor": "body_center"
+    },
+    {
+      "index": 6,
+      "label": "lying-head-down",
+      "pose": "lying down, head resting on paws, eyes closed",
+      "anchor": "body_center"
+    },
+    {
+      "index": 7,
+      "label": "sleep-loop",
+      "pose": "lying still asleep, eyes closed, calm breathing pose",
+      "anchor": "body_center"
+    }
+  ]
+}

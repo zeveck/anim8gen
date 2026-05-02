@@ -742,7 +742,7 @@ After the first cat animation works:
 
 ## Progress Tracker
 
-- [ ] Phase 1: Scaffold prototype workspace and animation spec.
+- [x] Phase 1: Scaffold prototype workspace and animation spec.
 - [ ] Phase 2: Create canonical cat reference.
 - [ ] Phase 3: Generate candidate still frames.
 - [ ] Phase 4: Segment, crop, and align frames.
