@@ -291,12 +291,12 @@ Manual verification:
 - ✅ Done Run baseline offline tests.
 - ✅ Done Define CLI contract, help/docs, chroma-key dry-run normalization, and
       conservative `--chroma-tolerance`.
-- [ ] Implement CLI validation and request normalization.
-- [ ] Implement PNG chroma-key post-processing.
-- [ ] Add offline post-processing tests.
-- [ ] Update docs and bundled skill files.
-- [ ] Add opt-in live smoke coverage.
-- [ ] Probe current `gpt-image-2` native transparency behavior.
+- ✅ Done Implement CLI validation and request normalization.
+- ✅ Done Implement PNG chroma-key post-processing.
+- ✅ Done Add offline post-processing tests.
+- ✅ Done Update docs and bundled skill files.
+- ✅ Done Add opt-in live smoke coverage.
+- ✅ Done Probe current `gpt-image-2` native transparency behavior.
 
 ## Planning Review Notes
 

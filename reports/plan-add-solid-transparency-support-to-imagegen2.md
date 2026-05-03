@@ -62,3 +62,47 @@ Scope stayed within Phase 1. The change defines and verifies the user-facing
 contract and dry-run/request-normalization surface, but intentionally leaves
 actual PNG alpha post-processing and non-dry-run chroma-key generation blocked
 until the next implementation phase.
+
+## Phase
+
+Phases 2-7: Complete solid transparency implementation
+
+Status: completed inline after runner gate failure.
+
+## Summary
+
+- Implemented local PNG chroma-key post-processing in `external/imagegen2` while preserving the zero-dependency CLI model. The parser supports 8-bit RGB/RGBA, PNG filters 0-4, local key removal with tolerance, and RGBA PNG re-encoding.
+- Wired non-dry-run `--background transparent --transparent-mode chroma-key` to keep `gpt-image-2`, normalize API requests to opaque PNG output, append solid-key prompt guidance, remove key pixels locally, and report post-processing metadata in stdout/history.
+- Added `--chroma-tolerance` validation and kept JPEG/WebP restrictions for chroma-key mode.
+- Added offline post-processing tests for exact key removal, alpha preservation, tolerance behavior, no-match failure, and corrupt/non-PNG handling.
+- Updated README, CLI reference, Codex/Claude/Gemini skill docs, bundled CLI/reference copies, migration notes, and live smoke coverage.
+- Probed native `gpt-image-2` transparent background support on 2026-05-03. The API returned HTTP 400: "Transparent background is not supported for this model." Docs now record that result.
+
+## Tests Run
+
+- `node --check cli/generate.cjs` in `/workspaces/anim8gen/external/imagegen2`
+- `npm test` in `/workspaces/anim8gen/external/imagegen2` (`53 passed, 0 failed`)
+- `npm run test:all` in `/workspaces/anim8gen/external/imagegen2` (`53 passed, 0 failed`; live smoke skipped because `IMAGEGEN2_LIVE_TEST` was not set)
+- Native transparency probe against the OpenAI API returned HTTP 400 with the expected unsupported-background message.
+
+## Verification Result
+
+Passed for offline implementation and documentation gates. Live chroma-key smoke was added but not run because `IMAGEGEN2_LIVE_TEST` was not enabled for the full test command. The native transparency probe did run and confirmed `gpt-image-2` still rejects `background: "transparent"`.
+
+## Landing Result
+
+Resolved runner landing mode was cherry-pick, but the external runner could not continue after Phase 1 because the outer Anim8gen repo has unrelated dirty/untracked artifacts. Remaining work was completed inline in the nested clean `external/imagegen2` repository.
+
+Nested imagegen2 commit:
+
+- `459e12f Implement chroma-key transparency cleanup`
+
+No `.zskills` tracking files were committed.
+
+## Remaining Phases
+
+None. The plan tracker is complete.
+
+## Scope Assessment
+
+Scope stayed within imagegen2 solid transparency support and related docs/tests. No Anim8gen source behavior was changed as part of the inline completion.
