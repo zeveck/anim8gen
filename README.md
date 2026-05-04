@@ -98,18 +98,18 @@ retreating.
 ```
 
 <p>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-000.calm.png" alt="Pirate ship kraken frame 1" width="180"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-001.water-bulge.png" alt="Pirate ship kraken frame 2" width="180"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-002.tentacles-rise.png" alt="Pirate ship kraken frame 3" width="180"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-003.kraken-looms.png" alt="Pirate ship kraken frame 4" width="180"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-004.cannon-aim.png" alt="Pirate ship kraken frame 5" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-000.calm.png" alt="Pirate ship kraken frame 1" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-001.water-bulge.png" alt="Pirate ship kraken frame 2" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-002.tentacles-rise.png" alt="Pirate ship kraken frame 3" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-003.kraken-looms.png" alt="Pirate ship kraken frame 4" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-004.cannon-aim.png" alt="Pirate ship kraken frame 5" width="160"></a>
 </p>
 <p>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-005.cannon-fire.png" alt="Pirate ship kraken frame 6" width="180"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-006.impact.png" alt="Pirate ship kraken frame 7" width="180"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-007.kraken-retreats.png" alt="Pirate ship kraken frame 8" width="180"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-008.submerging.png" alt="Pirate ship kraken frame 9" width="180"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-009.sea-settles.png" alt="Pirate ship kraken frame 10" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-005.cannon-fire.png" alt="Pirate ship kraken frame 6" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-006.impact.png" alt="Pirate ship kraken frame 7" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-007.kraken-retreats.png" alt="Pirate ship kraken frame 8" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-008.submerging.png" alt="Pirate ship kraken frame 9" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-009.sea-settles.png" alt="Pirate ship kraken frame 10" width="160"></a>
 </p>
 
 ```text
