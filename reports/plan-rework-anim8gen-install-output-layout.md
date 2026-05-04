@@ -4,7 +4,7 @@
 
 Phase 2: Package initialization root fixes
 
-Status: implemented, verified, and pending cherry-pick landing.
+Status: implemented, verified, and landed.
 
 ## Scope Assessment
 
@@ -35,7 +35,7 @@ Passed. Inline verification covered the updated initializer behavior, old `--roo
 
 ## Landing Result
 
-Pending. The worktree changes are ready for commit and cherry-pick to `main`.
+Landed. Worktree commit `fb55892` was cherry-picked to `main` as `dc337d3`.
 
 ## Remaining Phases
 
