@@ -4,7 +4,7 @@
 
 Phase 4: Visible export step
 
-Status: implemented and verified; landing pending.
+Status: implemented, verified, and landed.
 
 ## Scope Assessment
 
@@ -30,7 +30,7 @@ Passed. Inline verification covered Python syntax for scripts, installed runtime
 
 ## Landing Result
 
-Pending. Worktree commit and cherry-pick to `main` have not run yet.
+Landed. Worktree commit `940043d` was cherry-picked to `main` as `e985142`.
 
 ## Remaining Phases
 
