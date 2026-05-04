@@ -53,3 +53,29 @@ Remaining phases:
 
 - Phase 4: Tests
 - Phase 5: Public demo sanity
+
+## Phase
+
+Phase 4: Tests
+
+Status: ✅ Done
+
+Scope assessment: Scoped to deterministic local tool behavior. Added a
+standard-library test runner covering GIF dimensions/frame count, terminal
+reuse-frame skipping, non-terminal frame preservation, display-offset rendering,
+preview/public-demo playback ordering, and magenta/green/cyan chroma-key family
+cleanup. Kept tests offline and temporary-file based.
+
+Tests run:
+
+- `python3 tests/test_anim8gen_tools.py`
+- `python3 -m py_compile anim8gen/tools/*.py .codex/skills/anim8gen/scripts/*.py`
+
+Verification result: Passed. The tests run without network or imagegen2 API
+access and do not write into committed demo folders.
+
+Landing result: Pending before commit.
+
+Remaining phases:
+
+- Phase 5: Public demo sanity

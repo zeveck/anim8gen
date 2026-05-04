@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""Lightweight regression tests for local anim8gen tools."""
+
+from __future__ import annotations
+
+import json
+import sys
+import tempfile
+from pathlib import Path
+
+from PIL import Image, ImageSequence
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+TOOLS_DIR = REPO_ROOT / "anim8gen" / "tools"
+sys.path.insert(0, str(TOOLS_DIR))
+
+import align_frames  # noqa: E402
+import export_gif  # noqa: E402
+import export_public_demo  # noqa: E402
+import make_preview  # noqa: E402
+
+
+def write_frame(path: Path, color: tuple[int, int, int, int], pixel: tuple[int, int] = (1, 1)) -> None:
+    image = Image.new("RGBA", (4, 4), (0, 0, 0, 0))
+    image.putpixel(pixel, color)
+    image.save(path)
+
+
+def base_spec(animation_id: str = "fixture") -> dict:
+    return {
+        "id": animation_id,
+        "render": {"canvas": [4, 4], "fps": 4},
+        "segmentation": {"alphaThreshold": 8, "chromaKey": "#ff00ff", "chromaTolerance": 24},
+        "alignment": {"defaultAnchor": "body_center", "floorY": 3},
+        "generation": {
+            "candidateManifest": f"anim8gen/assets/{animation_id}/manifests/candidates.jsonl",
+            "acceptedManifest": f"anim8gen/assets/{animation_id}/manifests/accepted-frames.json",
+        },
+        "preview": {},
+        "frames": [
+            {"index": 0, "label": "idle", "pose": "idle"},
+            {"index": 1, "label": "hop", "pose": "hop"},
+            {"index": 2, "label": "return", "pose": "return", "reuseFrame": 0},
+        ],
+    }
+
+
+def gif_frames(path: Path) -> list[Image.Image]:
+    with Image.open(path) as image:
+        return [frame.convert("RGBA") for frame in ImageSequence.Iterator(image)]
+
+
+def test_export_gif_dimensions_frame_count_and_terminal_reuse() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        frames_dir = root / "frames"
+        frames_dir.mkdir()
+        spec = base_spec()
+        write_frame(frames_dir / "frame-000.idle.png", (255, 0, 0, 255))
+        write_frame(frames_dir / "frame-001.hop.png", (0, 255, 0, 255))
+        write_frame(frames_dir / "frame-002.return.png", (0, 0, 255, 255))
+
+        assert export_gif.playback_indexes(spec) == [0, 1]
+
+        out = root / "out.gif"
+        export_gif.export_gif(spec, frames_dir, out, fps=4, scale=2)
+        frames = gif_frames(out)
+        assert out.exists()
+        assert frames[0].size == (8, 8)
+        assert len(frames) == 2
+
+
+def test_non_terminal_reuse_is_preserved() -> None:
+    spec = base_spec()
+    spec["frames"] = [
+        {"index": 0, "label": "idle", "pose": "idle"},
+        {"index": 1, "label": "hold", "pose": "hold", "reuseFrame": 0},
+        {"index": 2, "label": "hop", "pose": "hop"},
+    ]
+    assert export_gif.playback_indexes(spec) == [0, 1, 2]
+    assert make_preview.build_payload_for_indexes(spec) == [0, 1, 2]
+
+
+def test_terminal_reuse_can_be_played_when_requested() -> None:
+    spec = base_spec()
+    spec["preview"] = {"playTerminalReuseFrame": True}
+    assert export_gif.playback_indexes(spec) == [0, 1, 2]
+    assert make_preview.build_payload_for_indexes(spec) == [0, 1, 2]
+
+
+def test_display_offsets_affect_gif_pixels() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        frames_dir = root / "frames"
+        frames_dir.mkdir()
+        spec = base_spec()
+        spec["preview"] = {"displayOffsets": {"0": {"x": 1, "y": 1}}}
+        spec["frames"] = [{"index": 0, "label": "idle", "pose": "idle"}, {"index": 1, "label": "hop", "pose": "hop"}]
+        write_frame(frames_dir / "frame-000.idle.png", (255, 0, 0, 255), pixel=(0, 0))
+        write_frame(frames_dir / "frame-001.hop.png", (0, 255, 0, 255), pixel=(0, 0))
+
+        out = root / "offset.gif"
+        export_gif.export_gif(spec, frames_dir, out, fps=4, scale=1)
+        first = gif_frames(out)[0]
+        assert first.getpixel((1, 1))[3] > 0
+        assert first.getpixel((0, 0))[3] == 0
+
+
+def test_preview_and_public_demo_use_same_frame_order() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        workspace = root / "anim8gen"
+        frames_dir = workspace / "assets" / "fixture" / "aligned"
+        reports_dir = workspace / "reports"
+        config_dir = workspace / "config"
+        preview_dir = workspace / "preview"
+        for path in (frames_dir, reports_dir, config_dir, preview_dir):
+            path.mkdir(parents=True)
+
+        spec = base_spec("fixture")
+        (config_dir / "fixture.json").write_text(json.dumps(spec))
+        (reports_dir / "fixture.validation.json").write_text(json.dumps({"frames": []}))
+        write_frame(frames_dir / "frame-000.idle.png", (255, 0, 0, 255))
+        write_frame(frames_dir / "frame-001.hop.png", (0, 255, 0, 255))
+        write_frame(frames_dir / "frame-002.return.png", (0, 0, 255, 255))
+
+        preview_payload = make_preview.build_payload(
+            spec,
+            {"frames": []},
+            frames_dir,
+            preview_dir / "fixture.html",
+        )
+        export_public_demo.export_demo("fixture", workspace, root / "public", clean=True)
+        html = (root / "public" / "demos" / "fixture" / "index.html").read_text()
+
+        assert preview_payload["playbackIndexes"] == [0, 1]
+        assert '"playbackIndexes":[0,1]' in html
+        assert (root / "public" / "demos" / "fixture" / "frames" / "frame-001.hop.png").exists()
+
+
+def test_chroma_key_color_families_are_background() -> None:
+    for key, family_pixel in [
+        ("#ff00ff", (230, 35, 225, 255)),
+        ("#00ff00", (30, 230, 35, 255)),
+        ("#00ffff", (25, 225, 230, 255)),
+    ]:
+        spec = {"segmentation": {"alphaThreshold": 8, "chromaKey": key, "chromaTolerance": 12}}
+        assert not align_frames.is_visible(family_pixel, spec)
+        assert align_frames.is_visible((120, 80, 40, 255), spec)
+
+
+def run() -> None:
+    for name, fn in sorted(globals().items()):
+        if name.startswith("test_") and callable(fn):
+            fn()
+            print(f"PASS {name}")
+
+
+if __name__ == "__main__":
+    run()

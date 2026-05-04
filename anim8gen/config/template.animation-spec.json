@@ -4,6 +4,7 @@
     "subject": "example subject",
     "style": "pixel art",
     "canonicalReference": "anim8gen/assets/example-animation-id/reference/reference.png",
+    "references": [],
     "promptTraits": [
       "single subject",
       "side-view",
@@ -21,7 +22,6 @@
   },
   "generation": {
     "preferredSkill": "imagegen2",
-    "fallbackSkills": ["imagegen"],
     "candidateManifest": "anim8gen/assets/example-animation-id/manifests/candidates.jsonl",
     "acceptedManifest": "anim8gen/assets/example-animation-id/manifests/accepted-frames.json",
     "retryBudget": 2
@@ -35,6 +35,8 @@
   "alignment": {
     "defaultAnchor": "body_bottom_center",
     "floorY": 112,
+    "stabilizeAnchorX": true,
+    "loopClosure": true,
     "supportedAnchors": [
       "body_bottom_center",
       "feet_center",
@@ -48,6 +50,7 @@
     "defaultThresholds": {
       "anchorXJumpPx": 3,
       "anchorYJumpPx": 2,
+      "edgePaddingPx": 2,
       "bboxHeightVariancePct": 12,
       "bboxWidthVariancePct": 18,
       "visibleAreaVariancePct": 20,

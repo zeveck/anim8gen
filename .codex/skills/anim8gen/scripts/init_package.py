@@ -60,8 +60,8 @@ def require_pair(data: dict[str, Any], key: str, default: list[int], minimum: in
 
 def validate_frames(data: dict[str, Any]) -> list[dict[str, Any]]:
     raw_frames = data.get("frames")
-    if not isinstance(raw_frames, list) or not (2 <= len(raw_frames) <= 8):
-        raise SystemExit("brief.frames must contain 2 to 8 frame objects")
+    if not isinstance(raw_frames, list) or not (2 <= len(raw_frames) <= 12):
+        raise SystemExit("brief.frames must contain 2 to 12 frame objects")
 
     frames: list[dict[str, Any]] = []
     seen_labels: set[str] = set()
@@ -83,8 +83,44 @@ def validate_frames(data: dict[str, Any]) -> list[dict[str, Any]]:
         anchor = raw_frame.get("anchor", "body_bottom_center")
         if anchor not in ANCHORS:
             raise SystemExit(f"brief.frames[{expected_index}].anchor must be one of {sorted(ANCHORS)}")
-        frames.append({"index": index, "label": label, "pose": pose, "anchor": anchor})
+        frame = {"index": index, "label": label, "pose": pose, "anchor": anchor}
+        reuse_frame = raw_frame.get("reuseFrame")
+        if reuse_frame is not None:
+            if not isinstance(reuse_frame, int) or not (0 <= reuse_frame < expected_index):
+                raise SystemExit(
+                    f"brief.frames[{expected_index}].reuseFrame must reference an earlier frame index"
+                )
+            frame["reuseFrame"] = reuse_frame
+        frames.append(frame)
     return frames
+
+
+def validate_references(data: dict[str, Any]) -> list[dict[str, Any]]:
+    raw_references = data.get("references", [])
+    if not isinstance(raw_references, list) or len(raw_references) > 16:
+        raise SystemExit("brief.references must be an array with at most 16 items")
+    allowed_roles = {"canonical", "style", "pose", "frame", "frame-set", "contact-sheet"}
+    references: list[dict[str, Any]] = []
+    for index, raw_reference in enumerate(raw_references):
+        if not isinstance(raw_reference, dict):
+            raise SystemExit(f"brief.references[{index}] must be an object")
+        path = require_text(raw_reference, "path")
+        role = require_text(raw_reference, "role")
+        if role not in allowed_roles:
+            raise SystemExit(f"brief.references[{index}].role must be one of {sorted(allowed_roles)}")
+        reference: dict[str, Any] = {"path": path, "role": role}
+        frame_index = raw_reference.get("frameIndex")
+        if frame_index is not None:
+            if not isinstance(frame_index, int) or not (0 <= frame_index <= 11):
+                raise SystemExit(f"brief.references[{index}].frameIndex must be an integer from 0 to 11")
+            reference["frameIndex"] = frame_index
+        note = raw_reference.get("note")
+        if note is not None:
+            if not isinstance(note, str):
+                raise SystemExit(f"brief.references[{index}].note must be a string")
+            reference["note"] = note
+        references.append(reference)
+    return references
 
 
 def build_spec(brief: dict[str, Any]) -> dict[str, Any]:
@@ -130,6 +166,7 @@ def build_spec(brief: dict[str, Any]) -> dict[str, Any]:
         "solid chroma-key background",
         "no text",
     ]
+    references = validate_references(brief)
 
     return {
         "id": animation_id,
@@ -137,6 +174,7 @@ def build_spec(brief: dict[str, Any]) -> dict[str, Any]:
             "subject": subject,
             "style": style,
             "canonicalReference": f"anim8gen/assets/{animation_id}/reference/reference.png",
+            "references": references,
             "promptTraits": prompt_traits,
         },
         "render": {
@@ -148,7 +186,6 @@ def build_spec(brief: dict[str, Any]) -> dict[str, Any]:
         },
         "generation": {
             "preferredSkill": "imagegen2",
-            "fallbackSkills": ["imagegen"],
             "candidateManifest": f"anim8gen/assets/{animation_id}/manifests/candidates.jsonl",
             "acceptedManifest": f"anim8gen/assets/{animation_id}/manifests/accepted-frames.json",
             "retryBudget": retry_budget,
@@ -162,6 +199,8 @@ def build_spec(brief: dict[str, Any]) -> dict[str, Any]:
         "alignment": {
             "defaultAnchor": brief.get("defaultAnchor", "body_bottom_center"),
             "floorY": floor_y,
+            "stabilizeAnchorX": brief.get("stabilizeAnchorX", True),
+            "loopClosure": brief.get("loopClosure", True),
             "supportedAnchors": sorted(ANCHORS),
             "manualOverrides": {},
         },
@@ -169,6 +208,7 @@ def build_spec(brief: dict[str, Any]) -> dict[str, Any]:
             "defaultThresholds": {
                 "anchorXJumpPx": 3,
                 "anchorYJumpPx": 2,
+                "edgePaddingPx": 2,
                 "bboxHeightVariancePct": 12,
                 "bboxWidthVariancePct": 18,
                 "visibleAreaVariancePct": 20,

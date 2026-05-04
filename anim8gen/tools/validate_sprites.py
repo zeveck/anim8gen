@@ -8,6 +8,7 @@ import colorsys
 import json
 import math
 from pathlib import Path
+from statistics import median
 from typing import Any
 
 from PIL import Image
@@ -218,6 +219,7 @@ def compare_frames(left: dict[str, Any], right: dict[str, Any], spec: dict[str, 
     if hue_shift > thresholds.get("dominantHueShiftDegrees", math.inf):
         add_warning(warnings, "dominantHueShiftDegrees", "dominant hue shifted more than expected", hue_shift, thresholds["dominantHueShiftDegrees"])
 
+    warnings = [warning for warning in warnings if warning["metric"] not in ignored]
     notes = [
         {"code": warning_name, "severity": "info", "message": f"{warning_name} ignored for this motion phase"}
         for warning_name in ignored
@@ -248,6 +250,42 @@ def compare_frames(left: dict[str, Any], right: dict[str, Any], spec: dict[str, 
 
 def strip_masks(frame: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in frame.items() if key != "mask"}
+
+
+def stabilize_frame_anchor_x(frames: list[dict[str, Any]], spec: dict[str, Any]) -> None:
+    if not spec["alignment"].get("stabilizeAnchorX", True) or not frames:
+        return
+    stable_x = median([frame["anchor"][0] for frame in frames])
+    for frame in frames:
+        frame["measuredAnchor"] = frame["anchor"]
+        frame["anchor"] = [round(stable_x, 3), frame["anchor"][1]]
+
+
+def edge_padding_warnings(frame: dict[str, Any], spec: dict[str, Any]) -> list[dict[str, Any]]:
+    threshold = spec["validation"]["defaultThresholds"].get("edgePaddingPx", 0)
+    if threshold <= 0:
+        return []
+    width, height = frame["dimensions"]
+    min_x, min_y, max_x, max_y = frame["bbox"]
+    paddings = {
+        "left": min_x,
+        "top": min_y,
+        "right": width - max_x - 1,
+        "bottom": height - max_y - 1,
+    }
+    warnings: list[dict[str, Any]] = []
+    for edge, padding in paddings.items():
+        if padding < threshold:
+            add_warning(
+                warnings,
+                "edgePaddingPx",
+                f"{edge} edge padding is below threshold",
+                padding,
+                threshold,
+                "warning" if padding > 0 else "error",
+            )
+    frame["edgePadding"] = paddings
+    return warnings
 
 
 def print_table(comparisons: list[dict[str, Any]], structural_failures: list[dict[str, Any]]) -> None:
@@ -302,8 +340,18 @@ def main() -> None:
         frames.append(stats)
 
     frames.sort(key=lambda item: item["index"])
+    stabilize_frame_anchor_x(frames, spec)
+    frame_warnings = [
+        {"frameIndex": frame["index"], "frameLabel": frame["label"], "warnings": edge_padding_warnings(frame, spec)}
+        for frame in frames
+    ]
     comparisons = [compare_frames(left, right, spec) for left, right in zip(frames, frames[1:])]
+    if spec["alignment"].get("loopClosure", True) and len(frames) > 2:
+        loop_comparison = compare_frames(frames[-1], frames[0], spec)
+        loop_comparison["loopClosure"] = True
+        comparisons.append(loop_comparison)
     warning_count = sum(len(item["warnings"]) for item in comparisons)
+    warning_count += sum(len(item["warnings"]) for item in frame_warnings)
     result = {
         "id": spec["id"],
         "spec": args.spec,
@@ -316,6 +364,7 @@ def main() -> None:
             "warningCount": warning_count,
         },
         "structuralFailures": structural_failures,
+        "frameWarnings": frame_warnings,
         "frames": [strip_masks(frame) for frame in frames],
         "comparisons": comparisons,
     }

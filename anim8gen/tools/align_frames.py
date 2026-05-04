@@ -21,18 +21,36 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def chroma_key(spec: dict) -> tuple[int, int, int]:
+    chroma = spec["segmentation"].get("chromaKey", "#ff00ff").lstrip("#")
+    return tuple(int(chroma[i : i + 2], 16) for i in (0, 2, 4))
+
+
+def key_distance(rgb: tuple[int, int, int], key: tuple[int, int, int]) -> float:
+    return math.sqrt((rgb[0] - key[0]) ** 2 + (rgb[1] - key[1]) ** 2 + (rgb[2] - key[2]) ** 2)
+
+
+def is_key_family(rgb: tuple[int, int, int], key: tuple[int, int, int]) -> bool:
+    """Catch anti-aliased chroma-key fringes without assuming magenta."""
+    high_channels = [index for index, value in enumerate(key) if value >= 180]
+    low_channels = [index for index, value in enumerate(key) if value <= 80]
+    if not high_channels or not low_channels:
+        return False
+    if any(rgb[index] < 120 for index in high_channels):
+        return False
+    if any(rgb[index] > 150 for index in low_channels):
+        return False
+    return max(rgb) - min(rgb) >= 60
+
+
 def is_visible(pixel: tuple[int, int, int, int], spec: dict) -> bool:
     r, g, b, a = pixel
     if a <= spec["segmentation"].get("alphaThreshold", 8):
         return False
-    chroma = spec["segmentation"].get("chromaKey", "#ff00ff").lstrip("#")
-    key = tuple(int(chroma[i : i + 2], 16) for i in (0, 2, 4))
+    key = chroma_key(spec)
     tolerance = spec["segmentation"].get("chromaTolerance", 32)
-    distance = math.sqrt((r - key[0]) ** 2 + (g - key[1]) ** 2 + (b - key[2]) ** 2)
-    # Generated images contain anti-aliased magenta gradients. Treat saturated
-    # magenta-family pixels as background in addition to strict key tolerance.
-    magenta_family = r >= 180 and b >= 180 and g <= 95
-    return not (distance <= tolerance or magenta_family)
+    rgb = (r, g, b)
+    return not (key_distance(rgb, key) <= tolerance or is_key_family(rgb, key))
 
 
 def largest_component(mask: list[bool], width: int, height: int) -> list[bool]:
@@ -123,8 +141,32 @@ def manual_override(spec: dict, frame: dict) -> tuple[float, float] | None:
     return None
 
 
+def should_stabilize_anchor_x(spec: dict) -> bool:
+    return bool(spec["alignment"].get("stabilizeAnchorX", True))
+
+
+def clamp(value: float, minimum: float, maximum: float) -> float:
+    return min(max(value, minimum), maximum)
+
+
 def output_name(frame: dict) -> str:
     return f"frame-{frame['index']:03d}.{frame['label']}.png"
+
+
+def accepted_sources(spec: dict) -> dict[int, Path]:
+    manifest_path = spec.get("generation", {}).get("acceptedManifest")
+    if not manifest_path:
+        return {}
+    path = Path(manifest_path)
+    if not path.exists():
+        return {}
+    manifest = json.loads(path.read_text())
+    sources: dict[int, Path] = {}
+    for frame in manifest.get("frames", []):
+        raw = frame.get("raw")
+        if raw:
+            sources[int(frame["index"])] = Path(raw)
+    return sources
 
 
 def visible_bbox(image: Image.Image) -> tuple[int, int, int, int]:
@@ -144,13 +186,21 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     canvas_w, canvas_h = spec["render"]["canvas"]
     floor_y = spec["alignment"]["floorY"]
+    top_padding = spec["alignment"].get("topPadding", 8)
+    side_padding = spec["alignment"].get("sidePadding", 8)
+    bottom_padding = spec["alignment"].get("bottomPadding", 4)
+    accepted = accepted_sources(spec)
 
     loaded = []
     for frame in spec["frames"]:
-        matches = sorted(input_dir.glob(f"frame-{frame['index']:03d}.retry-*.png"))
-        if not matches:
-            raise FileNotFoundError(f"missing raw frame for index {frame['index']}")
-        source = matches[0]
+        source = accepted.get(frame["index"])
+        if source is None:
+            matches = sorted(input_dir.glob(f"frame-{frame['index']:03d}.retry-*.png"))
+            if not matches:
+                raise FileNotFoundError(f"missing raw frame for index {frame['index']}")
+            source = matches[0]
+        if not source.exists():
+            raise FileNotFoundError(f"accepted raw frame does not exist: {source}")
         image = Image.open(source).convert("RGBA")
         width, height = image.size
         pixels = list(image.get_flattened_data())
@@ -174,9 +224,49 @@ def main() -> None:
 
     max_bbox_w = max(item["bbox"][2] - item["bbox"][0] + 1 for item in loaded)
     max_bbox_h = max(item["bbox"][3] - item["bbox"][1] + 1 for item in loaded)
-    scale = min((canvas_w - 8) / max_bbox_w, (canvas_h - 8) / max_bbox_h)
+    max_above_anchor = max(item["anchor"][1] - item["bbox"][1] for item in loaded)
+    max_below_anchor = max(item["bbox"][3] - item["anchor"][1] for item in loaded)
+    stable_anchor_x = median([item["anchor"][0] for item in loaded]) if should_stabilize_anchor_x(spec) else None
+    scale_limits = [(canvas_w - side_padding * 2) / max_bbox_w]
+    anchor_x_for_scale = stable_anchor_x
+    if anchor_x_for_scale is not None:
+        max_left_extent = max(anchor_x_for_scale - item["bbox"][0] for item in loaded)
+        max_right_extent = max(item["bbox"][2] - anchor_x_for_scale for item in loaded)
+        horizontal_extent = max_left_extent + max_right_extent
+        if horizontal_extent > 0:
+            scale_limits.append((canvas_w - side_padding * 2) / horizontal_extent)
+    center_anchored = all(item["frame"].get("anchor", spec["alignment"]["defaultAnchor"]) == "body_center" for item in loaded)
+    if center_anchored:
+        scale_limits.append((canvas_h - top_padding - bottom_padding) / max_bbox_h)
+    else:
+        if max_above_anchor > 0:
+            scale_limits.append((floor_y - top_padding) / max_above_anchor)
+        if max_below_anchor > 0:
+            scale_limits.append((canvas_h - bottom_padding - floor_y) / max_below_anchor)
+    scale = min(scale_limits)
+    target_x_min = -math.inf
+    target_x_max = math.inf
+    for item in loaded:
+        min_x, _min_y, max_x, _max_y = item["bbox"]
+        source_anchor_x = item["anchor"][0]
+        anchor_x = stable_anchor_x if stable_anchor_x is not None else source_anchor_x
+        target_x_min = max(target_x_min, side_padding + (anchor_x - min_x) * scale)
+        target_x_max = min(target_x_max, canvas_w - side_padding - (max_x - anchor_x) * scale)
+    preferred_target_x = canvas_w / 2
+    target_x = preferred_target_x
+    if target_x_min <= target_x_max:
+        target_x = clamp(preferred_target_x, target_x_min, target_x_max)
 
-    metrics = {"id": spec["id"], "canvas": [canvas_w, canvas_h], "floorY": floor_y, "scale": scale, "frames": []}
+    metrics = {
+        "id": spec["id"],
+        "canvas": [canvas_w, canvas_h],
+        "floorY": floor_y,
+        "padding": {"top": top_padding, "side": side_padding, "bottom": bottom_padding},
+        "scale": scale,
+        "targetX": round(target_x, 3),
+        "targetXBounds": [round(target_x_min, 3), round(target_x_max, 3)],
+        "frames": [],
+    }
     for item in loaded:
         frame = item["frame"]
         min_x, min_y, max_x, max_y = item["bbox"]
@@ -189,8 +279,8 @@ def main() -> None:
         scaled_w, scaled_h = max(1, round(crop_w * scale)), max(1, round(crop_h * scale))
         crop = crop.resize((scaled_w, scaled_h), Image.Resampling.NEAREST)
 
-        anchor_x, anchor_y = item["anchor"]
-        target_x = canvas_w / 2
+        source_anchor_x, anchor_y = item["anchor"]
+        anchor_x = stable_anchor_x if stable_anchor_x is not None else source_anchor_x
         target_y = canvas_h / 2 if frame.get("anchor") == "body_center" else floor_y
         offset = (round(target_x - (anchor_x - min_x) * scale), round(target_y - (anchor_y - min_y) * scale))
         canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
@@ -209,7 +299,8 @@ def main() -> None:
                 "sourceBBox": list(item["bbox"]),
                 "sourceVisibleArea": item["visibleArea"],
                 "sourceCentroid": [round(item["centroid"][0], 3), round(item["centroid"][1], 3)],
-                "sourceAnchor": [round(anchor_x, 3), round(anchor_y, 3)],
+                "sourceAnchor": [round(source_anchor_x, 3), round(anchor_y, 3)],
+                "stabilizedAnchor": [round(anchor_x, 3), round(anchor_y, 3)],
                 "scaledSize": [scaled_w, scaled_h],
                 "alignedBBox": list(visible_bbox(canvas)),
                 "alignedVisibleArea": visible_area_rgba(canvas),

@@ -46,6 +46,22 @@ def raw_path(raw_dir: Path, frame: dict[str, Any]) -> Path:
     return matches[0]
 
 
+def accepted_sources(spec: dict[str, Any]) -> dict[int, Path]:
+    manifest_path = spec.get("generation", {}).get("acceptedManifest")
+    if not manifest_path:
+        return {}
+    path = Path(manifest_path)
+    if not path.exists():
+        return {}
+    manifest = json.loads(path.read_text())
+    sources: dict[int, Path] = {}
+    for frame in manifest.get("frames", []):
+        raw = frame.get("raw")
+        if raw:
+            sources[int(frame["index"])] = Path(raw)
+    return sources
+
+
 def load_font() -> ImageFont.ImageFont:
     for path in (
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
@@ -154,6 +170,7 @@ def main() -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     frames = list(spec["frames"])
+    accepted = accepted_sources(spec)
     scale = 2
     cell = (spec["render"]["canvas"][0] * scale, spec["render"]["canvas"][1] * scale)
     gap = 18
@@ -191,7 +208,10 @@ def main() -> None:
         for frame_index, frame in enumerate(frames):
             draw.rectangle((x - 1, y - 1, x + cell[0], y + cell[1]), fill=PANEL_BG)
             if row_index == 0:
-                tile = fit_image(Image.open(raw_path(raw_dir, frame)).convert("RGBA"), cell)
+                source = accepted.get(frame["index"])
+                if source is None:
+                    source = raw_path(raw_dir, frame)
+                tile = fit_image(Image.open(source).convert("RGBA"), cell)
             elif row_index == 1:
                 tile = overlay_aligned(
                     aligned_images[frame_index],
