@@ -4,7 +4,7 @@
 
 Phase 6: Skill and README updates
 
-Status: implemented and verified; landing pending.
+Status: implemented, verified, and landed.
 
 ## Scope Assessment
 
@@ -30,7 +30,7 @@ Passed. Inline verification covered Python syntax for scripts, installed runtime
 
 ## Landing Result
 
-Pending. The Phase 6 worktree change has not been committed or cherry-picked yet.
+Landed. Worktree commit `d0ea2a3` was cherry-picked to `main` as `31dd5f3`.
 
 ## Remaining Phases
 
