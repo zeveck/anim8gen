@@ -401,7 +401,7 @@ python3 -m http.server <port> --bind 127.0.0.1 --directory assets/anim8gen/<id>
 Then give the user:
 
 ```text
-http://127.0.0.1:<port>/<id>.html
+http://127.0.0.1:<port>/preview.html
 ```
 
 ## Quality Reporting

@@ -50,7 +50,9 @@ agent so the skills are available.
 ```
 
 `anim8gen` requires [`imagegen2`](https://github.com/zeveck/imagegen2) for
-image generation.
+image generation. A normal install should add the two skill directories only;
+it should not copy this repository's root `anim8gen/` development workbench
+into your project.
 
 ## Configure
 
@@ -213,9 +215,10 @@ Details that help:
 ## Preview Page
 
 Each run creates an HTML preview page with playback controls, frame stepping,
-FPS control, and a checkerboard toggle for transparent sprites. After a run,
-anim8gen can offer to open this page locally so you can review the animation in
-motion.
+FPS control, and a checkerboard toggle for transparent sprites. The exported
+preview is written to `assets/anim8gen/<id>/preview.html` so it can be opened
+as a static artifact. After a run, anim8gen can offer to serve this page
+locally so you can review the animation in motion.
 
 <p>
   <a href="https://zeveck.github.io/anim8gen/demos/quality-dragon-tail-flick-v4/">
@@ -230,7 +233,9 @@ exported or whether the preview opens automatically.
 
 - `gif` exports an animated GIF.
 - `showit` opens the finished local preview when the run completes.
-- `noshow` skips the preview-server offer.
+- `noshow` skips the preview-server offer and does not start a server.
+- with neither `showit` nor `noshow`, anim8gen finishes the package, reports
+  local paths, and asks before starting a preview server.
 
 For example, this asks for both a GIF and an opened preview:
 
@@ -253,15 +258,21 @@ complex multi-character scenes, or production animation authoring.
 
 ## What Gets Produced
 
-Each run creates a reviewable package with:
+Each run keeps process state and provenance under
+`.anim8gen/runs/<id>/`. That hidden workspace contains the generated spec, raw
+candidates, accepted aligned frames, manifests, validation output, contact
+sheets, review notes, hidden preview HTML, and package reports.
 
-- raw generated candidates
-- accepted aligned sprite frames
-- a contact sheet
-- visual review notes
-- validation output
-- an HTML preview page
-- an animated GIF when the request includes `gif`
+The visible deliverable bundle is exported to `assets/anim8gen/<id>/` by
+default. It contains:
+
+- `frames/` with the finished sprite or scene frames
+- `preview.html`
+- `<id>.gif` when the request includes `gif`
+- `raw/` only when the raw candidates materially differ from the final frames
+
+The default visible output does not include tools, schemas, manifests, retry
+ledgers, package reports, or this repository's demo specs.
 
 ## License
 

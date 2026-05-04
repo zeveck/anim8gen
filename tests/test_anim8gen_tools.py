@@ -371,6 +371,21 @@ def test_repo_demo_sources_are_outside_installable_workbench() -> None:
     assert "anim8gen/assets" not in (source_runtime_config / "template.animation-spec.json").read_text()
 
 
+def test_readme_and_skill_document_new_output_contract() -> None:
+    readme = (REPO_ROOT / "README.md").read_text()
+    skill = (SKILL_SCRIPT_DIR.parent / "SKILL.md").read_text()
+
+    assert "should not copy this repository's root `anim8gen/` development workbench" in readme
+    assert "`.anim8gen/runs/<id>/`" in readme
+    assert "`assets/anim8gen/<id>/preview.html`" in readme
+    assert "`noshow` skips the preview-server offer and does not start a server" in readme
+    assert "asks before starting a preview server" in readme
+    assert "does not include tools, schemas, manifests, retry" in readme
+    assert "package reports" in readme
+    assert "http://127.0.0.1:<port>/preview.html" in skill
+    assert "http://127.0.0.1:<port>/<id>.html" not in skill
+
+
 def test_skill_paths_resolves_bundled_runtime_tools_without_source_workbench() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         project = Path(tmp) / "client"

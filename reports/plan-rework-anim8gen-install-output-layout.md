@@ -2,22 +2,22 @@
 
 ## Phase
 
-Phase 5: Demo/repo surface cleanup
+Phase 6: Skill and README updates
 
-Status: implemented, verified, and landed.
+Status: implemented and verified; landing pending.
 
 ## Scope Assessment
 
-Phase 5 was kept to the repository and demo surface. The change moves source demo specs out of the installable `anim8gen/config` path, moves source-owned runtime templates under `anim8gen/runtime/config`, removes tracked old report files from `anim8gen/reports`, and leaves the committed `public/demos/**` and `public/media/**` gallery intact. It does not rewrite README or skill behavior, and it does not run the final clean-room install verification reserved for later phases.
+Phase 6 was kept to README and skill behavior documentation, plus a focused regression test for the documented output contract. It does not run the final clean-room install verification reserved for Phase 7, and it does not change runtime generation or export code.
 
 ## Changes
 
-- Moved retained demo/source specs to `examples/specs/`.
-- Moved repo-local config templates to `anim8gen/runtime/config/`.
-- Updated the moved source template to use `.anim8gen/runs/<id>/...` defaults instead of old visible workbench paths.
-- Removed tracked old report files from `anim8gen/reports/`.
-- Added regression coverage that the repo demo specs are outside the installable workbench, the old source config/report directories are absent, and source runtime templates do not point at `anim8gen/assets`.
-- Marked Phase 5 as `✅ Done` in the plan tracker.
+- Updated README install guidance so a normal install adds skill directories and does not copy the repo-root `anim8gen/` development workbench into user projects.
+- Documented the hidden `.anim8gen/runs/<id>/` provenance workspace and visible `assets/anim8gen/<id>/` deliverable bundle.
+- Clarified `showit`, `noshow`, and no-flag preview-server behavior in README.
+- Fixed the skill preview server URL example to point at exported `preview.html`.
+- Added regression coverage for the README/SKILL output contract.
+- Marked Phase 6 as `✅ Done` in the plan tracker.
 
 ## Tests Run
 
@@ -26,13 +26,12 @@ Phase 5 was kept to the repository and demo surface. The change moves source dem
 
 ## Verification Result
 
-Passed. Inline verification covered Python syntax for scripts, installed runtime tools, source tools, and tests, plus the anim8gen regression suite. The new regression confirms `anim8gen/config` and `anim8gen/reports` are absent from the source tree, retained source specs live under `examples/specs`, and repo-local runtime templates use the hidden workspace layout. Separate verifier assurance was not used because this runner-managed chunk did not explicitly authorize sub-agent delegation.
+Passed. Inline verification covered Python syntax for scripts, installed runtime tools, source tools, and tests, plus the anim8gen regression suite. The new regression confirms README and SKILL.md document the hidden workspace, visible export bundle, precise preview-server flags, and exported `preview.html` URL. Separate verifier assurance was not used because this runner-managed chunk did not explicitly authorize sub-agent delegation.
 
 ## Landing Result
 
-Landed. Worktree commit `ae9e0db` was cherry-picked to `main` as `5062737`.
+Pending. The Phase 6 worktree change has not been committed or cherry-picked yet.
 
 ## Remaining Phases
 
-- Phase 6: Skill and README updates
 - Phase 7: Tests and clean-room verification
