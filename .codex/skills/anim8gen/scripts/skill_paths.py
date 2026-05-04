@@ -7,6 +7,8 @@ import argparse
 import os
 from pathlib import Path
 
+import layout_paths
+
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
@@ -22,10 +24,12 @@ def parse_args() -> argparse.Namespace:
             "init-package",
             "validate-review-records",
             "create-synthetic-frames",
+            "runtime-tools",
             "imagegen2-cli",
         ],
     )
     parser.add_argument("--start", default=".", help="Project search start directory")
+    parser.add_argument("--animation-id", default="example", help="Animation id for layout-derived paths")
     return parser.parse_args()
 
 
@@ -72,6 +76,7 @@ def main() -> None:
         "init-package": SCRIPT_DIR / "init_package.py",
         "validate-review-records": SCRIPT_DIR / "validate_review_records.py",
         "create-synthetic-frames": SCRIPT_DIR / "create_synthetic_frames.py",
+        "runtime-tools": layout_paths.resolve_layout(args.animation_id, args.start).runtime_tool_root,
     }
     if args.name == "imagegen2-cli":
         print(find_imagegen2_cli(Path(args.start)))

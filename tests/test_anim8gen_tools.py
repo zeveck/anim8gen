@@ -20,6 +20,11 @@ import export_gif  # noqa: E402
 import export_public_demo  # noqa: E402
 import make_preview  # noqa: E402
 
+SKILL_SCRIPT_DIR = REPO_ROOT / ".codex" / "skills" / "anim8gen" / "scripts"
+sys.path.insert(0, str(SKILL_SCRIPT_DIR))
+
+import layout_paths  # noqa: E402
+
 
 def write_frame(path: Path, color: tuple[int, int, int, int], pixel: tuple[int, int] = (1, 1)) -> None:
     image = Image.new("RGBA", (4, 4), (0, 0, 0, 0))
@@ -148,6 +153,54 @@ def test_chroma_key_color_families_are_background() -> None:
         spec = {"segmentation": {"alphaThreshold": 8, "chromaKey": key, "chromaTolerance": 12}}
         assert not align_frames.is_visible(family_pixel, spec)
         assert align_frames.is_visible((120, 80, 40, 255), spec)
+
+
+def test_anim8gen_layout_defaults_keep_state_hidden_and_exports_visible() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        layout = layout_paths.resolve_layout("trex-roar-v1", project, env={})
+
+        assert layout.project_root == project.resolve()
+        assert layout.workspace_root == project / ".anim8gen"
+        assert layout.run_root == project / ".anim8gen" / "runs" / "trex-roar-v1"
+        assert layout.spec_path == project / ".anim8gen" / "runs" / "trex-roar-v1" / "config" / "trex-roar-v1.json"
+        assert layout.export_root == project / "assets" / "anim8gen" / "trex-roar-v1"
+        assert layout.export_frames_dir == project / "assets" / "anim8gen" / "trex-roar-v1" / "frames"
+        assert layout.runtime_tool_root == REPO_ROOT / ".codex" / "skills" / "anim8gen" / "runtime" / "tools"
+        assert not layout.scratch_root.is_relative_to(project)
+
+
+def test_anim8gen_layout_environment_overrides() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        env = {
+            "ANIM8GEN_WORKSPACE_ROOT": ".state/anim8gen",
+            "ANIM8GEN_EXPORT_ROOT": "dist/sprites",
+            "ANIM8GEN_TMPDIR": str(Path(tmp) / "scratch-base"),
+        }
+        layout = layout_paths.resolve_layout("orb-cast", project, env=env)
+
+        assert layout.workspace_root == project / ".state" / "anim8gen"
+        assert layout.run_root == project / ".state" / "anim8gen" / "runs" / "orb-cast"
+        assert layout.export_root == project / "dist" / "sprites" / "orb-cast"
+        assert layout.scratch_root == Path(tmp) / "scratch-base" / "orb-cast" / "scratch"
+
+
+def test_anim8gen_layout_keeps_explicit_legacy_spec_path() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        legacy_config = project / "anim8gen" / "config"
+        legacy_config.mkdir(parents=True)
+        legacy_spec = legacy_config / "old-run.json"
+        legacy_spec.write_text("{}\n")
+
+        layout = layout_paths.resolve_layout("old-run", project, env={})
+
+        assert layout.legacy_spec_path == legacy_spec
+        assert layout.legacy_spec_path.exists()
+        assert layout.spec_path != legacy_spec
 
 
 def run() -> None:
