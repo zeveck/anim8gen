@@ -74,7 +74,7 @@ Tests run:
 Verification result: Passed. The tests run without network or imagegen2 API
 access and do not write into committed demo folders.
 
-Landing result: Pending before commit.
+Landing result: Committed on `main` as `786e720`.
 
 Remaining phases:
 
