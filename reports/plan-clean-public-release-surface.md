@@ -4,7 +4,7 @@
 
 Phase 1: Artifact policy and ignore rules
 
-Status: Implemented and verified in worktree; landing pending.
+Status: ✅ Done
 
 Scope assessment: Scoped to root ignore policy plus the plan tracker and this report. No generated package assets, contact sheets, previews, GIF exports, public demo files, or tool/source changes were modified.
 
@@ -19,7 +19,7 @@ Tests run:
 
 Verification result: Passed. Generated package assets, contact sheets, local GIF exports, and preview HTML are ignored by root `.gitignore`; the public demo path is not ignored.
 
-Landing result: Pending.
+Landing result: Cherry-picked worktree commit `d0eda6f` to `main` as `dbe5d5d`.
 
 Remaining phases:
 
