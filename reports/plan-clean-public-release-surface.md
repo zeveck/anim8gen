@@ -47,7 +47,7 @@ Tests run:
 Verification result: Passed. GIF export creates a multi-frame animated GIF from
 the curated cat pounce package without committing generated GIF output.
 
-Landing result: Pending before commit.
+Landing result: Committed on `main` as `2b6d00c`.
 
 Remaining phases:
 
