@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -218,6 +219,53 @@ def test_anim8gen_layout_keeps_explicit_legacy_spec_path() -> None:
         assert layout.legacy_spec_path == legacy_spec
         assert layout.legacy_spec_path.exists()
         assert layout.spec_path != legacy_spec
+
+
+def test_anim8gen_skill_runtime_bundle_is_minimal_and_self_contained() -> None:
+    skill_dir = SKILL_SCRIPT_DIR.parent
+    runtime_tools = skill_dir / "runtime" / "tools"
+    runtime_config = skill_dir / "runtime" / "config"
+
+    expected_tools = {
+        "align_frames.py",
+        "export_gif.py",
+        "make_contact_sheet.py",
+        "make_preview.py",
+        "validate_sprites.py",
+    }
+    expected_config = {"brief.schema.json", "template.animation-spec.json"}
+
+    assert {path.name for path in runtime_tools.iterdir() if path.is_file()} == expected_tools
+    assert {path.name for path in runtime_config.iterdir() if path.is_file()} == expected_config
+    assert not (runtime_tools / "export_public_demo.py").exists()
+    assert not (skill_dir / "runtime" / "DEV_README.md").exists()
+    assert "anim8gen/assets" not in (runtime_config / "template.animation-spec.json").read_text()
+
+
+def test_skill_paths_resolves_bundled_runtime_tools_without_source_workbench() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        copied_skill = Path(tmp) / "skills" / "anim8gen"
+        shutil.copytree(SKILL_SCRIPT_DIR.parent, copied_skill)
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(copied_skill / "scripts" / "skill_paths.py"),
+                "align-frames",
+                "--start",
+                str(project),
+            ],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        resolved = Path(result.stdout.strip())
+        assert resolved == copied_skill / "runtime" / "tools" / "align_frames.py"
+        assert resolved.exists()
+        assert not (project / "anim8gen").exists()
 
 
 def test_init_package_defaults_to_hidden_workspace_without_visible_anim8gen_root() -> None:

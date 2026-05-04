@@ -19,10 +19,11 @@ requests where the user only wants a single static image.
 
 ## Workflow
 
-1. Locate the repo root. Prefer the nearest ancestor containing `anim8gen/`
-   and an installed or repo-vendored `anim8gen` skill. Installed copies may
-   instead have this skill under an agent skills directory; in that case find
-   the project root from the user's current working directory.
+1. Locate the project root from the user's current working directory. Do not
+   create or copy a repo-root `anim8gen/` workbench for normal use. This skill
+   carries its own runtime tools and minimal config templates under
+   `runtime/`, while per-run project state belongs under `.anim8gen/runs/<id>`
+   by default.
    Helper scripts live next to this `SKILL.md` in `scripts/`. When running a
    helper command, first `cd` to this installed anim8gen skill directory, then
    invoke `python3 scripts/skill_paths.py ...`. Do not assume a `.codex/` path
@@ -77,12 +78,11 @@ requests where the user only wants a single static image.
 6. Ask for clarification when the subject, camera view, frame count, or core
    action is ambiguous. Narrow or decline requests that exceed the first
    anim8gen scope.
-7. Initialize the package paths under `anim8gen/config/<id>.json` and
-   `anim8gen/assets/<id>/` with the installed skill helper:
+7. Initialize the package paths under `.anim8gen/runs/<id>/` with the
+   installed skill helper:
    `python3 "$(python3 scripts/skill_paths.py init-package)" --brief <brief.json>`
-   from the installed anim8gen skill directory.
-   Use the conventions in `anim8gen/README.md` and the reusable shape in
-   `anim8gen/config/template.animation-spec.json`.
+   from the installed anim8gen skill directory. Use the reusable shape in
+   `$(python3 scripts/skill_paths.py template-animation-spec)`.
 8. Use `imagegen2` as the required raster generator. Do not choose `nanogen`,
    `imagegen`, or another generator for anim8gen work. If imagegen2 is
    unavailable, stop before generation and tell the user to install or repair
@@ -106,7 +106,7 @@ requests where the user only wants a single static image.
    when they contrast better with the sprite palette.
 11. Resolve any user-provided reference image, sprite, contact sheet, or frame
    set before generation. Copy verified references into
-   `anim8gen/assets/<id>/reference/` and record their original paths in
+   `.anim8gen/runs/<id>/reference/` and record their original paths in
    manifests/reports. If the user provides a sequence, use matching frames as
    pose references when possible; otherwise use the strongest identity/style
    image as the canonical reference.
@@ -114,10 +114,10 @@ requests where the user only wants a single static image.
    canonical reference was provided, generate frame 0 first and treat the
    accepted frame 0 image as the canonical visual reference for the package.
    Copy or symlink the accepted canonical image to
-   `anim8gen/assets/<id>/reference/reference.png` when practical, and record
-   it in the manifests.
+   `.anim8gen/runs/<id>/reference/reference.png` when practical, and record it
+   in the manifests.
 13. Generate later raw frame candidates into
-   `anim8gen/assets/<id>/raw/frame-<index>.retry-<retry>.png` with the
+   `.anim8gen/runs/<id>/raw/frame-<index>.retry-<retry>.png` with the
    canonical reference passed as the first `--image`. For poses that depend on
    adjacent motion or user-provided frame references, pass those images as
    additional `--image` inputs, but keep the canonical reference first.
@@ -143,22 +143,24 @@ requests where the user only wants a single static image.
    missing held items, missing requested action/effect, and frames that cannot
    be fixed with alignment.
 16. Record every attempt in
-   `anim8gen/assets/<id>/manifests/candidates.jsonl`. Keep generation
+   `.anim8gen/runs/<id>/manifests/candidates.jsonl`. Keep generation
    transport metadata separate from review fields: use `reviewStatus` and
    `reviewNotes` for review decisions. Preserve rejected candidates and notes;
    do not silently replace weak outputs.
 17. When a frame is missing or weak, revise the prompt and retry within the
    package retry budget. If acceptable poses cannot be produced, continue with
    a partial or blocked package report instead of claiming success.
-18. Write `anim8gen/assets/<id>/review/frame-reviews.json` before alignment
+18. Write `.anim8gen/runs/<id>/review/frame-reviews.json` before alignment
     succeeds or fails. Every accepted frame must have an explicit pose,
     identity, camera, hygiene, background, and decision record.
-19. Align accepted frames with `anim8gen/tools/align_frames.py`, validate with
-    `anim8gen/tools/validate_sprites.py`, create a contact sheet with
-    `anim8gen/tools/make_contact_sheet.py`, and create an HTML preview with
-    `anim8gen/tools/make_preview.py`. If the request included `gif`, export
-    `anim8gen/gifs/<animation-id>.gif` with `anim8gen/tools/export_gif.py`
-    after the preview is built. GIF export should honor `render.fps`,
+19. Align accepted frames with the bundled runtime tool resolved by
+    `python3 scripts/skill_paths.py align-frames`, validate with
+    `python3 scripts/skill_paths.py validate-sprites`, create a contact sheet
+    with `python3 scripts/skill_paths.py make-contact-sheet`, and create an
+    HTML preview with `python3 scripts/skill_paths.py make-preview`. If the
+    request included `gif`, export it with
+    `python3 scripts/skill_paths.py export-gif` after the preview is built.
+    GIF export should honor `render.fps`,
     `preview.playbackIndexes`, `reuseFrame`, and `preview.displayOffsets`.
 20. Review the contact sheet and preview. For grounded in-place sprites, keep
     `alignment.stabilizeAnchorX` enabled so tails, paws, robes, or weapons do
@@ -172,13 +174,14 @@ requests where the user only wants a single static image.
     explicitly asks for baked effects.
 21. After creating a preview, handle preview display according to flags. With
     `showit`, automatically choose an unused localhost port, start a static
-    server rooted at `anim8gen/`, and provide a clickable URL such as
-    `http://127.0.0.1:<port>/preview/<id>.html`. With `noshow`, do not offer
-    or start a preview server. With neither flag, offer to show the animation
-    in motion; if the user says yes, or if the user explicitly asked to
-    view/show/open it, start the server and provide the URL. Prefer
-    `python3 -m http.server <port> --bind 127.0.0.1 --directory anim8gen`; if
-    that port is busy, pick another. Keep the server running for review and
+    server rooted at `.anim8gen/runs/<id>/preview` for the generated preview,
+    and provide a clickable URL such as `http://127.0.0.1:<port>/<id>.html`.
+    With `noshow`, do not offer or start a preview server. With neither flag,
+    offer to show the animation in motion; if the user says yes, or if the
+    user explicitly asked to view/show/open it, start the server and provide
+    the URL. Prefer
+    `python3 -m http.server <port> --bind 127.0.0.1 --directory .anim8gen/runs/<id>/preview`;
+    if that port is busy, pick another. Keep the server running for review and
     mention the session only after it successfully starts.
 22. Return final package paths, validation status, review warnings, rejected
     candidate summary, preview path, preview-only offsets/effects, and
@@ -189,18 +192,18 @@ requests where the user only wants a single static image.
 Use these paths for each animation id:
 
 ```text
-anim8gen/config/<animation-id>.json
-anim8gen/assets/<animation-id>/reference/
-anim8gen/assets/<animation-id>/raw/frame-000.retry-001.png
-anim8gen/assets/<animation-id>/aligned/frame-000.<label>.png
-anim8gen/assets/<animation-id>/review/contact-sheet.png
-anim8gen/assets/<animation-id>/review/frame-reviews.json
-anim8gen/assets/<animation-id>/manifests/candidates.jsonl
-anim8gen/assets/<animation-id>/manifests/accepted-frames.json
-anim8gen/reports/<animation-id>.validation.json
-anim8gen/reports/<animation-id>.package.md
-anim8gen/preview/<animation-id>.html
-anim8gen/gifs/<animation-id>.gif
+.anim8gen/runs/<animation-id>/config/<animation-id>.json
+.anim8gen/runs/<animation-id>/reference/
+.anim8gen/runs/<animation-id>/raw/frame-000.retry-001.png
+.anim8gen/runs/<animation-id>/aligned/frame-000.<label>.png
+.anim8gen/runs/<animation-id>/review/contact-sheet.png
+.anim8gen/runs/<animation-id>/review/frame-reviews.json
+.anim8gen/runs/<animation-id>/manifests/candidates.jsonl
+.anim8gen/runs/<animation-id>/manifests/accepted-frames.json
+.anim8gen/runs/<animation-id>/reports/<animation-id>.validation.json
+.anim8gen/runs/<animation-id>/reports/<animation-id>.package.md
+.anim8gen/runs/<animation-id>/preview/<animation-id>.html
+.anim8gen/runs/<animation-id>/gifs/<animation-id>.gif
 ```
 
 The aligned frames are the sprite outputs. Raw candidates, references, aligned
@@ -279,8 +282,8 @@ Validate these records with:
 ```bash
 cd <installed-anim8gen-skill-dir>
 python3 "$(python3 scripts/skill_paths.py validate-review-records)" \
-  --candidates anim8gen/assets/<id>/manifests/candidates.jsonl \
-  --reviews anim8gen/assets/<id>/review/frame-reviews.json
+  --candidates .anim8gen/runs/<id>/manifests/candidates.jsonl \
+  --reviews .anim8gen/runs/<id>/review/frame-reviews.json
 ```
 
 ## Agentic Review
@@ -314,8 +317,7 @@ the package deterministically:
 ```bash
 cd <installed-anim8gen-skill-dir>
 python3 "$(python3 scripts/skill_paths.py init-package)" \
-  --brief /tmp/<id>.brief.json \
-  --root anim8gen
+  --brief /tmp/<id>.brief.json
 ```
 
 The initializer creates the spec, package directories, `.gitkeep` files,
@@ -329,8 +331,8 @@ calling image generation:
 ```bash
 cd <installed-anim8gen-skill-dir>
 python3 "$(python3 scripts/skill_paths.py create-synthetic-frames)" \
-  --spec anim8gen/config/<id>.json \
-  --root anim8gen
+  --spec .anim8gen/runs/<id>/config/<id>.json \
+  --root .anim8gen/runs/<id>
 ```
 
 Do not present synthetic helper frames as `imagegen2` output.
@@ -340,34 +342,34 @@ Do not present synthetic helper frames as `imagegen2` output.
 Replace `<id>` with the package id:
 
 ```bash
-python3 anim8gen/tools/align_frames.py \
-  --spec anim8gen/config/<id>.json \
-  --input anim8gen/assets/<id>/raw \
-  --output anim8gen/assets/<id>/aligned
+python3 "$(python3 scripts/skill_paths.py align-frames)" \
+  --spec .anim8gen/runs/<id>/config/<id>.json \
+  --input .anim8gen/runs/<id>/raw \
+  --output .anim8gen/runs/<id>/aligned
 
-python3 anim8gen/tools/validate_sprites.py \
-  --spec anim8gen/config/<id>.json \
-  --frames anim8gen/assets/<id>/aligned \
-  --out anim8gen/reports/<id>.validation.json
+python3 "$(python3 scripts/skill_paths.py validate-sprites)" \
+  --spec .anim8gen/runs/<id>/config/<id>.json \
+  --frames .anim8gen/runs/<id>/aligned \
+  --out .anim8gen/runs/<id>/reports/<id>.validation.json
 
-python3 anim8gen/tools/make_contact_sheet.py \
-  --spec anim8gen/config/<id>.json \
-  --raw anim8gen/assets/<id>/raw \
-  --aligned anim8gen/assets/<id>/aligned \
-  --validation anim8gen/reports/<id>.validation.json \
-  --out anim8gen/assets/<id>/review/contact-sheet.png
+python3 "$(python3 scripts/skill_paths.py make-contact-sheet)" \
+  --spec .anim8gen/runs/<id>/config/<id>.json \
+  --raw .anim8gen/runs/<id>/raw \
+  --aligned .anim8gen/runs/<id>/aligned \
+  --validation .anim8gen/runs/<id>/reports/<id>.validation.json \
+  --out .anim8gen/runs/<id>/review/contact-sheet.png
 
-python3 anim8gen/tools/make_preview.py \
-  --spec anim8gen/config/<id>.json \
-  --frames anim8gen/assets/<id>/aligned \
-  --validation anim8gen/reports/<id>.validation.json \
-  --out anim8gen/preview/<id>.html
+python3 "$(python3 scripts/skill_paths.py make-preview)" \
+  --spec .anim8gen/runs/<id>/config/<id>.json \
+  --frames .anim8gen/runs/<id>/aligned \
+  --validation .anim8gen/runs/<id>/reports/<id>.validation.json \
+  --out .anim8gen/runs/<id>/preview/<id>.html
 
 # Only when the request includes the order-insensitive `gif` flag:
-python3 anim8gen/tools/export_gif.py \
-  --spec anim8gen/config/<id>.json \
-  --frames anim8gen/assets/<id>/aligned \
-  --out anim8gen/gifs/<id>.gif
+python3 "$(python3 scripts/skill_paths.py export-gif)" \
+  --spec .anim8gen/runs/<id>/config/<id>.json \
+  --frames .anim8gen/runs/<id>/aligned \
+  --out .anim8gen/runs/<id>/gifs/<id>.gif
 ```
 
 Preview display flags:
@@ -381,13 +383,13 @@ When showing a generated preview, start a local static server on an unused
 port:
 
 ```bash
-python3 -m http.server <port> --bind 127.0.0.1 --directory anim8gen
+python3 -m http.server <port> --bind 127.0.0.1 --directory .anim8gen/runs/<id>/preview
 ```
 
 Then give the user:
 
 ```text
-http://127.0.0.1:<port>/preview/<id>.html
+http://127.0.0.1:<port>/<id>.html
 ```
 
 ## Quality Reporting

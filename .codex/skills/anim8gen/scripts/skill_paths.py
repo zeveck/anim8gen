@@ -25,6 +25,14 @@ def parse_args() -> argparse.Namespace:
             "validate-review-records",
             "create-synthetic-frames",
             "runtime-tools",
+            "runtime-config",
+            "align-frames",
+            "validate-sprites",
+            "make-contact-sheet",
+            "make-preview",
+            "export-gif",
+            "brief-schema",
+            "template-animation-spec",
             "imagegen2-cli",
         ],
     )
@@ -70,13 +78,24 @@ def find_imagegen2_cli(start: Path) -> Path:
 
 def main() -> None:
     args = parse_args()
+    layout = layout_paths.resolve_layout(args.animation_id, args.start)
+    runtime_tools = layout.runtime_tool_root
+    runtime_config = SKILL_DIR / "runtime" / "config"
     paths = {
         "skill-dir": SKILL_DIR,
         "script-dir": SCRIPT_DIR,
         "init-package": SCRIPT_DIR / "init_package.py",
         "validate-review-records": SCRIPT_DIR / "validate_review_records.py",
         "create-synthetic-frames": SCRIPT_DIR / "create_synthetic_frames.py",
-        "runtime-tools": layout_paths.resolve_layout(args.animation_id, args.start).runtime_tool_root,
+        "runtime-tools": runtime_tools,
+        "runtime-config": runtime_config,
+        "align-frames": runtime_tools / "align_frames.py",
+        "validate-sprites": runtime_tools / "validate_sprites.py",
+        "make-contact-sheet": runtime_tools / "make_contact_sheet.py",
+        "make-preview": runtime_tools / "make_preview.py",
+        "export-gif": runtime_tools / "export_gif.py",
+        "brief-schema": runtime_config / "brief.schema.json",
+        "template-animation-spec": runtime_config / "template.animation-spec.json",
     }
     if args.name == "imagegen2-cli":
         print(find_imagegen2_cli(Path(args.start)))

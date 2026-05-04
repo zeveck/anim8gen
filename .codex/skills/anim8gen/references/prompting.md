@@ -14,7 +14,7 @@ baked preview effects.
 For animation packages, use references aggressively:
 
 - If the user provides an existing image, sprite, contact sheet, or frame set,
-  verify the paths and copy them into `anim8gen/assets/<id>/reference/`.
+  verify the paths and copy them into `.anim8gen/runs/<id>/reference/`.
 - Use the strongest identity/style image as the canonical reference.
 - If the user provides a frame set, use corresponding frames as pose references
   where possible.

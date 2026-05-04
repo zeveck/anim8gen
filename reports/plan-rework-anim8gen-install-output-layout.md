@@ -2,44 +2,38 @@
 
 ## Phase
 
-Phase 2: Package initialization root fixes
+Phase 3: Tooling install boundary
 
-Status: implemented, verified, and landed.
+Status: implemented and verified; landing pending.
 
 ## Scope Assessment
 
-Phase 2 was kept to package initialization. The change updates the initializer to use the Phase 1 layout helper for new runs, keeps `--root` as a deprecated run-root alias, and makes generated spec and manifest paths self-consistent with the selected hidden run root. It does not move install artifacts, add the export helper, clean demo files, or rewrite README/SKILL behavior.
+Phase 3 was kept to the install/runtime boundary. The change bundles the normal runtime tools and minimal config templates inside the anim8gen skill, teaches `skill_paths.py` to resolve those bundled files from an installed copy, and removes skill instructions that depended on a visible repo-root `anim8gen/` workbench. It does not add the final visible export step, clean this repo's demo surface, or complete the clean-room end-to-end verification reserved for later phases.
 
 ## Changes
 
-- Updated `.codex/skills/anim8gen/scripts/init_package.py` with `--project-root`, `--workspace-root`, and `--export-root` options.
-- Changed the default initializer output to `.anim8gen/runs/<id>/**` with visible export metadata pointing at `assets/anim8gen/<id>`.
-- Kept `--root` as a compatibility alias for an explicit run root.
-- Removed generated `anim8gen/assets`, `anim8gen/config`, `anim8gen/preview`, and `anim8gen/reports` references from new specs and package manifests.
-- Added regression tests for hidden-workspace initialization and the `--root` alias.
-- Marked Phase 2 as `✅ Done` in the plan tracker.
+- Added `.codex/skills/anim8gen/runtime/tools/` with the runtime commands needed by installed anim8gen runs.
+- Added `.codex/skills/anim8gen/runtime/config/` with only `brief.schema.json` and `template.animation-spec.json`.
+- Updated `.codex/skills/anim8gen/scripts/skill_paths.py` so installed copies can resolve bundled tools and config without hard-coded `.codex`, `.claude`, or repo-root workbench paths.
+- Updated the anim8gen skill and prompting reference to point at hidden `.anim8gen/runs/<id>` state and bundled runtime tools instead of `anim8gen/tools` and `anim8gen/assets`.
+- Added regression coverage that copies the installed skill to a temp location, resolves a bundled tool, and verifies no visible `anim8gen/` directory is created.
+- Marked Phase 3 as `✅ Done` in the plan tracker.
 
 ## Tests Run
 
-- `python3 -m py_compile .codex/skills/anim8gen/scripts/*.py anim8gen/tools/*.py tests/*.py`
+- `python3 -m py_compile .codex/skills/anim8gen/scripts/*.py .codex/skills/anim8gen/runtime/tools/*.py anim8gen/tools/*.py tests/*.py`
 - `python3 tests/test_anim8gen_tools.py`
-- Temp clean initializer check:
-  - `python3 .codex/skills/anim8gen/scripts/init_package.py --brief "$tmpdir/trex.brief.json" --project-root "$tmpdir/client"`
-  - `find "$tmpdir/client" -maxdepth 3 -type d | sort`
-  - `test ! -e "$tmpdir/client/anim8gen"`
-  - `! rg -n "anim8gen/(assets|config|preview|reports)" "$tmpdir/client/.anim8gen/runs/trex-roar-v1/config/trex-roar-v1.json"`
 
 ## Verification Result
 
-Passed. Inline verification covered the updated initializer behavior, old `--root` alias behavior, no visible `anim8gen/` creation for a temp client project, no hard-coded legacy paths in generated specs, and existing anim8gen tool regressions. Separate verifier assurance was not used because this runner-managed chunk did not explicitly authorize sub-agent delegation.
+Passed. Inline verification covered Python syntax for scripts, bundled runtime tools, source tools, and tests, plus the anim8gen regression suite. The new tests verify the runtime bundle contents, exclude development/demo-only files from the installed runtime package, and prove `skill_paths.py` resolves bundled tools from a copied skill without creating a visible project-root `anim8gen/` directory. Separate verifier assurance was not used because this runner-managed chunk did not explicitly authorize sub-agent delegation.
 
 ## Landing Result
 
-Landed. Worktree commit `fb55892` was cherry-picked to `main` as `dc337d3`.
+Pending. The Phase 3 worktree commit has not yet been cherry-picked to `main`.
 
 ## Remaining Phases
 
-- Phase 3: Tooling install boundary
 - Phase 4: Visible export step
 - Phase 5: Demo/repo surface cleanup
 - Phase 6: Skill and README updates
