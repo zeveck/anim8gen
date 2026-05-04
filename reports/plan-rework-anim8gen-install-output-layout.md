@@ -4,7 +4,7 @@
 
 Phase 3: Tooling install boundary
 
-Status: implemented and verified; landing pending.
+Status: implemented, verified, and landed.
 
 ## Scope Assessment
 
@@ -30,7 +30,7 @@ Passed. Inline verification covered Python syntax for scripts, bundled runtime t
 
 ## Landing Result
 
-Pending. The Phase 3 worktree commit has not yet been cherry-picked to `main`.
+Landed. Worktree commit `ea47204` was cherry-picked to `main` as `c6f3ecd`.
 
 ## Remaining Phases
 
