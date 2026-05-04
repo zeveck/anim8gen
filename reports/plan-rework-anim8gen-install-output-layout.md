@@ -4,7 +4,7 @@
 
 Phase 7: Tests and clean-room verification
 
-Status: implemented and verified; landing pending.
+Status: implemented, verified, and landed.
 
 ## Scope Assessment
 
@@ -29,7 +29,7 @@ Passed. Inline verification covered Python syntax for skill scripts, installed r
 
 ## Landing Result
 
-Pending. The Phase 7 worktree changes have not yet been committed or cherry-picked to `main`.
+Landed. Worktree commit `900e87c` was cherry-picked to `main` as `c081135`.
 
 ## Remaining Phases
 
