@@ -1,0 +1,174 @@
+{
+  "id": "pirate-ship-kraken-cannon",
+  "asset": {
+    "subject": "pirate ship attacked by a kraken at sea",
+    "style": "16-bit RPG pixel art wide scene",
+    "canonicalReference": "anim8gen/assets/pirate-ship-kraken-cannon/reference/reference.png",
+    "references": [],
+    "promptTraits": [
+      "single subject",
+      "side-view",
+      "compact readable silhouette",
+      "solid chroma-key background",
+      "no text"
+    ]
+  },
+  "render": {
+    "canvas": [
+      512,
+      288
+    ],
+    "workingSize": [
+      1536,
+      864
+    ],
+    "exportScale": 8,
+    "fps": 6,
+    "paletteLimit": 48
+  },
+  "generation": {
+    "preferredSkill": "imagegen2",
+    "candidateManifest": "anim8gen/assets/pirate-ship-kraken-cannon/manifests/candidates.jsonl",
+    "acceptedManifest": "anim8gen/assets/pirate-ship-kraken-cannon/manifests/accepted-frames.json",
+    "retryBudget": 2,
+    "background": "opaque-full-frame"
+  },
+  "segmentation": {
+    "strategy": "chroma-key",
+    "chromaKey": "#ff00ff",
+    "alphaThreshold": 8,
+    "chromaTolerance": 32
+  },
+  "alignment": {
+    "defaultAnchor": "body_center",
+    "floorY": 272,
+    "stabilizeAnchorX": true,
+    "loopClosure": true,
+    "supportedAnchors": [
+      "body_bottom_center",
+      "body_center",
+      "feet_center",
+      "head_center",
+      "manual"
+    ],
+    "manualOverrides": {},
+    "topPadding": 0,
+    "sidePadding": 0,
+    "bottomPadding": 0
+  },
+  "validation": {
+    "defaultThresholds": {
+      "anchorXJumpPx": 3,
+      "anchorYJumpPx": 2,
+      "edgePaddingPx": 2,
+      "bboxHeightVariancePct": 60,
+      "bboxWidthVariancePct": 60,
+      "visibleAreaVariancePct": 70,
+      "centroidJumpPx": 40,
+      "adjacentSilhouetteIouMin": 0.25,
+      "meanLuminanceShiftPct": 15,
+      "dominantHueShiftDegrees": 12
+    },
+    "motionPhases": [
+      {
+        "name": "scene-action",
+        "frames": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "thresholdOverrides": {
+          "visibleAreaVariancePct": 100,
+          "bboxWidthVariancePct": 100,
+          "bboxHeightVariancePct": 100,
+          "adjacentSilhouetteIouMin": 0.15,
+          "centroidJumpPx": 60
+        },
+        "ignoredWarnings": [
+          "dominantHueShiftDegrees",
+          "meanLuminanceShiftPct"
+        ]
+      }
+    ]
+  },
+  "preview": {
+    "strategy": "canvas-playback",
+    "displayOffsets": {},
+    "runtimeEffects": [],
+    "minimalControls": [
+      "playPause",
+      "fps",
+      "step",
+      "frameLabel",
+      "checkerboard"
+    ]
+  },
+  "frames": [
+    {
+      "index": 0,
+      "label": "calm",
+      "pose": "wide side shot, pirate ship sailing on dark ocean, stormy sky, no kraken visible yet",
+      "anchor": "body_center"
+    },
+    {
+      "index": 1,
+      "label": "water-bulge",
+      "pose": "same wide shot, water swelling beside the ship, bubbles and ripples hint at something rising",
+      "anchor": "body_center"
+    },
+    {
+      "index": 2,
+      "label": "tentacles-rise",
+      "pose": "same wide shot, several kraken tentacles rising from the sea near the ship, ship still intact",
+      "anchor": "body_center"
+    },
+    {
+      "index": 3,
+      "label": "kraken-looms",
+      "pose": "same wide shot, kraken head and tentacles looming beside the pirate ship, dramatic but ship not damaged",
+      "anchor": "body_center"
+    },
+    {
+      "index": 4,
+      "label": "cannon-aim",
+      "pose": "same wide shot, pirate ship turns cannons toward the kraken, small muzzle glow, kraken threatening",
+      "anchor": "body_center"
+    },
+    {
+      "index": 5,
+      "label": "cannon-fire",
+      "pose": "same wide shot, pirate ship fires a cannon, bright cannon flash and smoke, cannonball traveling toward kraken",
+      "anchor": "body_center"
+    },
+    {
+      "index": 6,
+      "label": "impact",
+      "pose": "same wide shot, cannonball impact bursts near kraken, kraken recoils, tentacles flinch away",
+      "anchor": "body_center"
+    },
+    {
+      "index": 7,
+      "label": "kraken-retreats",
+      "pose": "same wide shot, kraken retreating into the sea, tentacles lowering, pirate ship still afloat",
+      "anchor": "body_center"
+    },
+    {
+      "index": 8,
+      "label": "submerging",
+      "pose": "same wide shot, kraken mostly submerged with only a few tentacle tips and bubbles visible",
+      "anchor": "body_center"
+    },
+    {
+      "index": 9,
+      "label": "sea-settles",
+      "pose": "same wide shot, pirate ship sailing onward, sea settling with small bubbles where kraken disappeared",
+      "anchor": "body_center"
+    }
+  ]
+}

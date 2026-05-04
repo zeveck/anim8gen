@@ -1,9 +1,10 @@
 {
-  "id": "deterministic-square-hop",
+  "id": "quality-knight-sword-spark-v4",
   "asset": {
-    "subject": "blue square game sprite",
-    "style": "pixel art",
-    "canonicalReference": "anim8gen/assets/deterministic-square-hop/reference/reference.png",
+    "subject": "small brown-haired knight with blue cape and short sword facing right",
+    "style": "16-bit RPG pixel art, readable fantasy game sprite, crisp pixel edges",
+    "canonicalReference": "anim8gen/assets/quality-knight-sword-spark-v4/reference/reference.png",
+    "references": [],
     "promptTraits": [
       "single subject",
       "side-view",
@@ -22,24 +23,26 @@
       1024
     ],
     "exportScale": 8,
-    "fps": 8,
+    "fps": 4,
     "paletteLimit": 48
   },
   "generation": {
     "preferredSkill": "imagegen2",
-    "candidateManifest": "anim8gen/assets/deterministic-square-hop/manifests/candidates.jsonl",
-    "acceptedManifest": "anim8gen/assets/deterministic-square-hop/manifests/accepted-frames.json",
-    "retryBudget": 2
+    "candidateManifest": "anim8gen/assets/quality-knight-sword-spark-v4/manifests/candidates.jsonl",
+    "acceptedManifest": "anim8gen/assets/quality-knight-sword-spark-v4/manifests/accepted-frames.json",
+    "retryBudget": 3
   },
   "segmentation": {
     "strategy": "chroma-key",
-    "chromaKey": "#ff00ff",
+    "chromaKey": "#00ff00",
     "alphaThreshold": 8,
     "chromaTolerance": 32
   },
   "alignment": {
     "defaultAnchor": "body_bottom_center",
     "floorY": 112,
+    "stabilizeAnchorX": true,
+    "loopClosure": true,
     "supportedAnchors": [
       "body_bottom_center",
       "body_center",
@@ -53,6 +56,7 @@
     "defaultThresholds": {
       "anchorXJumpPx": 3,
       "anchorYJumpPx": 2,
+      "edgePaddingPx": 2,
       "bboxHeightVariancePct": 12,
       "bboxWidthVariancePct": 18,
       "visibleAreaVariancePct": 20,
@@ -65,13 +69,7 @@
   },
   "preview": {
     "strategy": "canvas-playback",
-    "displayOffsets": {
-      "hop-up": {
-        "x": 0,
-        "y": -6,
-        "reason": "Preview-only lift exaggeration for hop apex; source sprite pixels remain unchanged."
-      }
-    },
+    "displayOffsets": {},
     "runtimeEffects": [],
     "minimalControls": [
       "playPause",
@@ -84,27 +82,21 @@
   "frames": [
     {
       "index": 0,
-      "label": "idle",
-      "pose": "square rests on the baseline",
-      "anchor": "body_bottom_center"
+      "label": "ready",
+      "pose": "side view facing right, feet planted, short sword held forward and fully visible, brown hair, blue cape, no helmet",
+      "anchor": "feet_center"
     },
     {
       "index": 1,
-      "label": "squash",
-      "pose": "square compresses before hopping",
-      "anchor": "body_bottom_center"
+      "label": "slash",
+      "pose": "side view facing right, same knight making a short sword slash fully inside image, one sword only, no extra arms, blue cape unchanged",
+      "anchor": "feet_center"
     },
     {
       "index": 2,
-      "label": "hop-up",
-      "pose": "square rises above the baseline with a small pose marker",
-      "anchor": "body_bottom_center"
-    },
-    {
-      "index": 3,
-      "label": "land",
-      "pose": "square returns to the baseline",
-      "anchor": "body_bottom_center"
+      "label": "spark",
+      "pose": "side view facing right, same knight after slash with a small yellow spark at sword tip, one sword only, no extra arms, body same size",
+      "anchor": "feet_center"
     }
   ]
 }

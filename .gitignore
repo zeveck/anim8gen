@@ -21,5 +21,5 @@ anim8gen/gifs/**
 anim8gen/preview/*.html
 anim8gen/reports/*.json
 anim8gen/reports/*.package.md
-anim8gen-demo.gif
-anim8gen-demo2.gif
+/anim8gen-demo.gif
+/anim8gen-demo2.gif

@@ -1,0 +1,146 @@
+{
+  "id": "sci-fi-space-station-explosion",
+  "asset": {
+    "subject": "large sci-fi space station in deep space",
+    "style": "16-bit RPG pixel art scene",
+    "canonicalReference": "anim8gen/assets/sci-fi-space-station-explosion/reference/reference.png",
+    "references": [],
+    "promptTraits": [
+      "single subject",
+      "side-view",
+      "compact readable silhouette",
+      "solid chroma-key background",
+      "no text"
+    ]
+  },
+  "render": {
+    "canvas": [
+      512,
+      512
+    ],
+    "workingSize": [
+      1024,
+      1024
+    ],
+    "exportScale": 8,
+    "fps": 4,
+    "paletteLimit": 48
+  },
+  "generation": {
+    "preferredSkill": "imagegen2",
+    "candidateManifest": "anim8gen/assets/sci-fi-space-station-explosion/manifests/candidates.jsonl",
+    "acceptedManifest": "anim8gen/assets/sci-fi-space-station-explosion/manifests/accepted-frames.json",
+    "retryBudget": 2,
+    "background": "opaque-full-frame"
+  },
+  "segmentation": {
+    "strategy": "chroma-key",
+    "chromaKey": "#00ff00",
+    "alphaThreshold": 8,
+    "chromaTolerance": 32
+  },
+  "alignment": {
+    "defaultAnchor": "body_center",
+    "floorY": 496,
+    "stabilizeAnchorX": true,
+    "loopClosure": true,
+    "supportedAnchors": [
+      "body_bottom_center",
+      "body_center",
+      "feet_center",
+      "head_center",
+      "manual"
+    ],
+    "manualOverrides": {},
+    "topPadding": 0,
+    "sidePadding": 0,
+    "bottomPadding": 0
+  },
+  "validation": {
+    "defaultThresholds": {
+      "anchorXJumpPx": 3,
+      "anchorYJumpPx": 2,
+      "edgePaddingPx": 2,
+      "bboxHeightVariancePct": 35,
+      "bboxWidthVariancePct": 35,
+      "visibleAreaVariancePct": 40,
+      "centroidJumpPx": 24,
+      "adjacentSilhouetteIouMin": 0.35,
+      "meanLuminanceShiftPct": 15,
+      "dominantHueShiftDegrees": 12
+    },
+    "motionPhases": [
+      {
+        "name": "explosion-growth",
+        "frames": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "thresholdOverrides": {
+          "visibleAreaVariancePct": 80,
+          "bboxWidthVariancePct": 80,
+          "bboxHeightVariancePct": 80,
+          "adjacentSilhouetteIouMin": 0.2
+        },
+        "ignoredWarnings": [
+          "dominantHueShiftDegrees",
+          "meanLuminanceShiftPct"
+        ]
+      }
+    ]
+  },
+  "preview": {
+    "strategy": "canvas-playback",
+    "displayOffsets": {},
+    "runtimeEffects": [],
+    "minimalControls": [
+      "playPause",
+      "fps",
+      "step",
+      "frameLabel",
+      "checkerboard"
+    ]
+  },
+  "frames": [
+    {
+      "index": 0,
+      "label": "idle",
+      "pose": "large sci-fi space station intact, centered in deep space with stars, calm before explosion",
+      "anchor": "body_center"
+    },
+    {
+      "index": 1,
+      "label": "flash",
+      "pose": "same space station centered, sudden bright orange white flash starting from the core, small debris beginning",
+      "anchor": "body_center"
+    },
+    {
+      "index": 2,
+      "label": "explosion",
+      "pose": "same station breaking apart in a cool large orange yellow explosion, debris expanding outward, station silhouette still partly visible",
+      "anchor": "body_center"
+    },
+    {
+      "index": 3,
+      "label": "debris",
+      "pose": "aftermath of the same station explosion, fading fireball, scattered debris, smoke glow, deep space stars still visible",
+      "anchor": "body_center"
+    },
+    {
+      "index": 4,
+      "label": "floating-debris",
+      "pose": "quiet aftermath after the explosion, fireball gone, broken station pieces and ring fragments slowly floating in deep space, only faint embers and stars visible",
+      "anchor": "body_center"
+    },
+    {
+      "index": 5,
+      "label": "floating-debris-hold",
+      "pose": "same quiet floating debris aftermath held for one extra frame",
+      "reuseFrame": 4,
+      "anchor": "body_center"
+    }
+  ]
+}

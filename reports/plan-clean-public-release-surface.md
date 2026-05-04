@@ -79,3 +79,34 @@ Landing result: Committed on `main` as `786e720`.
 Remaining phases:
 
 - Phase 5: Public demo sanity
+
+## Phase
+
+Phase 5: Public demo sanity
+
+Status: ✅ Done
+
+Scope assessment: Scoped to the committed public demo surface. Re-exported the
+six curated demos, added their specs, added the static GitHub Pages workflow,
+and kept public GIF media under `public/media/`. Removed older non-curated
+tracked cat/live specs from the release index while preserving local copies for
+stash. Did not commit exploratory smoke/quality configs beyond the selected
+curated set.
+
+Tests run:
+
+- `python3 anim8gen/tools/export_public_demo.py quality-knight-sword-spark-v4 quality-cat-tail-swish-v4 quality-cat-pounce-v2 quality-dragon-tail-flick-v4 sci-fi-space-station-explosion pirate-ship-kraken-cannon --clean`
+- `python3 -m http.server 8767 --bind 127.0.0.1 --directory public`
+- `curl -I http://127.0.0.1:8767/`
+- `curl -I http://127.0.0.1:8767/demos/pirate-ship-kraken-cannon/`
+- `curl -I http://127.0.0.1:8767/media/pirate-ship-kraken-cannon.gif`
+- Python URL probe for every curated demo page, each demo's first frame, and all `public/media/*.gif`.
+
+Verification result: Passed on port `8767`. The originally requested port
+`8766` was already in use and failed with `OSError: [Errno 98] Address already
+in use`; retrying on `8767` passed with HTTP `200` for the gallery, curated
+demo pages, representative frames, and GIF media.
+
+Landing result: Pending before commit.
+
+Remaining phases: none.

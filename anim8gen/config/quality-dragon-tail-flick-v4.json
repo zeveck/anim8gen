@@ -1,9 +1,10 @@
 {
-  "id": "live-cat-paw-loop",
+  "id": "quality-dragon-tail-flick-v4",
   "asset": {
-    "subject": "small cat",
-    "style": "pixel art",
-    "canonicalReference": "anim8gen/assets/live-cat-paw-loop/reference/reference.png",
+    "subject": "small cute green baby dragon facing left",
+    "style": "16-bit RPG pixel art, readable fantasy game sprite, crisp pixel edges",
+    "canonicalReference": "anim8gen/assets/quality-dragon-tail-flick-v4/reference/reference.png",
+    "references": [],
     "promptTraits": [
       "single subject",
       "side-view",
@@ -22,27 +23,26 @@
       1024
     ],
     "exportScale": 8,
-    "fps": 8,
+    "fps": 4,
     "paletteLimit": 48
   },
   "generation": {
     "preferredSkill": "imagegen2",
-    "fallbackSkills": [
-      "imagegen"
-    ],
-    "candidateManifest": "anim8gen/assets/live-cat-paw-loop/manifests/candidates.jsonl",
-    "acceptedManifest": "anim8gen/assets/live-cat-paw-loop/manifests/accepted-frames.json",
-    "retryBudget": 2
+    "candidateManifest": "anim8gen/assets/quality-dragon-tail-flick-v4/manifests/candidates.jsonl",
+    "acceptedManifest": "anim8gen/assets/quality-dragon-tail-flick-v4/manifests/accepted-frames.json",
+    "retryBudget": 3
   },
   "segmentation": {
     "strategy": "chroma-key",
-    "chromaKey": "#ff00ff",
+    "chromaKey": "#00ffff",
     "alphaThreshold": 8,
     "chromaTolerance": 32
   },
   "alignment": {
     "defaultAnchor": "body_bottom_center",
     "floorY": 112,
+    "stabilizeAnchorX": true,
+    "loopClosure": true,
     "supportedAnchors": [
       "body_bottom_center",
       "body_center",
@@ -56,6 +56,7 @@
     "defaultThresholds": {
       "anchorXJumpPx": 3,
       "anchorYJumpPx": 2,
+      "edgePaddingPx": 2,
       "bboxHeightVariancePct": 12,
       "bboxWidthVariancePct": 18,
       "visibleAreaVariancePct": 20,
@@ -81,26 +82,20 @@
   "frames": [
     {
       "index": 0,
-      "label": "sit-idle",
-      "pose": "cat sits calmly facing right",
+      "label": "idle",
+      "pose": "side view facing left, sitting baby dragon, two wings tucked, four legs, one tail curled, two eyes",
       "anchor": "body_bottom_center"
     },
     {
       "index": 1,
-      "label": "paw-lift",
-      "pose": "cat lifts one front paw",
+      "label": "tail-up",
+      "pose": "side view facing left, same sitting baby dragon with one tail flicked upward, two wings tucked, four legs only, two eyes",
       "anchor": "body_bottom_center"
     },
     {
       "index": 2,
-      "label": "paw-lick",
-      "pose": "cat licks the raised paw",
-      "anchor": "body_bottom_center"
-    },
-    {
-      "index": 3,
-      "label": "sit-return",
-      "pose": "cat returns to the original sitting pose",
+      "label": "happy",
+      "pose": "side view facing left, same sitting baby dragon smiling with mouth open and tail curled back down, two wings tucked, four legs only",
       "anchor": "body_bottom_center"
     }
   ]

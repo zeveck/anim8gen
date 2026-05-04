@@ -1,12 +1,13 @@
 {
-  "id": "deterministic-square-hop",
+  "id": "quality-cat-pounce-v2",
   "asset": {
-    "subject": "blue square game sprite",
-    "style": "pixel art",
-    "canonicalReference": "anim8gen/assets/deterministic-square-hop/reference/reference.png",
+    "subject": "cute orange tabby cat adventurer facing the user",
+    "style": "16-bit RPG pixel art, cute readable game sprite, crisp pixel edges",
+    "canonicalReference": "anim8gen/assets/quality-cat-pounce-v2/reference/reference.png",
+    "references": [],
     "promptTraits": [
       "single subject",
-      "side-view",
+      "front-view",
       "compact readable silhouette",
       "solid chroma-key background",
       "no text"
@@ -22,13 +23,13 @@
       1024
     ],
     "exportScale": 8,
-    "fps": 8,
+    "fps": 5,
     "paletteLimit": 48
   },
   "generation": {
     "preferredSkill": "imagegen2",
-    "candidateManifest": "anim8gen/assets/deterministic-square-hop/manifests/candidates.jsonl",
-    "acceptedManifest": "anim8gen/assets/deterministic-square-hop/manifests/accepted-frames.json",
+    "candidateManifest": "anim8gen/assets/quality-cat-pounce-v2/manifests/candidates.jsonl",
+    "acceptedManifest": "anim8gen/assets/quality-cat-pounce-v2/manifests/accepted-frames.json",
     "retryBudget": 2
   },
   "segmentation": {
@@ -40,6 +41,8 @@
   "alignment": {
     "defaultAnchor": "body_bottom_center",
     "floorY": 112,
+    "stabilizeAnchorX": true,
+    "loopClosure": true,
     "supportedAnchors": [
       "body_bottom_center",
       "body_center",
@@ -53,6 +56,7 @@
     "defaultThresholds": {
       "anchorXJumpPx": 3,
       "anchorYJumpPx": 2,
+      "edgePaddingPx": 2,
       "bboxHeightVariancePct": 12,
       "bboxWidthVariancePct": 18,
       "visibleAreaVariancePct": 20,
@@ -65,13 +69,7 @@
   },
   "preview": {
     "strategy": "canvas-playback",
-    "displayOffsets": {
-      "hop-up": {
-        "x": 0,
-        "y": -6,
-        "reason": "Preview-only lift exaggeration for hop apex; source sprite pixels remain unchanged."
-      }
-    },
+    "displayOffsets": {},
     "runtimeEffects": [],
     "minimalControls": [
       "playPause",
@@ -84,27 +82,28 @@
   "frames": [
     {
       "index": 0,
-      "label": "idle",
-      "pose": "square rests on the baseline",
+      "label": "crouch",
+      "pose": "front view facing the user, low playful crouch, eyes focused, paws tucked ready to pounce",
       "anchor": "body_bottom_center"
     },
     {
       "index": 1,
-      "label": "squash",
-      "pose": "square compresses before hopping",
+      "label": "pounce",
+      "pose": "front view facing the user, springing upward in a cute pounce, front paws lifted, body still centered",
       "anchor": "body_bottom_center"
     },
     {
       "index": 2,
-      "label": "hop-up",
-      "pose": "square rises above the baseline with a small pose marker",
+      "label": "land",
+      "pose": "front view facing the user, landing softly with paws down, playful expression, same body size",
       "anchor": "body_bottom_center"
     },
     {
       "index": 3,
-      "label": "land",
-      "pose": "square returns to the baseline",
-      "anchor": "body_bottom_center"
+      "label": "crouch-return",
+      "pose": "front view facing the user, returns to the same low playful crouch as frame 0",
+      "anchor": "body_bottom_center",
+      "reuseFrame": 0
     }
   ]
 }
