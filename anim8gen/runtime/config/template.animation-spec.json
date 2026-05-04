@@ -3,7 +3,7 @@
   "asset": {
     "subject": "example subject",
     "style": "pixel art",
-    "canonicalReference": "anim8gen/assets/example-animation-id/reference/reference.png",
+    "canonicalReference": ".anim8gen/runs/example-animation-id/reference/reference.png",
     "references": [],
     "promptTraits": [
       "single subject",
@@ -22,8 +22,8 @@
   },
   "generation": {
     "preferredSkill": "imagegen2",
-    "candidateManifest": "anim8gen/assets/example-animation-id/manifests/candidates.jsonl",
-    "acceptedManifest": "anim8gen/assets/example-animation-id/manifests/accepted-frames.json",
+    "candidateManifest": ".anim8gen/runs/example-animation-id/manifests/candidates.jsonl",
+    "acceptedManifest": ".anim8gen/runs/example-animation-id/manifests/accepted-frames.json",
     "retryBudget": 2
   },
   "segmentation": {

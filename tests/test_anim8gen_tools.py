@@ -345,6 +345,32 @@ def test_anim8gen_skill_runtime_bundle_is_minimal_and_self_contained() -> None:
     assert "anim8gen/assets" not in (runtime_config / "template.animation-spec.json").read_text()
 
 
+def test_repo_demo_sources_are_outside_installable_workbench() -> None:
+    repo_config = REPO_ROOT / "anim8gen" / "config"
+    repo_reports = REPO_ROOT / "anim8gen" / "reports"
+    source_runtime_config = REPO_ROOT / "anim8gen" / "runtime" / "config"
+    example_specs = REPO_ROOT / "examples" / "specs"
+
+    expected_specs = {
+        "deterministic-square-hop.json",
+        "pirate-ship-kraken-cannon.json",
+        "quality-cat-pounce-v2.json",
+        "quality-cat-tail-swish-v4.json",
+        "quality-dragon-tail-flick-v4.json",
+        "quality-knight-sword-spark-v4.json",
+        "sci-fi-space-station-explosion.json",
+    }
+
+    assert not repo_config.exists()
+    assert not repo_reports.exists()
+    assert {path.name for path in source_runtime_config.iterdir() if path.is_file()} == {
+        "brief.schema.json",
+        "template.animation-spec.json",
+    }
+    assert {path.name for path in example_specs.iterdir() if path.is_file()} == expected_specs
+    assert "anim8gen/assets" not in (source_runtime_config / "template.animation-spec.json").read_text()
+
+
 def test_skill_paths_resolves_bundled_runtime_tools_without_source_workbench() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         project = Path(tmp) / "client"

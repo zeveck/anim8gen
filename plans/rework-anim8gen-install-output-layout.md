@@ -276,6 +276,6 @@ Expected result:
 - [✅ Done] Phase 2: Package initialization root fixes
 - [✅ Done] Phase 3: Tooling install boundary
 - [✅ Done] Phase 4: Visible export step
-- [ ] Phase 5: Demo/repo surface cleanup
+- [✅ Done] Phase 5: Demo/repo surface cleanup
 - [ ] Phase 6: Skill and README updates
 - [ ] Phase 7: Tests and clean-room verification
