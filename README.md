@@ -98,18 +98,18 @@ retreating.
 ```
 
 <p>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-000.calm.png" alt="Pirate ship kraken frame 1" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-001.water-bulge.png" alt="Pirate ship kraken frame 2" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-002.tentacles-rise.png" alt="Pirate ship kraken frame 3" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-003.kraken-looms.png" alt="Pirate ship kraken frame 4" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-004.cannon-aim.png" alt="Pirate ship kraken frame 5" width="128"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-000.calm.png" alt="Pirate ship kraken frame 1" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-001.water-bulge.png" alt="Pirate ship kraken frame 2" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-002.tentacles-rise.png" alt="Pirate ship kraken frame 3" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-003.kraken-looms.png" alt="Pirate ship kraken frame 4" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-004.cannon-aim.png" alt="Pirate ship kraken frame 5" width="180"></a>
 </p>
 <p>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-005.cannon-fire.png" alt="Pirate ship kraken frame 6" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-006.impact.png" alt="Pirate ship kraken frame 7" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-007.kraken-retreats.png" alt="Pirate ship kraken frame 8" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-008.submerging.png" alt="Pirate ship kraken frame 9" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-009.sea-settles.png" alt="Pirate ship kraken frame 10" width="128"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-005.cannon-fire.png" alt="Pirate ship kraken frame 6" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-006.impact.png" alt="Pirate ship kraken frame 7" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-007.kraken-retreats.png" alt="Pirate ship kraken frame 8" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-008.submerging.png" alt="Pirate ship kraken frame 9" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-009.sea-settles.png" alt="Pirate ship kraken frame 10" width="180"></a>
 </p>
 
 ```text
@@ -119,12 +119,12 @@ quiet floating debris.
 ```
 
 <p>
-  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-000.idle.png" alt="Space station explosion frame 1" width="104"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-001.flash.png" alt="Space station explosion frame 2" width="104"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-002.explosion.png" alt="Space station explosion frame 3" width="104"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-003.debris.png" alt="Space station explosion frame 4" width="104"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-004.floating-debris.png" alt="Space station explosion frame 5" width="104"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-005.floating-debris-hold.png" alt="Space station explosion frame 6" width="104"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-000.idle.png" alt="Space station explosion frame 1" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-001.flash.png" alt="Space station explosion frame 2" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-002.explosion.png" alt="Space station explosion frame 3" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-003.debris.png" alt="Space station explosion frame 4" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-004.floating-debris.png" alt="Space station explosion frame 5" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-005.floating-debris-hold.png" alt="Space station explosion frame 6" width="180"></a>
 </p>
 
 ```text
@@ -135,9 +135,9 @@ tip.
 ```
 
 <p>
-  <a href="https://zeveck.github.io/anim8gen/demos/quality-knight-sword-spark-v4/"><img src="public/demos/quality-knight-sword-spark-v4/frames/frame-000.ready.png" alt="Knight sword spark frame 1" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/quality-knight-sword-spark-v4/"><img src="public/demos/quality-knight-sword-spark-v4/frames/frame-001.slash.png" alt="Knight sword spark frame 2" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/quality-knight-sword-spark-v4/"><img src="public/demos/quality-knight-sword-spark-v4/frames/frame-002.spark.png" alt="Knight sword spark frame 3" width="128"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-knight-sword-spark-v4/"><img src="public/demos/quality-knight-sword-spark-v4/frames/frame-000.ready.png" alt="Knight sword spark frame 1" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-knight-sword-spark-v4/"><img src="public/demos/quality-knight-sword-spark-v4/frames/frame-001.slash.png" alt="Knight sword spark frame 2" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-knight-sword-spark-v4/"><img src="public/demos/quality-knight-sword-spark-v4/frames/frame-002.spark.png" alt="Knight sword spark frame 3" width="160"></a>
 </p>
 
 ```text
@@ -147,9 +147,9 @@ tail swishes left and right.
 ```
 
 <p>
-  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-tail-swish-v4/"><img src="public/demos/quality-cat-tail-swish-v4/frames/frame-000.sit.png" alt="Cat tail swish frame 1" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-tail-swish-v4/"><img src="public/demos/quality-cat-tail-swish-v4/frames/frame-001.tail-left.png" alt="Cat tail swish frame 2" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-tail-swish-v4/"><img src="public/demos/quality-cat-tail-swish-v4/frames/frame-002.tail-right.png" alt="Cat tail swish frame 3" width="128"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-tail-swish-v4/"><img src="public/demos/quality-cat-tail-swish-v4/frames/frame-000.sit.png" alt="Cat tail swish frame 1" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-tail-swish-v4/"><img src="public/demos/quality-cat-tail-swish-v4/frames/frame-001.tail-left.png" alt="Cat tail swish frame 2" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-tail-swish-v4/"><img src="public/demos/quality-cat-tail-swish-v4/frames/frame-002.tail-right.png" alt="Cat tail swish frame 3" width="160"></a>
 </p>
 
 ```text
@@ -159,10 +159,10 @@ soft landing, then return to crouch.
 ```
 
 <p>
-  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-pounce-v2/"><img src="public/demos/quality-cat-pounce-v2/frames/frame-000.crouch.png" alt="Cat pounce frame 1" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-pounce-v2/"><img src="public/demos/quality-cat-pounce-v2/frames/frame-001.pounce.png" alt="Cat pounce frame 2" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-pounce-v2/"><img src="public/demos/quality-cat-pounce-v2/frames/frame-002.land.png" alt="Cat pounce frame 3" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-pounce-v2/"><img src="public/demos/quality-cat-pounce-v2/frames/frame-003.crouch-return.png" alt="Cat pounce frame 4" width="128"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-pounce-v2/"><img src="public/demos/quality-cat-pounce-v2/frames/frame-000.crouch.png" alt="Cat pounce frame 1" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-pounce-v2/"><img src="public/demos/quality-cat-pounce-v2/frames/frame-001.pounce.png" alt="Cat pounce frame 2" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-pounce-v2/"><img src="public/demos/quality-cat-pounce-v2/frames/frame-002.land.png" alt="Cat pounce frame 3" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-pounce-v2/"><img src="public/demos/quality-cat-pounce-v2/frames/frame-003.crouch-return.png" alt="Cat pounce frame 4" width="160"></a>
 </p>
 
 ```text
@@ -172,9 +172,9 @@ its tail flicking upward and then curling back down.
 ```
 
 <p>
-  <a href="https://zeveck.github.io/anim8gen/demos/quality-dragon-tail-flick-v4/"><img src="public/demos/quality-dragon-tail-flick-v4/frames/frame-000.idle.png" alt="Dragon tail flick frame 1" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/quality-dragon-tail-flick-v4/"><img src="public/demos/quality-dragon-tail-flick-v4/frames/frame-001.tail-up.png" alt="Dragon tail flick frame 2" width="128"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/quality-dragon-tail-flick-v4/"><img src="public/demos/quality-dragon-tail-flick-v4/frames/frame-002.happy.png" alt="Dragon tail flick frame 3" width="128"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-dragon-tail-flick-v4/"><img src="public/demos/quality-dragon-tail-flick-v4/frames/frame-000.idle.png" alt="Dragon tail flick frame 1" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-dragon-tail-flick-v4/"><img src="public/demos/quality-dragon-tail-flick-v4/frames/frame-001.tail-up.png" alt="Dragon tail flick frame 2" width="160"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-dragon-tail-flick-v4/"><img src="public/demos/quality-dragon-tail-flick-v4/frames/frame-002.happy.png" alt="Dragon tail flick frame 3" width="160"></a>
 </p>
 
 Details that help:
