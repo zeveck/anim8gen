@@ -19,7 +19,7 @@ Tests run:
 
 Verification result: Passed. Generated package assets, contact sheets, local GIF exports, and preview HTML are ignored by root `.gitignore`; the public demo path is not ignored.
 
-Landing result: Cherry-picked worktree commit `d0eda6f` to `main` as `dbe5d5d`.
+Landing result: Cherry-picked worktree commit `d0eda6f` to `main` as `dbe5d5d`; cherry-picked report evidence commit `4c13518` to `main` as `6b67df3`.
 
 Remaining phases:
 
