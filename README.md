@@ -75,6 +75,14 @@ Optional request words:
 - `showit` opens the finished local preview when the run completes.
 - `noshow` skips the preview-server offer.
 
+For example, this asks for both a GIF and an opened preview:
+
+```text
+Use anim8gen gif showit to make a 3-frame transparent-background 16-bit RPG
+pixel art sprite of a cute orange tabby cat facing the viewer while its tail
+swishes left and right.
+```
+
 ```text
 Use anim8gen to make a wide 10-frame 16-bit RPG pixel art scene of a pirate
 ship attacked by a kraken at sea, with the ship firing a cannon and the kraken
