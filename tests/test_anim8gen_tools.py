@@ -30,6 +30,8 @@ import layout_paths  # noqa: E402
 
 
 INIT_PACKAGE_SCRIPT = SKILL_SCRIPT_DIR / "init_package.py"
+CREATE_SYNTHETIC_SCRIPT = SKILL_SCRIPT_DIR / "create_synthetic_frames.py"
+RUNTIME_TOOLS_DIR = REPO_ROOT / ".codex" / "skills" / "anim8gen" / "runtime" / "tools"
 
 
 def write_frame(path: Path, color: tuple[int, int, int, int], pixel: tuple[int, int] = (1, 1)) -> None:
@@ -73,6 +75,16 @@ def brief(animation_id: str = "trex-roar-v1") -> dict:
             {"index": 2, "label": "settle", "pose": "mouth closing"},
         ],
     }
+
+
+def synthetic_brief(animation_id: str = "synthetic-smoke") -> dict:
+    data = brief(animation_id)
+    data.update({"canvas": [64, 64], "workingSize": [256, 256], "floorY": 56, "fps": 6})
+    return data
+
+
+def run_command(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(args, cwd=cwd, check=True, text=True, capture_output=True)
 
 
 def test_export_gif_dimensions_frame_count_and_terminal_reuse() -> None:
@@ -470,6 +482,33 @@ def test_init_package_defaults_to_hidden_workspace_without_visible_anim8gen_root
         assert package_manifest["export"] == "assets/anim8gen/trex-roar-v1"
 
 
+def test_init_package_generated_specs_and_manifests_have_no_new_visible_workbench_paths() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        brief_path = Path(tmp) / "trex.brief.json"
+        brief_path.write_text(json.dumps(brief()))
+
+        run_command(
+            [
+                sys.executable,
+                str(INIT_PACKAGE_SCRIPT),
+                "--brief",
+                str(brief_path),
+                "--project-root",
+                str(project),
+            ],
+            cwd=project,
+        )
+
+        run_root = project / ".anim8gen" / "runs" / "trex-roar-v1"
+        generated_text = "\n".join(path.read_text() for path in sorted((run_root / "config").glob("*.json")))
+        generated_text += "\n".join(path.read_text() for path in sorted((run_root / "manifests").glob("*")))
+        for forbidden in ["anim8gen/assets", "anim8gen/config", "anim8gen/preview", "anim8gen/reports"]:
+            assert forbidden not in generated_text
+        assert not (project / "anim8gen").exists()
+
+
 def test_init_package_root_alias_writes_self_consistent_run_paths() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         project = Path(tmp) / "client"
@@ -500,6 +539,169 @@ def test_init_package_root_alias_writes_self_consistent_run_paths() -> None:
         assert spec["generation"]["candidateManifest"] == ".anim8gen/runs/orb-cast/manifests/candidates.jsonl"
         assert package_manifest["runRoot"] == ".anim8gen/runs/orb-cast"
         assert "export" not in package_manifest
+        assert not (project / "anim8gen").exists()
+
+
+def test_export_bundle_supports_explicit_anim8gen_results_root_without_internal_artifacts() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp)
+        run_root = project / ".anim8gen" / "runs" / "fixture"
+        for path in [run_root / "config", run_root / "aligned", run_root / "manifests", run_root / "reports"]:
+            path.mkdir(parents=True)
+
+        spec = base_spec("fixture")
+        spec["generation"]["acceptedManifest"] = str(run_root / "manifests" / "accepted-frames.json")
+        spec_path = run_root / "config" / "fixture.json"
+        spec_path.write_text(json.dumps(spec))
+        (run_root / "manifests" / "accepted-frames.json").write_text(json.dumps({"frames": []}))
+        (run_root / "reports" / "fixture.validation.json").write_text(json.dumps({"frames": []}))
+        for frame in spec["frames"]:
+            write_frame(run_root / "aligned" / make_preview.aligned_name(frame), (20, frame["index"] * 60, 180, 255))
+
+        out_dir = project / "anim8gen" / "fixture"
+        export_bundle.export_bundle(spec_path, out_dir)
+
+        assert (out_dir / "frames" / "frame-000.idle.png").exists()
+        assert (out_dir / "preview.html").exists()
+        assert not (out_dir / "manifests").exists()
+        assert not (out_dir / "reports").exists()
+        assert not (out_dir / "config").exists()
+        assert not (project / "anim8gen" / "tools").exists()
+
+
+def test_complete_synthetic_run_uses_hidden_workspace_and_visible_bundle() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        brief_path = project / "synthetic.brief.json"
+        brief_path.write_text(json.dumps(synthetic_brief()))
+
+        run_command(
+            [
+                sys.executable,
+                str(INIT_PACKAGE_SCRIPT),
+                "--brief",
+                str(brief_path),
+                "--project-root",
+                str(project),
+            ],
+            cwd=project,
+        )
+
+        animation_id = "synthetic-smoke"
+        run_root = project / ".anim8gen" / "runs" / animation_id
+        spec_path = run_root / "config" / f"{animation_id}.json"
+        raw_dir = run_root / "raw"
+        aligned_dir = run_root / "aligned"
+        validation_path = run_root / "reports" / f"{animation_id}.validation.json"
+        contact_sheet_path = run_root / "review" / "contact-sheet.png"
+        preview_path = run_root / "preview" / f"{animation_id}.html"
+        gif_path = run_root / "gifs" / f"{animation_id}.gif"
+        export_dir = project / "assets" / "anim8gen" / animation_id
+
+        run_command(
+            [sys.executable, str(CREATE_SYNTHETIC_SCRIPT), "--spec", str(spec_path), "--root", str(run_root)],
+            cwd=project,
+        )
+        run_command(
+            [
+                sys.executable,
+                str(RUNTIME_TOOLS_DIR / "align_frames.py"),
+                "--spec",
+                str(spec_path),
+                "--input",
+                str(raw_dir),
+                "--output",
+                str(aligned_dir),
+            ],
+            cwd=project,
+        )
+        run_command(
+            [
+                sys.executable,
+                str(RUNTIME_TOOLS_DIR / "validate_sprites.py"),
+                "--spec",
+                str(spec_path),
+                "--frames",
+                str(aligned_dir),
+                "--out",
+                str(validation_path),
+            ],
+            cwd=project,
+        )
+        run_command(
+            [
+                sys.executable,
+                str(RUNTIME_TOOLS_DIR / "make_contact_sheet.py"),
+                "--spec",
+                str(spec_path),
+                "--raw",
+                str(raw_dir),
+                "--aligned",
+                str(aligned_dir),
+                "--validation",
+                str(validation_path),
+                "--out",
+                str(contact_sheet_path),
+            ],
+            cwd=project,
+        )
+        run_command(
+            [
+                sys.executable,
+                str(RUNTIME_TOOLS_DIR / "make_preview.py"),
+                "--spec",
+                str(spec_path),
+                "--frames",
+                str(aligned_dir),
+                "--validation",
+                str(validation_path),
+                "--out",
+                str(preview_path),
+            ],
+            cwd=project,
+        )
+        run_command(
+            [
+                sys.executable,
+                str(RUNTIME_TOOLS_DIR / "export_gif.py"),
+                "--spec",
+                str(spec_path),
+                "--frames",
+                str(aligned_dir),
+                "--out",
+                str(gif_path),
+            ],
+            cwd=project,
+        )
+        run_command(
+            [
+                sys.executable,
+                str(RUNTIME_TOOLS_DIR / "export_bundle.py"),
+                "--spec",
+                str(spec_path),
+                "--out",
+                str(export_dir),
+                "--force",
+            ],
+            cwd=project,
+        )
+
+        exported_preview = (export_dir / "preview.html").read_text()
+        validation = json.loads(validation_path.read_text())
+
+        assert (run_root / "manifests" / "candidates.jsonl").exists()
+        assert (raw_dir / "frame-000.retry-001.png").exists()
+        assert (aligned_dir / "frame-001.roar.png").exists()
+        assert validation["status"] == "passed"
+        assert contact_sheet_path.exists()
+        assert preview_path.exists()
+        assert gif_path.exists()
+        assert (export_dir / "frames" / "frame-002.settle.png").exists()
+        assert (export_dir / f"{animation_id}.gif").exists()
+        assert '"src":"frames/frame-000.idle.png"' in exported_preview
+        assert not (export_dir / "manifests").exists()
+        assert not (export_dir / "reports").exists()
         assert not (project / "anim8gen").exists()
 
 

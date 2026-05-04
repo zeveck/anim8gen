@@ -17,8 +17,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--spec", required=True, help="Path to an Anim8gen animation spec JSON file.")
     parser.add_argument(
         "--root",
-        default="anim8gen",
-        help="Anim8gen workspace root containing assets/. Defaults to ./anim8gen.",
+        help="Hidden run root. Defaults to the spec parent package root.",
     )
     parser.add_argument("--force", action="store_true", help="Overwrite existing synthetic raw frames.")
     return parser.parse_args()
@@ -48,25 +47,30 @@ def draw_pixel_square(draw: ImageDraw.ImageDraw, x: int, y: int, size: int, colo
 def draw_sprite(draw: ImageDraw.ImageDraw, frame: dict[str, Any], image_size: tuple[int, int]) -> None:
     width, height = image_size
     index = int(frame["index"])
-    x_offset = (index % 4) * 42
-    hop = 54 if "hop" in frame.get("label", "") or "up" in frame.get("label", "") else 0
-    base_x = width // 2 - 120 + x_offset
-    base_y = height // 2 + 170 - hop
+    unit = max(4, min(width, height) // 16)
+    body_size = unit * 4
+    x_offset = (index % 4) * unit
+    hop = unit if "hop" in frame.get("label", "") or "up" in frame.get("label", "") else 0
+    base_x = width // 2 - body_size // 2 + x_offset
+    base_y = height // 2 - body_size // 2 - hop
 
     body = (66, 135, 245, 255)
     outline = (12, 34, 72, 255)
     highlight = (133, 196, 255, 255)
     shadow = (21, 79, 160, 255)
 
-    draw.rectangle((base_x - 8, base_y - 8, base_x + 136, base_y + 136), fill=outline)
-    draw.rectangle((base_x, base_y, base_x + 128, base_y + 128), fill=body)
-    draw.rectangle((base_x + 16, base_y + 16, base_x + 62, base_y + 62), fill=highlight)
-    draw.rectangle((base_x + 82, base_y + 86, base_x + 112, base_y + 116), fill=shadow)
+    draw.rectangle(
+        (base_x - unit // 2, base_y - unit // 2, base_x + body_size + unit // 2, base_y + body_size + unit // 2),
+        fill=outline,
+    )
+    draw.rectangle((base_x, base_y, base_x + body_size, base_y + body_size), fill=body)
+    draw.rectangle((base_x + unit, base_y + unit, base_x + unit * 2, base_y + unit * 2), fill=highlight)
+    draw.rectangle((base_x + unit * 3, base_y + unit * 3, base_x + unit * 4, base_y + unit * 4), fill=shadow)
 
     # Add a simple pose marker that changes per frame without relying on text.
-    marker_x = base_x + 18 + index * 10
-    marker_y = base_y - 34 if hop else base_y + 144
-    draw_pixel_square(draw, marker_x, marker_y, 24, (245, 196, 66, 255))
+    marker_x = base_x + unit + index * max(1, unit // 2)
+    marker_y = base_y - unit * 2 if hop else base_y + body_size + unit
+    draw_pixel_square(draw, marker_x, marker_y, unit, (245, 196, 66, 255))
 
 
 def synthetic_record(spec: dict[str, Any], frame: dict[str, Any], output_path: Path) -> dict[str, Any]:
@@ -129,10 +133,16 @@ def initialized_review_file(path: Path) -> bool:
     )
 
 
+def infer_run_root(spec_path: Path) -> Path:
+    if spec_path.parent.name == "config":
+        return spec_path.parent.parent
+    return spec_path.parent
+
+
 def main() -> None:
     args = parse_args()
     spec_path = Path(args.spec)
-    root = Path(args.root)
+    root = Path(args.root) if args.root else infer_run_root(spec_path)
     spec = load_spec(spec_path)
     animation_id = spec["id"]
     working_size = tuple(spec.get("render", {}).get("workingSize", [1024, 1024]))
@@ -140,9 +150,9 @@ def main() -> None:
         raise SystemExit("render.workingSize must contain width and height")
     background = parse_hex_color(spec.get("segmentation", {}).get("chromaKey", "#ff00ff"))
 
-    raw_dir = root / "assets" / animation_id / "raw"
-    manifest_dir = root / "assets" / animation_id / "manifests"
-    review_dir = root / "assets" / animation_id / "review"
+    raw_dir = root / "raw"
+    manifest_dir = root / "manifests"
+    review_dir = root / "review"
     raw_dir.mkdir(parents=True, exist_ok=True)
     manifest_dir.mkdir(parents=True, exist_ok=True)
     review_dir.mkdir(parents=True, exist_ok=True)
