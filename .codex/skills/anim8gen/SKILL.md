@@ -23,10 +23,11 @@ requests where the user only wants a single static image.
    and an installed or repo-vendored `anim8gen` skill. Installed copies may
    instead have this skill under an agent skills directory; in that case find
    the project root from the user's current working directory.
-   Helper scripts live next to this `SKILL.md` in `scripts/`; resolve them
-   relative to the current installed skill directory. Do not assume a `.codex/`
-   path exists, and do not install a second anim8gen copy just to make helper
-   paths resolve.
+   Helper scripts live next to this `SKILL.md` in `scripts/`. When running a
+   helper command, first `cd` to this installed anim8gen skill directory, then
+   invoke `python3 scripts/skill_paths.py ...`. Do not assume a `.codex/` path
+   exists, and do not install a second anim8gen copy just to make helper paths
+   resolve.
 2. Locate the `imagegen2` skill before parsing or initializing a package. Check
    sibling skill installs first, then common project and user-level skill
    directories:
@@ -78,7 +79,8 @@ requests where the user only wants a single static image.
    anim8gen scope.
 7. Initialize the package paths under `anim8gen/config/<id>.json` and
    `anim8gen/assets/<id>/` with the installed skill helper:
-   `python3 "$(python3 /path/to/current/anim8gen-skill/scripts/skill_paths.py init-package)" --brief <brief.json>`.
+   `python3 "$(python3 scripts/skill_paths.py init-package)" --brief <brief.json>`
+   from the installed anim8gen skill directory.
    Use the conventions in `anim8gen/README.md` and the reusable shape in
    `anim8gen/config/template.animation-spec.json`.
 8. Use `imagegen2` as the required raster generator. Do not choose `nanogen`,
@@ -275,7 +277,8 @@ identity, camera, hygiene, background, decision, retry reason, and notes.
 Validate these records with:
 
 ```bash
-python3 "$(python3 /path/to/current/anim8gen-skill/scripts/skill_paths.py validate-review-records)" \
+cd <installed-anim8gen-skill-dir>
+python3 "$(python3 scripts/skill_paths.py validate-review-records)" \
   --candidates anim8gen/assets/<id>/manifests/candidates.jsonl \
   --reviews anim8gen/assets/<id>/review/frame-reviews.json
 ```
@@ -309,7 +312,8 @@ After parsing the user's request, write a prepared brief JSON and initialize
 the package deterministically:
 
 ```bash
-python3 "$(python3 /path/to/current/anim8gen-skill/scripts/skill_paths.py init-package)" \
+cd <installed-anim8gen-skill-dir>
+python3 "$(python3 scripts/skill_paths.py init-package)" \
   --brief /tmp/<id>.brief.json \
   --root anim8gen
 ```
@@ -323,7 +327,8 @@ For local smoke tests only, create synthetic chroma-keyed raw frames without
 calling image generation:
 
 ```bash
-python3 "$(python3 /path/to/current/anim8gen-skill/scripts/skill_paths.py create-synthetic-frames)" \
+cd <installed-anim8gen-skill-dir>
+python3 "$(python3 scripts/skill_paths.py create-synthetic-frames)" \
   --spec anim8gen/config/<id>.json \
   --root anim8gen
 ```
