@@ -69,19 +69,7 @@ These are user-level briefs. anim8gen expands them into stricter per-frame
 imagegen2 prompts with reference frames, transparent or scene background
 handling, alignment, and review.
 
-Optional request words:
-
-- `gif` exports an animated GIF.
-- `showit` opens the finished local preview when the run completes.
-- `noshow` skips the preview-server offer.
-
-For example, this asks for both a GIF and an opened preview:
-
-```text
-Use anim8gen gif showit to make a 3-frame transparent-background 16-bit RPG
-pixel art sprite of a cute orange tabby cat facing the viewer while its tail
-swishes left and right.
-```
+**Pirate Ship Kraken**
 
 ```text
 Use anim8gen to make a wide 10-frame 16-bit RPG pixel art scene of a pirate
@@ -112,16 +100,30 @@ retreating.
   <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-009.sea-settles.png" alt="Pirate ship kraken frame 10" width="160"></a>
 </p>
 
+**Space Station Explosion**
+
 ```text
 Use anim8gen to make a 4-frame 16-bit RPG pixel art scene of a large sci-fi
 space station in deep space: intact station, flash, explosion, and debris.
 ```
 
-Then ask for a tweak:
+<p>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-000.idle.png" alt="Space station explosion initial frame 1" width="128"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-001.flash.png" alt="Space station explosion initial frame 2" width="128"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-002.explosion.png" alt="Space station explosion initial frame 3" width="128"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-003.debris.png" alt="Space station explosion initial frame 4" width="128"></a>
+</p>
+
+Follow up with tweaks:
 
 ```text
-Use anim8gen retry sci-fi-space-station-explosion to add a quiet floating-debris
-aftermath after the explosion.
+Use anim8gen to revise the space station explosion by adding a quiet
+floating-debris aftermath after the explosion.
+```
+
+```text
+Use anim8gen to hold the final floating-debris aftermath frame a little longer
+in the preview and GIF.
 ```
 
 <p>
@@ -131,6 +133,8 @@ aftermath after the explosion.
   <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-003.debris.png" alt="Space station explosion frame 4" width="128"></a>
   <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-004.floating-debris.png" alt="Space station explosion frame 5" width="128"></a>
 </p>
+
+**Knight Sword Spark**
 
 ```text
 Use anim8gen to make a 3-frame transparent-background 16-bit RPG pixel art
@@ -145,6 +149,8 @@ tip.
   <a href="https://zeveck.github.io/anim8gen/demos/quality-knight-sword-spark-v4/"><img src="public/demos/quality-knight-sword-spark-v4/frames/frame-002.spark.png" alt="Knight sword spark frame 3" width="160"></a>
 </p>
 
+**Cat Tail Swish**
+
 ```text
 Use anim8gen to make a 3-frame transparent-background 16-bit RPG pixel art
 sprite of a cute orange tabby cat facing the viewer, sitting upright while its
@@ -156,6 +162,8 @@ tail swishes left and right.
   <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-tail-swish-v4/"><img src="public/demos/quality-cat-tail-swish-v4/frames/frame-001.tail-left.png" alt="Cat tail swish frame 2" width="160"></a>
   <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-tail-swish-v4/"><img src="public/demos/quality-cat-tail-swish-v4/frames/frame-002.tail-right.png" alt="Cat tail swish frame 3" width="160"></a>
 </p>
+
+**Cat Pounce**
 
 ```text
 Use anim8gen to make a 4-frame transparent-background 16-bit RPG pixel art
@@ -169,6 +177,8 @@ soft landing, then return to crouch.
   <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-pounce-v2/"><img src="public/demos/quality-cat-pounce-v2/frames/frame-002.land.png" alt="Cat pounce frame 3" width="160"></a>
   <a href="https://zeveck.github.io/anim8gen/demos/quality-cat-pounce-v2/"><img src="public/demos/quality-cat-pounce-v2/frames/frame-003.crouch-return.png" alt="Cat pounce frame 4" width="160"></a>
 </p>
+
+**Dragon Tail Flick**
 
 ```text
 Use anim8gen to make a 3-frame transparent-background 16-bit RPG pixel art
@@ -189,6 +199,36 @@ Details that help:
 - camera view, such as front, side, or isometric
 - frame count, if important
 - any reference image or sprite sheet to preserve identity
+
+## Preview Page
+
+Each run creates an HTML preview page with playback controls, frame stepping,
+FPS control, and a checkerboard toggle for transparent sprites. After a run,
+anim8gen can offer to open this page locally so you can review the animation in
+motion.
+
+<p>
+  <a href="https://zeveck.github.io/anim8gen/demos/quality-dragon-tail-flick-v4/">
+    <img src="public/media/anim8gen-demo.gif" alt="anim8gen dragon tail flick interactive preview" width="100%">
+  </a>
+</p>
+
+Use the optional request words below when you want to control whether a GIF is
+exported or whether the preview opens automatically.
+
+## Optional Request Words
+
+- `gif` exports an animated GIF.
+- `showit` opens the finished local preview when the run completes.
+- `noshow` skips the preview-server offer.
+
+For example, this asks for both a GIF and an opened preview:
+
+```text
+Use anim8gen gif showit to make a 3-frame transparent-background 16-bit RPG
+pixel art sprite of a cute orange tabby cat facing the viewer while its tail
+swishes left and right.
+```
 
 ## Good Fits
 
