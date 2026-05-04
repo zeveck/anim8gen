@@ -113,18 +113,23 @@ retreating.
 </p>
 
 ```text
-Use anim8gen to make a 6-frame 16-bit RPG pixel art scene of a large sci-fi
-space station in deep space: intact station, flash, explosion, debris, and
-quiet floating debris.
+Use anim8gen to make a 4-frame 16-bit RPG pixel art scene of a large sci-fi
+space station in deep space: intact station, flash, explosion, and debris.
+```
+
+Then ask for a tweak:
+
+```text
+Use anim8gen retry sci-fi-space-station-explosion to add a quiet floating-debris
+aftermath after the explosion.
 ```
 
 <p>
-  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-000.idle.png" alt="Space station explosion frame 1" width="180"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-001.flash.png" alt="Space station explosion frame 2" width="180"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-002.explosion.png" alt="Space station explosion frame 3" width="180"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-003.debris.png" alt="Space station explosion frame 4" width="180"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-004.floating-debris.png" alt="Space station explosion frame 5" width="180"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-005.floating-debris-hold.png" alt="Space station explosion frame 6" width="180"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-000.idle.png" alt="Space station explosion frame 1" width="128"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-001.flash.png" alt="Space station explosion frame 2" width="128"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-002.explosion.png" alt="Space station explosion frame 3" width="128"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-003.debris.png" alt="Space station explosion frame 4" width="128"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/sci-fi-space-station-explosion/"><img src="public/demos/sci-fi-space-station-explosion/frames/frame-004.floating-debris.png" alt="Space station explosion frame 5" width="128"></a>
 </p>
 
 ```text
