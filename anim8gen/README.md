@@ -134,12 +134,11 @@ raw/frame-002.retry-002.png
 aligned/frame-002.yawn-wide.png
 ```
 
-Tracked provenance is JSON, JSONL, Markdown, specs, and generated HTML preview
-files. Live generated bitmap assets are ignored inside each package folder:
-`reference/`, `raw/`, `aligned/`, and `review/` image outputs remain local
-package artifacts while `.gitkeep` files preserve the directory shape. Review
-JSON and Markdown files under `review/` are tracked because they are
-provenance, not generated bitmap output.
+Package provenance is generated locally with the package. The public repository
+tracks the durable specs, templates, tools, docs, and curated public demo
+surface; generated package assets, review JSON, validation JSON, package
+reports, and local preview HTML stay ignored unless a later release explicitly
+promotes a small fixture.
 
 ## Example Packages
 
@@ -169,6 +168,10 @@ For a concise package inventory, see
 The `cat-sit-lick-paw-sit` package is a synthetic readiness fixture. It proves
 that the same spec, alignment, validation, and reporting conventions work for
 another short animation without changing tool code.
+
+The `deterministic-square-hop` spec is retained as a tiny deterministic
+regression fixture. Its generated assets, preview, validation JSON, and package
+report are local outputs and are not part of the committed release surface.
 
 ## Directory Layout
 
