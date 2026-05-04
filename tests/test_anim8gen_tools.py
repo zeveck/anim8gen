@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -24,6 +25,9 @@ SKILL_SCRIPT_DIR = REPO_ROOT / ".codex" / "skills" / "anim8gen" / "scripts"
 sys.path.insert(0, str(SKILL_SCRIPT_DIR))
 
 import layout_paths  # noqa: E402
+
+
+INIT_PACKAGE_SCRIPT = SKILL_SCRIPT_DIR / "init_package.py"
 
 
 def write_frame(path: Path, color: tuple[int, int, int, int], pixel: tuple[int, int] = (1, 1)) -> None:
@@ -54,6 +58,19 @@ def base_spec(animation_id: str = "fixture") -> dict:
 def gif_frames(path: Path) -> list[Image.Image]:
     with Image.open(path) as image:
         return [frame.convert("RGBA") for frame in ImageSequence.Iterator(image)]
+
+
+def brief(animation_id: str = "trex-roar-v1") -> dict:
+    return {
+        "id": animation_id,
+        "subject": "tyrannosaurus roaring",
+        "style": "pixel art",
+        "frames": [
+            {"index": 0, "label": "idle", "pose": "standing"},
+            {"index": 1, "label": "roar", "pose": "mouth open"},
+            {"index": 2, "label": "settle", "pose": "mouth closing"},
+        ],
+    }
 
 
 def test_export_gif_dimensions_frame_count_and_terminal_reuse() -> None:
@@ -201,6 +218,97 @@ def test_anim8gen_layout_keeps_explicit_legacy_spec_path() -> None:
         assert layout.legacy_spec_path == legacy_spec
         assert layout.legacy_spec_path.exists()
         assert layout.spec_path != legacy_spec
+
+
+def test_init_package_defaults_to_hidden_workspace_without_visible_anim8gen_root() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        brief_path = Path(tmp) / "trex.brief.json"
+        brief_path.write_text(json.dumps(brief()))
+
+        subprocess.run(
+            [
+                sys.executable,
+                str(INIT_PACKAGE_SCRIPT),
+                "--brief",
+                str(brief_path),
+                "--project-root",
+                str(project),
+            ],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        run_root = project / ".anim8gen" / "runs" / "trex-roar-v1"
+        spec_path = run_root / "config" / "trex-roar-v1.json"
+        package_manifest_path = run_root / "manifests" / "package-manifest.json"
+        accepted_manifest_path = run_root / "manifests" / "accepted-frames.json"
+
+        assert run_root.exists()
+        assert not (project / "anim8gen").exists()
+        assert spec_path.exists()
+        assert package_manifest_path.exists()
+        assert accepted_manifest_path.exists()
+        for path in [run_root / "reference", run_root / "raw", run_root / "aligned", run_root / "review"]:
+            assert (path / ".gitkeep").exists()
+
+        spec_text = spec_path.read_text()
+        assert "anim8gen/assets" not in spec_text
+        assert "anim8gen/config" not in spec_text
+        assert "anim8gen/preview" not in spec_text
+        assert "anim8gen/reports" not in spec_text
+
+        spec = json.loads(spec_text)
+        assert spec["asset"]["canonicalReference"] == ".anim8gen/runs/trex-roar-v1/reference/reference.png"
+        assert spec["generation"]["candidateManifest"] == ".anim8gen/runs/trex-roar-v1/manifests/candidates.jsonl"
+        assert spec["generation"]["acceptedManifest"] == ".anim8gen/runs/trex-roar-v1/manifests/accepted-frames.json"
+
+        accepted_manifest = json.loads(accepted_manifest_path.read_text())
+        assert (
+            accepted_manifest["generator"]["candidateManifest"]
+            == ".anim8gen/runs/trex-roar-v1/manifests/candidates.jsonl"
+        )
+
+        package_manifest = json.loads(package_manifest_path.read_text())
+        assert package_manifest["runRoot"] == ".anim8gen/runs/trex-roar-v1"
+        assert package_manifest["spec"] == ".anim8gen/runs/trex-roar-v1/config/trex-roar-v1.json"
+        assert package_manifest["preview"] == ".anim8gen/runs/trex-roar-v1/preview/trex-roar-v1.html"
+        assert package_manifest["export"] == "assets/anim8gen/trex-roar-v1"
+
+
+def test_init_package_root_alias_writes_self_consistent_run_paths() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        brief_path = Path(tmp) / "orb.brief.json"
+        brief_path.write_text(json.dumps(brief("orb-cast")))
+
+        subprocess.run(
+            [
+                sys.executable,
+                str(INIT_PACKAGE_SCRIPT),
+                "--brief",
+                str(brief_path),
+                "--project-root",
+                str(project),
+                "--root",
+                ".anim8gen/runs/orb-cast",
+            ],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        run_root = project / ".anim8gen" / "runs" / "orb-cast"
+        spec = json.loads((run_root / "config" / "orb-cast.json").read_text())
+        package_manifest = json.loads((run_root / "manifests" / "package-manifest.json").read_text())
+
+        assert spec["generation"]["candidateManifest"] == ".anim8gen/runs/orb-cast/manifests/candidates.jsonl"
+        assert package_manifest["runRoot"] == ".anim8gen/runs/orb-cast"
+        assert "export" not in package_manifest
+        assert not (project / "anim8gen").exists()
 
 
 def run() -> None:
