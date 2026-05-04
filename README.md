@@ -144,10 +144,9 @@ have the debris frame twice
 **Knight Sword Spark**
 
 ```text
-Use anim8gen to make a 3-frame transparent-background 16-bit RPG pixel art
-sprite of a small brown-haired knight with a blue cape and short sword, side
-view facing right: ready, sword slash, then a small yellow spark at the
-sword tip.
+Use anim8gen to make a 3-frame transparent-background 16-bit RPG pixel art sprite
+of a small brown-haired, blue-caped knight with a short sword, side view facing
+right: ready, sword slash, then a small yellow spark at the sword tip.
 ```
 
 <p>
