@@ -4,7 +4,7 @@
 
 Phase 1: Path model and runtime boundaries
 
-Status: implemented and verified in cherry-pick worktree; landing pending.
+Status: implemented, verified, and landed.
 
 ## Scope Assessment
 
@@ -30,7 +30,7 @@ Passed. Inline verification covered the new helper behavior and existing anim8ge
 
 ## Landing Result
 
-Pending. The scoped worktree commit has not yet been cherry-picked to `main`.
+Landed. Worktree commit `d6ead9e` was cherry-picked to `main` as `fea1dd8`.
 
 ## Remaining Phases
 
