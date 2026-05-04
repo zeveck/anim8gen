@@ -17,7 +17,7 @@ Tests run:
 
 Verification result: Passed. The staged surface consists of generated-output removals plus documentation, plan tracker, and this report. No imagegen/imagegen2/nanogen skill changes or duplicate root GIFs are staged.
 
-Landing result: Pending cherry-pick to `main`.
+Landing result: Worktree commit `afedf7c` was cherry-picked to `main` as `f9d972f`.
 
 Remaining phases:
 
