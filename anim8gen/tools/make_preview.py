@@ -159,7 +159,8 @@ def render_html(payload: dict[str, Any]) -> str:
     }}
     .stage {{
       position: relative;
-      min-height: 618px;
+      height: 618px;
+      padding: 20px;
       display: grid;
       place-items: center;
       border: 1px solid var(--line);
@@ -186,6 +187,7 @@ def render_html(payload: dict[str, Any]) -> str:
     .mini canvas {{
       width: min(128px, 100%);
       height: auto;
+      max-height: 128px;
       aspect-ratio: var(--canvas-aspect);
     }}
     .mini-label {{
@@ -197,8 +199,10 @@ def render_html(payload: dict[str, Any]) -> str:
       background: #f4f0e6;
     }}
     canvas {{
-      width: min(576px, calc(100vw - 64px));
-      height: auto;
+      width: var(--display-width, auto);
+      height: var(--display-height, auto);
+      max-width: 100%;
+      max-height: 100%;
       aspect-ratio: var(--canvas-aspect);
       image-rendering: pixelated;
       image-rendering: crisp-edges;
@@ -336,7 +340,7 @@ def render_html(payload: dict[str, Any]) -> str:
     }}
     @media (max-width: 760px) {{
       .stage-row {{ grid-template-columns: 1fr; }}
-      .stage {{ min-height: min(520px, calc(100vw - 32px)); }}
+      .stage {{ height: min(520px, calc(100vw - 32px)); }}
       .side {{ grid-template-rows: auto; }}
       .controls {{ height: auto; }}
       header {{ align-items: start; flex-direction: column; }}
@@ -464,6 +468,24 @@ def render_html(payload: dict[str, Any]) -> str:
       [...strip.children].forEach((child, index) => child.classList.toggle("active", index === frameIndex));
     }}
 
+    function sizeStageCanvas() {{
+      const stageBox = stage.getBoundingClientRect();
+      const stageStyle = getComputedStyle(stage);
+      const availableWidth = stageBox.width - Number.parseFloat(stageStyle.paddingLeft) - Number.parseFloat(stageStyle.paddingRight);
+      const availableHeight = stageBox.height - Number.parseFloat(stageStyle.paddingTop) - Number.parseFloat(stageStyle.paddingBottom);
+      const ratio = Number(payload.canvas[0]) / Number(payload.canvas[1]);
+      let width = availableWidth;
+      let height = width / ratio;
+      if (height > availableHeight) {{
+        height = availableHeight;
+        width = height * ratio;
+      }}
+      const displayWidth = `${{Math.max(1, Math.floor(width))}}px`;
+      const displayHeight = `${{Math.max(1, Math.floor(height))}}px`;
+      canvas.style.setProperty("--display-width", displayWidth);
+      canvas.style.setProperty("--display-height", displayHeight);
+    }}
+
     function renderMini() {{
       const index = payload.playbackIndexes[miniPlaybackPosition] ?? 0;
       const frame = payload.frames[index];
@@ -506,13 +528,17 @@ def render_html(payload: dict[str, Any]) -> str:
       fpsInput.value = String(payload.fps || 1);
       updateFpsUi();
     }});
-    window.addEventListener("resize", updateFpsUi);
+    window.addEventListener("resize", () => {{
+      updateFpsUi();
+      sizeStageCanvas();
+    }});
     const hasSleepingZs = payload.runtimeEffects.includes("sleeping-zs");
     zToggle.closest(".toggle").hidden = !hasSleepingZs;
 
     loadImages().then(() => {{
       renderStrip();
       updateFpsUi();
+      sizeStageCanvas();
       render();
       renderMini();
       requestAnimationFrame(tick);
