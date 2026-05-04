@@ -19,6 +19,11 @@ python3 tests/test_anim8gen_tools.py
 python3 -m py_compile anim8gen/tools/*.py .codex/skills/anim8gen/scripts/*.py
 ```
 
+The checked-in skill path above is for repository development only. Installed
+skills must resolve helper scripts relative to their own `SKILL.md` directory,
+whether that directory is under `.claude/skills`, `.codex/skills`,
+`.agents/skills`, or a user-level skills folder.
+
 ## Package Tool Commands
 
 Replace `<animation-id>` with a package id:
