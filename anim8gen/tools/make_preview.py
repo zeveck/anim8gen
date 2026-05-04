@@ -27,19 +27,6 @@ def relative_src(path: Path, out_path: Path) -> str:
     return Path("../" + str(path.relative_to(out_path.parent.parent))).as_posix()
 
 
-def warning_counts(validation: dict[str, Any]) -> dict[int, int]:
-    counts: dict[int, int] = {}
-    for comparison in validation.get("comparisons", []):
-        count = len(comparison.get("warnings", []))
-        if not count:
-            continue
-        counts[comparison["from"]] = counts.get(comparison["from"], 0) + count
-        counts[comparison["to"]] = counts.get(comparison["to"], 0) + count
-    for failure in validation.get("structuralFailures", []):
-        counts[failure["index"]] = counts.get(failure["index"], 0) + 1
-    return counts
-
-
 def preview_offset(preview: dict[str, Any], frame: dict[str, Any]) -> dict[str, Any]:
     offsets = preview.get("displayOffsets", {})
     if not isinstance(offsets, dict):
@@ -62,8 +49,19 @@ def preview_offset(preview: dict[str, Any], frame: dict[str, Any]) -> dict[str, 
     return offset
 
 
+def build_payload_for_indexes(spec: dict[str, Any]) -> list[int]:
+    frames = spec["frames"]
+    indexes = list(range(len(frames)))
+    preview = spec.get("preview", {})
+    play_terminal_reuse = preview.get("playTerminalReuseFrame")
+    if play_terminal_reuse is None:
+        play_terminal_reuse = False
+    if not play_terminal_reuse and len(frames) > 2 and frames[-1].get("reuseFrame") == frames[0]["index"]:
+        indexes = indexes[:-1]
+    return indexes
+
+
 def build_payload(spec: dict[str, Any], validation: dict[str, Any], frames_dir: Path, out_path: Path) -> dict[str, Any]:
-    counts = warning_counts(validation)
     preview = spec.get("preview", {})
     frames = []
     for frame in spec["frames"]:
@@ -75,8 +73,8 @@ def build_payload(spec: dict[str, Any], validation: dict[str, Any], frames_dir: 
                 "index": frame["index"],
                 "label": frame["label"],
                 "pose": frame.get("pose", ""),
+                "reuseFrame": frame.get("reuseFrame"),
                 "sleep": "sleep" in frame["label"] or "eyes closed" in frame.get("pose", ""),
-                "warnings": counts.get(frame["index"], 0),
                 "displayOffset": preview_offset(preview, frame),
                 "src": relative_src(path, out_path),
             }
@@ -85,9 +83,9 @@ def build_payload(spec: dict[str, Any], validation: dict[str, Any], frames_dir: 
         "id": spec["id"],
         "canvas": spec["render"]["canvas"],
         "fps": spec["render"].get("fps", 8),
+        "playbackIndexes": build_payload_for_indexes(spec),
         "previewStrategy": preview.get("strategy", "canvas-playback"),
         "runtimeEffects": preview.get("runtimeEffects", []),
-        "validationSummary": validation.get("summary", {}),
         "frames": frames,
     }
 
@@ -122,7 +120,7 @@ def render_html(payload: dict[str, Any]) -> str:
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }}
     main {{
-      width: min(980px, calc(100vw - 32px));
+      width: min(1120px, calc(100vw - 32px));
       margin: 0 auto;
       padding: 24px 0 32px;
     }}
@@ -149,13 +147,19 @@ def render_html(payload: dict[str, Any]) -> str:
     }}
     .stage-row {{
       display: grid;
-      grid-template-columns: minmax(280px, 1fr) 280px;
+      grid-template-columns: minmax(560px, 1fr) 300px;
       gap: 20px;
+      align-items: start;
+    }}
+    .side {{
+      display: grid;
+      gap: 12px;
+      grid-template-rows: 430px 176px;
       align-items: start;
     }}
     .stage {{
       position: relative;
-      min-height: 540px;
+      min-height: 618px;
       display: grid;
       place-items: center;
       border: 1px solid var(--line);
@@ -169,11 +173,30 @@ def render_html(payload: dict[str, Any]) -> str:
       background-position: 0 0, 0 12px, 12px -12px, -12px 0;
       overflow: hidden;
     }}
+    .mini {{
+      display: grid;
+      gap: 6px;
+      justify-items: center;
+      align-content: center;
+      height: 176px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      background: #fffdf8;
+    }}
+    .mini canvas {{
+      width: 128px;
+      height: 128px;
+    }}
+    .mini-label {{
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1;
+    }}
     .stage.plain {{
       background: #f4f0e6;
     }}
     canvas {{
-      width: min(512px, calc(100vw - 64px));
+      width: min(576px, calc(100vw - 64px));
       height: auto;
       aspect-ratio: 1 / 1;
       image-rendering: pixelated;
@@ -215,6 +238,9 @@ def render_html(payload: dict[str, Any]) -> str:
       border: 1px solid var(--line);
       background: var(--panel);
       padding: 14px;
+      height: 430px;
+      align-content: start;
+      overflow: hidden;
     }}
     .buttons {{
       display: grid;
@@ -238,6 +264,25 @@ def render_html(payload: dict[str, Any]) -> str:
       color: var(--muted);
     }}
     input[type="range"] {{ width: 100%; }}
+    .fps-row {{
+      position: relative;
+      display: grid;
+      gap: 6px;
+    }}
+    .fps-readout {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }}
+    .mini-button {{
+      min-height: 24px;
+      padding: 0 8px;
+      font-size: 12px;
+      font-weight: 650;
+    }}
     .toggles {{
       display: grid;
       gap: 8px;
@@ -261,15 +306,16 @@ def render_html(payload: dict[str, Any]) -> str:
       font-size: 18px;
       font-weight: 700;
     }}
-    .pose, .warnings {{
+    .pose {{
       color: var(--muted);
       font-size: 13px;
       line-height: 1.35;
+      height: 54px;
+      overflow: auto;
     }}
-    .warnings.warn {{ color: var(--warn); font-weight: 650; }}
     .strip {{
       display: grid;
-      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
       gap: 6px;
     }}
     .thumb {{
@@ -290,6 +336,8 @@ def render_html(payload: dict[str, Any]) -> str:
     @media (max-width: 760px) {{
       .stage-row {{ grid-template-columns: 1fr; }}
       .stage {{ min-height: min(520px, calc(100vw - 32px)); }}
+      .side {{ grid-template-rows: auto; }}
+      .controls {{ height: auto; }}
       header {{ align-items: start; flex-direction: column; }}
       .meta {{ text-align: left; }}
     }}
@@ -306,49 +354,71 @@ def render_html(payload: dict[str, Any]) -> str:
         <canvas id="sprite" width="{payload["canvas"][0]}" height="{payload["canvas"][1]}"></canvas>
         <div class="zs" id="zs" aria-hidden="true"><span class="z">Z</span><span class="z">Z</span><span class="z">Z</span></div>
       </section>
-      <section class="controls" aria-label="Playback controls">
-        <div class="buttons">
-          <button type="button" id="prev" title="Previous frame">Prev</button>
-          <button type="button" id="play" title="Play or pause">Pause</button>
-          <button type="button" id="next" title="Next frame">Next</button>
+      <div class="side">
+        <section class="controls" aria-label="Playback controls">
+          <div class="buttons">
+            <button type="button" id="prev" title="Previous frame">Prev</button>
+            <button type="button" id="play" title="Play or pause">Pause</button>
+            <button type="button" id="next" title="Next frame">Next</button>
+          </div>
+          <label class="fps-row">FPS
+            <input type="range" id="fps" min="1" max="16" step="1">
+            <span class="fps-readout"><span id="fpsValue"></span><button class="mini-button" type="button" id="specFpsButton"></button></span>
+          </label>
+          <div class="toggles">
+            <label class="toggle"><input type="checkbox" id="checker" checked> Checkerboard</label>
+            <label class="toggle"><input type="checkbox" id="zToggle" checked> Sleeping Zs</label>
+          </div>
+          <div class="frame-card">
+            <div class="frame-label" id="frameLabel"></div>
+            <div class="pose" id="pose"></div>
+          </div>
+          <div class="strip" id="strip"></div>
+        </section>
+        <div class="mini" aria-label="Spec speed preview">
+          <canvas id="miniSprite" width="{payload["canvas"][0]}" height="{payload["canvas"][1]}"></canvas>
         </div>
-        <label>FPS <input type="range" id="fps" min="1" max="16" step="1"></label>
-        <div class="toggles">
-          <label class="toggle"><input type="checkbox" id="checker" checked> Checkerboard</label>
-          <label class="toggle"><input type="checkbox" id="zToggle" checked> Sleeping Zs</label>
-        </div>
-        <div class="frame-card">
-          <div class="frame-label" id="frameLabel"></div>
-          <div class="pose" id="pose"></div>
-          <div class="warnings" id="warnings"></div>
-        </div>
-        <div class="strip" id="strip"></div>
-      </section>
+      </div>
     </div>
   </main>
   <script>
     const payload = {payload_json};
     const canvas = document.getElementById("sprite");
     const ctx = canvas.getContext("2d");
+    const miniCanvas = document.getElementById("miniSprite");
+    const miniCtx = miniCanvas.getContext("2d");
     const stage = document.getElementById("stage");
     const zs = document.getElementById("zs");
     const frameLabel = document.getElementById("frameLabel");
     const pose = document.getElementById("pose");
-    const warningLabel = document.getElementById("warnings");
     const playButton = document.getElementById("play");
     const fpsInput = document.getElementById("fps");
+    const fpsValue = document.getElementById("fpsValue");
+    const specFpsButton = document.getElementById("specFpsButton");
     const checkerInput = document.getElementById("checker");
     const zToggle = document.getElementById("zToggle");
     const meta = document.getElementById("meta");
     const strip = document.getElementById("strip");
     const images = [];
     let frameIndex = 0;
+    let playbackPosition = 0;
+    let miniPlaybackPosition = 0;
     let playing = true;
     let lastTime = 0;
+    let miniLastTime = 0;
 
     ctx.imageSmoothingEnabled = false;
-    fpsInput.value = payload.fps;
-    meta.textContent = `${{payload.frames.length}} frames, ${{payload.validationSummary.warningCount || 0}} validation warnings`;
+    miniCtx.imageSmoothingEnabled = false;
+    fpsInput.value = fpsInput.min || 1;
+    meta.textContent = `${{payload.frames.length}} frames`;
+
+    function updateFpsUi() {{
+      const min = Number(fpsInput.min || 1);
+      const max = Number(fpsInput.max || 16);
+      const spec = Math.min(max, Math.max(min, Number(payload.fps || min)));
+      fpsValue.textContent = `${{fpsInput.value}} FPS`;
+      specFpsButton.textContent = "Default";
+    }}
 
     function loadImages() {{
       return Promise.all(payload.frames.map((frame, index) => new Promise((resolve, reject) => {{
@@ -375,6 +445,7 @@ def render_html(payload: dict[str, Any]) -> str:
         button.appendChild(img);
         button.addEventListener("click", () => {{
           frameIndex = index;
+          playbackPosition = Math.max(0, payload.playbackIndexes.indexOf(index));
           render();
         }});
         strip.appendChild(button);
@@ -388,14 +459,21 @@ def render_html(payload: dict[str, Any]) -> str:
       ctx.drawImage(images[frameIndex], frame.displayOffset.x, frame.displayOffset.y);
       frameLabel.textContent = `${{String(frame.index).padStart(3, "0")}} ${{frame.label}}`;
       pose.textContent = frame.pose;
-      warningLabel.textContent = frame.warnings ? `${{frame.warnings}} linked validation warnings` : "No linked validation warnings";
-      warningLabel.classList.toggle("warn", frame.warnings > 0);
       zs.classList.toggle("active", hasSleepingZs && zToggle.checked && frame.sleep);
       [...strip.children].forEach((child, index) => child.classList.toggle("active", index === frameIndex));
     }}
 
+    function renderMini() {{
+      const index = payload.playbackIndexes[miniPlaybackPosition] ?? 0;
+      const frame = payload.frames[index];
+      miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+      miniCtx.imageSmoothingEnabled = false;
+      miniCtx.drawImage(images[index], frame.displayOffset.x, frame.displayOffset.y);
+    }}
+
     function step(delta) {{
-      frameIndex = (frameIndex + delta + payload.frames.length) % payload.frames.length;
+      playbackPosition = (playbackPosition + delta + payload.playbackIndexes.length) % payload.playbackIndexes.length;
+      frameIndex = payload.playbackIndexes[playbackPosition];
       render();
     }}
 
@@ -404,6 +482,12 @@ def render_html(payload: dict[str, Any]) -> str:
       if (playing && time - lastTime >= interval) {{
         step(1);
         lastTime = time;
+      }}
+      const miniInterval = 1000 / Number(payload.fps || 8);
+      if (time - miniLastTime >= miniInterval) {{
+        miniPlaybackPosition = (miniPlaybackPosition + 1) % payload.playbackIndexes.length;
+        renderMini();
+        miniLastTime = time;
       }}
       requestAnimationFrame(tick);
     }}
@@ -416,12 +500,20 @@ def render_html(payload: dict[str, Any]) -> str:
     }});
     checkerInput.addEventListener("change", () => stage.classList.toggle("plain", !checkerInput.checked));
     zToggle.addEventListener("change", render);
+    fpsInput.addEventListener("input", updateFpsUi);
+    specFpsButton.addEventListener("click", () => {{
+      fpsInput.value = String(payload.fps || 1);
+      updateFpsUi();
+    }});
+    window.addEventListener("resize", updateFpsUi);
     const hasSleepingZs = payload.runtimeEffects.includes("sleeping-zs");
     zToggle.closest(".toggle").hidden = !hasSleepingZs;
 
     loadImages().then(() => {{
       renderStrip();
+      updateFpsUi();
       render();
+      renderMini();
       requestAnimationFrame(tick);
     }}).catch((error) => {{
       frameLabel.textContent = "Preview failed to load";

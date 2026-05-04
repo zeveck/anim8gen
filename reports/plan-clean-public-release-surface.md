@@ -24,3 +24,32 @@ Remaining phases:
 - Phase 3: GIF flag integration
 - Phase 4: Tests
 - Phase 5: Public demo sanity
+
+## Phase
+
+Phase 3: GIF flag integration
+
+Status: ✅ Done
+
+Scope assessment: Scoped to GIF package export behavior and user-facing skill
+instructions. Added the local GIF exporter, documented order-insensitive `gif`
+usage alongside `showit` and `noshow`, and kept generated GIFs under ignored
+`anim8gen/gifs/` by default. Shared playback-index logic with preview payload
+generation so terminal reused frames are skipped consistently unless explicitly
+requested.
+
+Tests run:
+
+- `python3 -m py_compile anim8gen/tools/*.py .codex/skills/anim8gen/scripts/*.py`
+- `python3 anim8gen/tools/export_gif.py --spec anim8gen/config/quality-cat-pounce-v2.json --frames anim8gen/assets/quality-cat-pounce-v2/aligned --out /tmp/quality-cat-pounce-v2.gif`
+- Pillow inspection of `/tmp/quality-cat-pounce-v2.gif`, confirming `(128, 128)` and `3` frames.
+
+Verification result: Passed. GIF export creates a multi-frame animated GIF from
+the curated cat pounce package without committing generated GIF output.
+
+Landing result: Pending before commit.
+
+Remaining phases:
+
+- Phase 4: Tests
+- Phase 5: Public demo sanity

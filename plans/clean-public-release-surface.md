@@ -231,6 +231,6 @@ curl -I http://127.0.0.1:8766/media/pirate-ship-kraken-cannon.gif
 
 - [✅ Done] Phase 1: Artifact policy and ignore rules
 - [✅ Done] Phase 2: Prune staging surface
-- [ ] Phase 3: GIF flag integration
+- [✅ Done] Phase 3: GIF flag integration
 - [ ] Phase 4: Tests
 - [ ] Phase 5: Public demo sanity
