@@ -3,6 +3,23 @@
 # Local assistant/tool state
 .claude/
 .zskills/
+.imagegen2-history.jsonl
+
+# Local dependency checkouts and runtime output
+external/
+__pycache__/
+*.py[cod]
 
 # Playwright runtime output
 .playwright/output/
+
+# anim8gen keeps generated package work local by default.
+# public/demos is the committed demo surface; anim8gen/assets is the local working surface.
+anim8gen/assets/**
+anim8gen/contact/**
+anim8gen/gifs/**
+anim8gen/preview/*.html
+anim8gen/reports/*.json
+anim8gen/reports/*.package.md
+anim8gen-demo.gif
+anim8gen-demo2.gif
