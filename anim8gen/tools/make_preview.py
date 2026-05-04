@@ -184,8 +184,9 @@ def render_html(payload: dict[str, Any]) -> str:
       background: #fffdf8;
     }}
     .mini canvas {{
-      width: 128px;
-      height: 128px;
+      width: min(128px, 100%);
+      height: auto;
+      aspect-ratio: var(--canvas-aspect);
     }}
     .mini-label {{
       color: var(--muted);
@@ -198,7 +199,7 @@ def render_html(payload: dict[str, Any]) -> str:
     canvas {{
       width: min(576px, calc(100vw - 64px));
       height: auto;
-      aspect-ratio: 1 / 1;
+      aspect-ratio: var(--canvas-aspect);
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }}
@@ -350,7 +351,7 @@ def render_html(payload: dict[str, Any]) -> str:
       <div class="meta" id="meta"></div>
     </header>
     <div class="stage-row">
-      <section class="stage" id="stage" aria-label="Sprite preview stage">
+      <section class="stage" id="stage" aria-label="Sprite preview stage" style="--canvas-aspect: {payload["canvas"][0]} / {payload["canvas"][1]}">
         <canvas id="sprite" width="{payload["canvas"][0]}" height="{payload["canvas"][1]}"></canvas>
         <div class="zs" id="zs" aria-hidden="true"><span class="z">Z</span><span class="z">Z</span><span class="z">Z</span></div>
       </section>

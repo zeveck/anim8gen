@@ -89,8 +89,9 @@
       background: #fffdf8;
     }
     .mini canvas {
-      width: 128px;
-      height: 128px;
+      width: min(128px, 100%);
+      height: auto;
+      aspect-ratio: var(--canvas-aspect);
     }
     .mini-label {
       color: var(--muted);
@@ -103,7 +104,7 @@
     canvas {
       width: min(576px, calc(100vw - 64px));
       height: auto;
-      aspect-ratio: 1 / 1;
+      aspect-ratio: var(--canvas-aspect);
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
@@ -255,7 +256,7 @@
       <div class="meta" id="meta"></div>
     </header>
     <div class="stage-row">
-      <section class="stage" id="stage" aria-label="Sprite preview stage">
+      <section class="stage" id="stage" aria-label="Sprite preview stage" style="--canvas-aspect: 512 / 288">
         <canvas id="sprite" width="512" height="288"></canvas>
         <div class="zs" id="zs" aria-hidden="true"><span class="z">Z</span><span class="z">Z</span><span class="z">Z</span></div>
       </section>
