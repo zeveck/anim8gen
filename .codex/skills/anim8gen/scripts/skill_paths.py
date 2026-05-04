@@ -31,6 +31,7 @@ def parse_args() -> argparse.Namespace:
             "make-contact-sheet",
             "make-preview",
             "export-gif",
+            "export-bundle",
             "brief-schema",
             "template-animation-spec",
             "imagegen2-cli",
@@ -94,6 +95,7 @@ def main() -> None:
         "make-contact-sheet": runtime_tools / "make_contact_sheet.py",
         "make-preview": runtime_tools / "make_preview.py",
         "export-gif": runtime_tools / "export_gif.py",
+        "export-bundle": runtime_tools / "export_bundle.py",
         "brief-schema": runtime_config / "brief.schema.json",
         "template-animation-spec": runtime_config / "template.animation-spec.json",
     }

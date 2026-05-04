@@ -18,6 +18,7 @@ TOOLS_DIR = REPO_ROOT / "anim8gen" / "tools"
 sys.path.insert(0, str(TOOLS_DIR))
 
 import align_frames  # noqa: E402
+import export_bundle  # noqa: E402
 import export_gif  # noqa: E402
 import export_public_demo  # noqa: E402
 import make_preview  # noqa: E402
@@ -162,6 +163,107 @@ def test_preview_and_public_demo_use_same_frame_order() -> None:
         assert (root / "public" / "demos" / "fixture" / "frames" / "frame-001.hop.png").exists()
 
 
+def test_preview_uses_paths_relative_to_output_file() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        frames_dir = root / "assets" / "anim8gen" / "fixture" / "frames"
+        preview_out = root / "assets" / "anim8gen" / "fixture" / "preview.html"
+        frames_dir.mkdir(parents=True)
+        spec = base_spec("fixture")
+        write_frame(frames_dir / "frame-000.idle.png", (255, 0, 0, 255))
+        write_frame(frames_dir / "frame-001.hop.png", (0, 255, 0, 255))
+        write_frame(frames_dir / "frame-002.return.png", (0, 0, 255, 255))
+
+        payload = make_preview.build_payload(spec, {"frames": []}, frames_dir, preview_out)
+
+        assert [frame["src"] for frame in payload["frames"]] == [
+            "frames/frame-000.idle.png",
+            "frames/frame-001.hop.png",
+            "frames/frame-002.return.png",
+        ]
+
+
+def test_export_bundle_writes_visible_deliverables_without_manifests() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp)
+        run_root = project / ".anim8gen" / "runs" / "fixture"
+        for path in [
+            run_root / "config",
+            run_root / "aligned",
+            run_root / "raw",
+            run_root / "manifests",
+            run_root / "reports",
+            run_root / "gifs",
+        ]:
+            path.mkdir(parents=True)
+
+        spec = base_spec("fixture")
+        spec["generation"]["acceptedManifest"] = str(run_root / "manifests" / "accepted-frames.json")
+        spec_path = run_root / "config" / "fixture.json"
+        spec_path.write_text(json.dumps(spec))
+        (run_root / "reports" / "fixture.validation.json").write_text(json.dumps({"frames": []}))
+        for frame in spec["frames"]:
+            write_frame(run_root / "aligned" / make_preview.aligned_name(frame), (frame["index"] * 40, 120, 200, 255))
+            shutil.copy2(run_root / "aligned" / make_preview.aligned_name(frame), run_root / "raw" / f"raw-{frame['index']}.png")
+        (run_root / "manifests" / "accepted-frames.json").write_text(
+            json.dumps(
+                {
+                    "frames": [
+                        {"index": frame["index"], "raw": str(run_root / "raw" / f"raw-{frame['index']}.png")}
+                        for frame in spec["frames"]
+                    ]
+                }
+            )
+        )
+
+        gif_path = run_root / "gifs" / "fixture.gif"
+        export_gif.export_gif(spec, run_root / "aligned", gif_path, fps=4, scale=1)
+        out_dir = project / "assets" / "anim8gen" / "fixture"
+        result = export_bundle.export_bundle(spec_path, out_dir)
+        html = (out_dir / "preview.html").read_text()
+
+        assert result["rawFrames"] == 0
+        assert (out_dir / "frames" / "frame-001.hop.png").exists()
+        assert (out_dir / "preview.html").exists()
+        assert (out_dir / "fixture.gif").exists()
+        assert not (out_dir / "manifests").exists()
+        assert not (out_dir / "reports").exists()
+        assert not (out_dir / "raw").exists()
+        assert '"src":"frames/frame-000.idle.png"' in html
+
+
+def test_export_bundle_exports_raw_when_candidates_differ() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp)
+        run_root = project / ".anim8gen" / "runs" / "fixture"
+        for path in [run_root / "config", run_root / "aligned", run_root / "raw", run_root / "manifests"]:
+            path.mkdir(parents=True)
+
+        spec = base_spec("fixture")
+        spec["generation"]["acceptedManifest"] = str(run_root / "manifests" / "accepted-frames.json")
+        spec_path = run_root / "config" / "fixture.json"
+        spec_path.write_text(json.dumps(spec))
+        for frame in spec["frames"]:
+            write_frame(run_root / "aligned" / make_preview.aligned_name(frame), (0, 0, 255, 255))
+            write_frame(run_root / "raw" / f"raw-{frame['index']}.png", (255, 0, 0, 255))
+        (run_root / "manifests" / "accepted-frames.json").write_text(
+            json.dumps(
+                {
+                    "frames": [
+                        {"index": frame["index"], "raw": str(run_root / "raw" / f"raw-{frame['index']}.png")}
+                        for frame in spec["frames"]
+                    ]
+                }
+            )
+        )
+
+        out_dir = project / "assets" / "anim8gen" / "fixture"
+        result = export_bundle.export_bundle(spec_path, out_dir)
+
+        assert result["rawFrames"] == 3
+        assert (out_dir / "raw" / "frame-000.idle.png").exists()
+
+
 def test_chroma_key_color_families_are_background() -> None:
     for key, family_pixel in [
         ("#ff00ff", (230, 35, 225, 255)),
@@ -228,6 +330,7 @@ def test_anim8gen_skill_runtime_bundle_is_minimal_and_self_contained() -> None:
 
     expected_tools = {
         "align_frames.py",
+        "export_bundle.py",
         "export_gif.py",
         "make_contact_sheet.py",
         "make_preview.py",

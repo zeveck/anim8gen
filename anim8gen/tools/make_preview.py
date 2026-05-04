@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -24,7 +25,7 @@ def aligned_name(frame: dict[str, Any]) -> str:
 
 
 def relative_src(path: Path, out_path: Path) -> str:
-    return Path("../" + str(path.relative_to(out_path.parent.parent))).as_posix()
+    return Path(os.path.relpath(path.resolve(), out_path.parent.resolve())).as_posix()
 
 
 def preview_offset(preview: dict[str, Any], frame: dict[str, Any]) -> dict[str, Any]:

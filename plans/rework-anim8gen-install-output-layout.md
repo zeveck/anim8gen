@@ -275,7 +275,7 @@ Expected result:
 - [✅ Done] Phase 1: Path model and runtime boundaries
 - [✅ Done] Phase 2: Package initialization root fixes
 - [✅ Done] Phase 3: Tooling install boundary
-- [ ] Phase 4: Visible export step
+- [✅ Done] Phase 4: Visible export step
 - [ ] Phase 5: Demo/repo surface cleanup
 - [ ] Phase 6: Skill and README updates
 - [ ] Phase 7: Tests and clean-room verification

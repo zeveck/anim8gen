@@ -2,22 +2,22 @@
 
 ## Phase
 
-Phase 3: Tooling install boundary
+Phase 4: Visible export step
 
-Status: implemented, verified, and landed.
+Status: implemented and verified; landing pending.
 
 ## Scope Assessment
 
-Phase 3 was kept to the install/runtime boundary. The change bundles the normal runtime tools and minimal config templates inside the anim8gen skill, teaches `skill_paths.py` to resolve those bundled files from an installed copy, and removes skill instructions that depended on a visible repo-root `anim8gen/` workbench. It does not add the final visible export step, clean this repo's demo surface, or complete the clean-room end-to-end verification reserved for later phases.
+Phase 4 was kept to the visible deliverable export boundary. The change adds an explicit export helper that packages aligned frames, a static preview, optional GIF output, and conditional raw candidates under `assets/anim8gen/<id>/`. It also fixes preview frame URLs so exported previews use paths relative to their own folder. It does not clean demo specs/reports, rewrite README install behavior, or run the final clean-room verification reserved for later phases.
 
 ## Changes
 
-- Added `.codex/skills/anim8gen/runtime/tools/` with the runtime commands needed by installed anim8gen runs.
-- Added `.codex/skills/anim8gen/runtime/config/` with only `brief.schema.json` and `template.animation-spec.json`.
-- Updated `.codex/skills/anim8gen/scripts/skill_paths.py` so installed copies can resolve bundled tools and config without hard-coded `.codex`, `.claude`, or repo-root workbench paths.
-- Updated the anim8gen skill and prompting reference to point at hidden `.anim8gen/runs/<id>` state and bundled runtime tools instead of `anim8gen/tools` and `anim8gen/assets`.
-- Added regression coverage that copies the installed skill to a temp location, resolves a bundled tool, and verifies no visible `anim8gen/` directory is created.
-- Marked Phase 3 as `✅ Done` in the plan tracker.
+- Added `export_bundle.py` to the source tools and installed skill runtime tools.
+- Registered `export-bundle` in `skill_paths.py`.
+- Updated preview payload generation to compute frame URLs relative to the preview output file rather than assuming a shared two-level workspace layout.
+- Updated the anim8gen skill workflow to run the visible export step and serve `assets/anim8gen/<id>/preview.html` when preview display is requested.
+- Added regression coverage for export-local preview paths, clean visible bundles without manifests/reports, optional GIF export, and conditional raw export when accepted raw candidates differ from aligned frames.
+- Marked Phase 4 as `✅ Done` in the plan tracker.
 
 ## Tests Run
 
@@ -26,15 +26,14 @@ Phase 3 was kept to the install/runtime boundary. The change bundles the normal 
 
 ## Verification Result
 
-Passed. Inline verification covered Python syntax for scripts, bundled runtime tools, source tools, and tests, plus the anim8gen regression suite. The new tests verify the runtime bundle contents, exclude development/demo-only files from the installed runtime package, and prove `skill_paths.py` resolves bundled tools from a copied skill without creating a visible project-root `anim8gen/` directory. Separate verifier assurance was not used because this runner-managed chunk did not explicitly authorize sub-agent delegation.
+Passed. Inline verification covered Python syntax for scripts, installed runtime tools, source tools, and tests, plus the anim8gen regression suite. The new tests verify the visible bundle contains frames, `preview.html`, and GIF output without internal manifests or reports; exported previews reference `frames/...`; raw candidates stay hidden when visually equivalent and are exported when they differ. Separate verifier assurance was not used because this runner-managed chunk did not explicitly authorize sub-agent delegation.
 
 ## Landing Result
 
-Landed. Worktree commit `ea47204` was cherry-picked to `main` as `c6f3ecd`.
+Pending. Worktree commit and cherry-pick to `main` have not run yet.
 
 ## Remaining Phases
 
-- Phase 4: Visible export step
 - Phase 5: Demo/repo surface cleanup
 - Phase 6: Skill and README updates
 - Phase 7: Tests and clean-room verification

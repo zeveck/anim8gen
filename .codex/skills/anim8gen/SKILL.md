@@ -162,7 +162,12 @@ requests where the user only wants a single static image.
     `python3 scripts/skill_paths.py export-gif` after the preview is built.
     GIF export should honor `render.fps`,
     `preview.playbackIndexes`, `reuseFrame`, and `preview.displayOffsets`.
-20. Review the contact sheet and preview. For grounded in-place sprites, keep
+20. Export the visible deliverable bundle with
+    `python3 scripts/skill_paths.py export-bundle`. The bundle should contain
+    `frames/`, `preview.html`, and `<id>.gif` when requested; raw candidates
+    should appear only when they materially differ from final aligned frames.
+21. Review the contact sheet and exported preview. For grounded in-place
+    sprites, keep
     `alignment.stabilizeAnchorX` enabled so tails, paws, robes, or weapons do
     not move the registration point. Use bottom-center anchors for grounded
     full-body characters, body-center for floating/projectile/effect sprites,
@@ -172,19 +177,19 @@ requests where the user only wants a single static image.
     wrong identity, wrong pose, wrong camera angle, or unclean sprite pixels.
     Keep `preview.runtimeEffects` separate from sprite pixels unless the user
     explicitly asks for baked effects.
-21. After creating a preview, handle preview display according to flags. With
+22. After exporting a preview, handle preview display according to flags. With
     `showit`, automatically choose an unused localhost port, start a static
-    server rooted at `.anim8gen/runs/<id>/preview` for the generated preview,
-    and provide a clickable URL such as `http://127.0.0.1:<port>/<id>.html`.
+    server rooted at `assets/anim8gen/<id>` for the generated preview, and
+    provide a clickable URL such as `http://127.0.0.1:<port>/preview.html`.
     With `noshow`, do not offer or start a preview server. With neither flag,
     offer to show the animation in motion; if the user says yes, or if the
     user explicitly asked to view/show/open it, start the server and provide
     the URL. Prefer
-    `python3 -m http.server <port> --bind 127.0.0.1 --directory .anim8gen/runs/<id>/preview`;
+    `python3 -m http.server <port> --bind 127.0.0.1 --directory assets/anim8gen/<id>`;
     if that port is busy, pick another. Keep the server running for review and
     mention the session only after it successfully starts.
-22. Return final package paths, validation status, review warnings, rejected
-    candidate summary, preview path, preview-only offsets/effects, and
+23. Return final package paths, validation status, review warnings, rejected
+    candidate summary, exported preview path, preview-only offsets/effects, and
     remaining limitations.
 
 ## Required Package Paths
@@ -204,12 +209,14 @@ Use these paths for each animation id:
 .anim8gen/runs/<animation-id>/reports/<animation-id>.package.md
 .anim8gen/runs/<animation-id>/preview/<animation-id>.html
 .anim8gen/runs/<animation-id>/gifs/<animation-id>.gif
+assets/anim8gen/<animation-id>/frames/
+assets/anim8gen/<animation-id>/preview.html
+assets/anim8gen/<animation-id>/<animation-id>.gif
 ```
 
-The aligned frames are the sprite outputs. Raw candidates, references, aligned
-PNGs, and review images may be ignored local artifacts, but JSON, JSONL,
-Markdown reports, specs, and preview HTML are provenance and should be kept
-with the package when the task asks for durable output.
+The visible sprite outputs are under `assets/anim8gen/<animation-id>/`.
+Internal raw candidates, references, aligned PNGs, review images, manifests,
+reports, specs, and hidden preview HTML are provenance in `.anim8gen/runs/`.
 
 ## Imagegen2 Prompt Rules
 
@@ -370,6 +377,11 @@ python3 "$(python3 scripts/skill_paths.py export-gif)" \
   --spec .anim8gen/runs/<id>/config/<id>.json \
   --frames .anim8gen/runs/<id>/aligned \
   --out .anim8gen/runs/<id>/gifs/<id>.gif
+
+python3 "$(python3 scripts/skill_paths.py export-bundle)" \
+  --spec .anim8gen/runs/<id>/config/<id>.json \
+  --out assets/anim8gen/<id> \
+  --force
 ```
 
 Preview display flags:
@@ -383,7 +395,7 @@ When showing a generated preview, start a local static server on an unused
 port:
 
 ```bash
-python3 -m http.server <port> --bind 127.0.0.1 --directory .anim8gen/runs/<id>/preview
+python3 -m http.server <port> --bind 127.0.0.1 --directory assets/anim8gen/<id>
 ```
 
 Then give the user:
