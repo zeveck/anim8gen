@@ -107,6 +107,6 @@ Verification result: Passed on port `8767`. The originally requested port
 in use`; retrying on `8767` passed with HTTP `200` for the gallery, curated
 demo pages, representative frames, and GIF media.
 
-Landing result: Pending before commit.
+Landing result: Committed on `main` as `7c9eba3`.
 
 Remaining phases: none.
