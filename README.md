@@ -259,16 +259,6 @@ Each run creates a reviewable package with:
 - an HTML preview page
 - an animated GIF when the request includes `gif`
 
-## Development
-
-Maintainer notes live in [anim8gen/DEV_README.md](anim8gen/DEV_README.md).
-
-Public demos are exported into `public/`:
-
-```bash
-python3 anim8gen/tools/export_public_demo.py <animation-id> [<animation-id> ...] --clean
-```
-
 ## License
 
 MIT. See [LICENSE](LICENSE).
