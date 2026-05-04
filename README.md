@@ -7,6 +7,9 @@ Generate short game sprite animations with an agent skill.
 frames, aligned sprites or scenes, contact sheets, and an interactive HTML
 preview.
 
+It supports transparent-background sprite frames as well as full-frame scene
+animations.
+
 It is designed for compact game loops and actions, not long-form video.
 
 ## See It
