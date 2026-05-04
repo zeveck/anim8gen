@@ -4,7 +4,7 @@
 
 Phase 5: Demo/repo surface cleanup
 
-Status: implemented and verified; landing pending.
+Status: implemented, verified, and landed.
 
 ## Scope Assessment
 
@@ -30,7 +30,7 @@ Passed. Inline verification covered Python syntax for scripts, installed runtime
 
 ## Landing Result
 
-Pending. The phase is ready to commit in the cherry-pick worktree and cherry-pick to `main`.
+Landed. Worktree commit `ae9e0db` was cherry-picked to `main` as `5062737`.
 
 ## Remaining Phases
 
