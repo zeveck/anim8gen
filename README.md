@@ -62,30 +62,52 @@ OPENAI_API_KEY=sk-proj-your-key-here
 ## Use
 
 Ask your agent for a compact sprite animation. In Claude Code and similar
-agents, you can invoke the skill directly with `/anim8gen ...` or ask in natural
-language with `Use anim8gen ...`.
+agents, you can ask in natural language with `Use anim8gen ...` or invoke the
+skill directly with `/anim8gen ...`.
+
+These are user-level briefs. anim8gen expands them into stricter per-frame
+imagegen2 prompts with reference frames, transparent or scene background
+handling, alignment, and review.
+
+Optional request words:
+
+- `gif` exports an animated GIF.
+- `showit` opens the finished local preview when the run completes.
+- `noshow` skips the preview-server offer.
 
 ```text
-/anim8gen make a wide 10-frame pixel art pirate ship attacked by a kraken,
-with the ship firing a cannon and the kraken retreating.
+Use anim8gen to make a wide 10-frame 16-bit RPG pixel art scene of a pirate
+ship attacked by a kraken at sea, with the ship firing a cannon and the kraken
+retreating.
+```
+
+Equivalent direct invocation:
+
+```text
+/anim8gen make a wide 10-frame 16-bit RPG pixel art scene of a pirate ship
+attacked by a kraken at sea, with the ship firing a cannon and the kraken
+retreating.
 ```
 
 <p>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-000.calm.png" alt="Pirate ship kraken frame 1" width="72"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-001.water-bulge.png" alt="Pirate ship kraken frame 2" width="72"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-002.tentacles-rise.png" alt="Pirate ship kraken frame 3" width="72"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-003.kraken-looms.png" alt="Pirate ship kraken frame 4" width="72"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-004.cannon-aim.png" alt="Pirate ship kraken frame 5" width="72"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-005.cannon-fire.png" alt="Pirate ship kraken frame 6" width="72"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-006.impact.png" alt="Pirate ship kraken frame 7" width="72"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-007.kraken-retreats.png" alt="Pirate ship kraken frame 8" width="72"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-008.submerging.png" alt="Pirate ship kraken frame 9" width="72"></a>
-  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-009.sea-settles.png" alt="Pirate ship kraken frame 10" width="72"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-000.calm.png" alt="Pirate ship kraken frame 1" width="112"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-001.water-bulge.png" alt="Pirate ship kraken frame 2" width="112"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-002.tentacles-rise.png" alt="Pirate ship kraken frame 3" width="112"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-003.kraken-looms.png" alt="Pirate ship kraken frame 4" width="112"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-004.cannon-aim.png" alt="Pirate ship kraken frame 5" width="112"></a>
+</p>
+<p>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-005.cannon-fire.png" alt="Pirate ship kraken frame 6" width="112"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-006.impact.png" alt="Pirate ship kraken frame 7" width="112"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-007.kraken-retreats.png" alt="Pirate ship kraken frame 8" width="112"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-008.submerging.png" alt="Pirate ship kraken frame 9" width="112"></a>
+  <a href="https://zeveck.github.io/anim8gen/demos/pirate-ship-kraken-cannon/"><img src="public/demos/pirate-ship-kraken-cannon/frames/frame-009.sea-settles.png" alt="Pirate ship kraken frame 10" width="112"></a>
 </p>
 
 ```text
-Use anim8gen to make a pixel art sci-fi space station explosion, wide scene,
-6 frames.
+Use anim8gen to make a 6-frame 16-bit RPG pixel art scene of a large sci-fi
+space station in deep space: intact station, flash, explosion, debris, and
+quiet floating debris.
 ```
 
 <p>
@@ -98,7 +120,10 @@ Use anim8gen to make a pixel art sci-fi space station explosion, wide scene,
 </p>
 
 ```text
-Use anim8gen gif showit to make a side-view knight sword slash with a spark.
+Use anim8gen to make a 3-frame transparent-background 16-bit RPG pixel art
+sprite of a small brown-haired knight with a blue cape and short sword, side
+view facing right: ready, sword slash, then a small yellow spark at the sword
+tip.
 ```
 
 <p>
@@ -108,7 +133,9 @@ Use anim8gen gif showit to make a side-view knight sword slash with a spark.
 </p>
 
 ```text
-Use anim8gen to make a cute cat tail swish loop, front view, 3 frames.
+Use anim8gen to make a 3-frame transparent-background 16-bit RPG pixel art
+sprite of a cute orange tabby cat facing the viewer, sitting upright while its
+tail swishes left and right.
 ```
 
 <p>
@@ -118,7 +145,9 @@ Use anim8gen to make a cute cat tail swish loop, front view, 3 frames.
 </p>
 
 ```text
-Use anim8gen to make a cute pixel art cat pounce loop, side view, 4 frames.
+Use anim8gen to make a 4-frame transparent-background 16-bit RPG pixel art
+sprite of a cute orange tabby cat adventurer facing the viewer: crouch, pounce,
+soft landing, then return to crouch.
 ```
 
 <p>
@@ -129,7 +158,9 @@ Use anim8gen to make a cute pixel art cat pounce loop, side view, 4 frames.
 </p>
 
 ```text
-Use anim8gen gif to make a cute dragon tail flick loop, 3 frames.
+Use anim8gen to make a 3-frame transparent-background 16-bit RPG pixel art
+sprite of a small cute green baby dragon, side view facing left, sitting with
+its tail flicking upward and then curling back down.
 ```
 
 <p>
@@ -137,8 +168,6 @@ Use anim8gen gif to make a cute dragon tail flick loop, 3 frames.
   <a href="https://zeveck.github.io/anim8gen/demos/quality-dragon-tail-flick-v4/"><img src="public/demos/quality-dragon-tail-flick-v4/frames/frame-001.tail-up.png" alt="Dragon tail flick frame 2" width="96"></a>
   <a href="https://zeveck.github.io/anim8gen/demos/quality-dragon-tail-flick-v4/"><img src="public/demos/quality-dragon-tail-flick-v4/frames/frame-002.happy.png" alt="Dragon tail flick frame 3" width="96"></a>
 </p>
-
-Add `gif`, `showit`, or `noshow` when you want those anim8gen options.
 
 Details that help:
 
