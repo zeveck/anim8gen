@@ -217,8 +217,8 @@ Details that help:
 Each run creates an HTML preview page with playback controls, frame stepping,
 FPS control, and a checkerboard toggle for transparent sprites. The exported
 preview is written to `assets/anim8gen/<id>/preview.html` so it can be opened
-as a static artifact. After a run, anim8gen can offer to serve this page
-locally so you can review the animation in motion.
+as a static artifact. After a run, anim8gen serves this page locally by
+default so you can review the animation in motion.
 
 <p>
   <a href="https://zeveck.github.io/anim8gen/demos/quality-dragon-tail-flick-v4/">
@@ -233,9 +233,9 @@ exported or whether the preview opens automatically.
 
 - `gif` exports an animated GIF.
 - `showit` opens the finished local preview when the run completes.
-- `noshow` skips the preview-server offer and does not start a server.
-- with neither `showit` nor `noshow`, anim8gen finishes the package, reports
-  local paths, and asks before starting a preview server.
+- `noshow` skips the preview server and does not start one.
+- with neither `showit` nor `noshow`, anim8gen starts a local preview server
+  and reports the preview link.
 
 For example, this asks for both a GIF and an opened preview:
 
@@ -273,6 +273,11 @@ default. It contains:
 
 The default visible output does not include tools, schemas, manifests, retry
 ledgers, package reports, or this repository's demo specs.
+
+On the first package init, anim8gen adds a root `.gitignore` entry for
+`.anim8gen/` so run provenance does not appear as untracked source files.
+The exported `assets/anim8gen/<id>/` bundle is left visible so each project can
+decide whether to commit, move, or ignore final animation assets.
 
 ## License
 

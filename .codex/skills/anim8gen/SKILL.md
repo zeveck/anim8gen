@@ -82,7 +82,10 @@ requests where the user only wants a single static image.
    installed skill helper:
    `python3 "$(python3 scripts/skill_paths.py init-package)" --brief <brief.json>`
    from the installed anim8gen skill directory. Use the reusable shape in
-   `$(python3 scripts/skill_paths.py template-animation-spec)`.
+   `$(python3 scripts/skill_paths.py template-animation-spec)`. The
+   initializer adds `.anim8gen/` to the project root `.gitignore` when needed.
+   Do not automatically ignore `assets/anim8gen/`; that export bundle is a
+   project asset decision.
 8. Use `imagegen2` as the required raster generator. Do not choose `nanogen`,
    `imagegen`, or another generator for anim8gen work. If imagegen2 is
    unavailable, stop before generation and tell the user to install or repair
@@ -178,13 +181,11 @@ requests where the user only wants a single static image.
     Keep `preview.runtimeEffects` separate from sprite pixels unless the user
     explicitly asks for baked effects.
 22. After exporting a preview, handle preview display according to flags. With
-    `showit`, automatically choose an unused localhost port, start a static
-    server rooted at `assets/anim8gen/<id>` for the generated preview, and
-    provide a clickable URL such as `http://127.0.0.1:<port>/preview.html`.
-    With `noshow`, do not offer or start a preview server. With neither flag,
-    offer to show the animation in motion; if the user says yes, or if the
-    user explicitly asked to view/show/open it, start the server and provide
-    the URL. Prefer
+    `showit` or with no preview flag, automatically choose an unused localhost
+    port, start a static server rooted at `assets/anim8gen/<id>` for the
+    generated preview, and provide a clickable URL such as
+    `http://127.0.0.1:<port>/preview.html`. With `noshow`, do not offer or
+    start a preview server. Prefer
     `python3 -m http.server <port> --bind 127.0.0.1 --directory assets/anim8gen/<id>`;
     if that port is busy, pick another. Keep the server running for review and
     mention the session only after it successfully starts.
@@ -388,8 +389,8 @@ Preview display flags:
 
 - `showit`: automatically start a local preview server after packaging and
   provide the clickable preview URL.
-- `noshow`: skip the preview-server offer and do not start a server.
-- no flag: offer to show the animation after packaging.
+- `noshow`: skip the preview server and do not start one.
+- no flag: automatically start a local preview server after packaging.
 
 When showing a generated preview, start a local static server on an unused
 port:

@@ -15,6 +15,7 @@ __pycache__/
 
 # anim8gen keeps generated package work local by default.
 # public/demos is the committed demo surface; anim8gen/assets is the local working surface.
+.anim8gen/
 anim8gen/assets/**
 anim8gen/contact/**
 anim8gen/gifs/**

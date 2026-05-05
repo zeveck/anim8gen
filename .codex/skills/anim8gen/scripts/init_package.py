@@ -273,10 +273,31 @@ review/*
 """
 
 
+def project_gitignore_block() -> str:
+    return """# anim8gen local run workspace
+.anim8gen/
+"""
+
+
 def write_if_missing(path: Path, content: str, force: bool = False) -> None:
     if path.exists() and not force:
         raise SystemExit(f"{path} already exists; pass --force to overwrite")
     path.write_text(content)
+
+
+def ensure_project_gitignore(project_root: Path) -> None:
+    gitignore_path = project_root / ".gitignore"
+    block = project_gitignore_block()
+    required = [line for line in block.splitlines() if line and not line.startswith("#")]
+    existing = gitignore_path.read_text() if gitignore_path.exists() else ""
+    existing_lines = set(existing.splitlines())
+    if all(pattern in existing_lines for pattern in required):
+        return
+
+    prefix = "" if not existing or existing.endswith("\n") else "\n"
+    spacer = "" if not existing.strip() else "\n"
+    with gitignore_path.open("a") as handle:
+        handle.write(f"{prefix}{spacer}{block}")
 
 
 def init_package(root: Path, spec: dict[str, Any], force: bool) -> None:
@@ -308,6 +329,7 @@ def init_package_at(root: Path, spec: dict[str, Any], *, force: bool, project_ro
     preview_path = preview_dir / f"{animation_id}.html"
     export_path = export_root / animation_id if export_root is not None else None
 
+    ensure_project_gitignore(project_root)
     write_if_missing(root / ".gitignore", package_gitignore(), force=force)
     write_if_missing(config_dir / f"{animation_id}.json", json.dumps(spec, indent=2) + "\n", force=force)
     write_if_missing(candidate_manifest_path, "", force=force)

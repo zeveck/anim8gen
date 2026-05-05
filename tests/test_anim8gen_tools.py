@@ -83,6 +83,23 @@ def synthetic_brief(animation_id: str = "synthetic-smoke") -> dict:
     return data
 
 
+def tracked_paths_under(path: Path) -> list[str]:
+    try:
+        relative = path.relative_to(REPO_ROOT).as_posix()
+        result = subprocess.run(
+            ["git", "ls-files", relative],
+            cwd=REPO_ROOT,
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+    except (OSError, ValueError):
+        return []
+    if result.returncode != 0:
+        return []
+    return [line for line in result.stdout.splitlines() if line]
+
+
 def run_command(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(args, cwd=cwd, check=True, text=True, capture_output=True)
 
@@ -373,8 +390,8 @@ def test_repo_demo_sources_are_outside_installable_workbench() -> None:
         "sci-fi-space-station-explosion.json",
     }
 
-    assert not repo_config.exists()
-    assert not repo_reports.exists()
+    assert not tracked_paths_under(repo_config)
+    assert not tracked_paths_under(repo_reports)
     assert {path.name for path in source_runtime_config.iterdir() if path.is_file()} == {
         "brief.schema.json",
         "template.animation-spec.json",
@@ -390,8 +407,9 @@ def test_readme_and_skill_document_new_output_contract() -> None:
     assert "should not copy this repository's root `anim8gen/` development workbench" in readme
     assert "`.anim8gen/runs/<id>/`" in readme
     assert "`assets/anim8gen/<id>/preview.html`" in readme
-    assert "`noshow` skips the preview-server offer and does not start a server" in readme
-    assert "asks before starting a preview server" in readme
+    assert "`noshow` skips the preview server and does not start one" in readme
+    assert "starts a local preview server" in readme
+    assert "asks before starting a preview server" not in readme
     assert "does not include tools, schemas, manifests, retry" in readme
     assert "package reports" in readme
     assert "http://127.0.0.1:<port>/preview.html" in skill
@@ -480,6 +498,9 @@ def test_init_package_defaults_to_hidden_workspace_without_visible_anim8gen_root
         assert package_manifest["spec"] == ".anim8gen/runs/trex-roar-v1/config/trex-roar-v1.json"
         assert package_manifest["preview"] == ".anim8gen/runs/trex-roar-v1/preview/trex-roar-v1.html"
         assert package_manifest["export"] == "assets/anim8gen/trex-roar-v1"
+        gitignore_text = (project / ".gitignore").read_text()
+        assert ".anim8gen/" in gitignore_text
+        assert "assets/anim8gen/" not in gitignore_text
 
 
 def test_init_package_generated_specs_and_manifests_have_no_new_visible_workbench_paths() -> None:
@@ -540,6 +561,32 @@ def test_init_package_root_alias_writes_self_consistent_run_paths() -> None:
         assert package_manifest["runRoot"] == ".anim8gen/runs/orb-cast"
         assert "export" not in package_manifest
         assert not (project / "anim8gen").exists()
+
+
+def test_init_package_preserves_existing_project_gitignore_without_duplicate_entries() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        gitignore_path = project / ".gitignore"
+        gitignore_path.write_text("node_modules/\n")
+        brief_path = Path(tmp) / "trex.brief.json"
+        brief_path.write_text(json.dumps(brief()))
+
+        command = [
+            sys.executable,
+            str(INIT_PACKAGE_SCRIPT),
+            "--brief",
+            str(brief_path),
+            "--project-root",
+            str(project),
+        ]
+        subprocess.run(command, check=True, text=True, capture_output=True)
+        subprocess.run(command + ["--force"], check=True, text=True, capture_output=True)
+
+        gitignore_text = gitignore_path.read_text()
+        assert "node_modules/" in gitignore_text
+        assert gitignore_text.count(".anim8gen/") == 1
+        assert "assets/anim8gen/" not in gitignore_text
 
 
 def test_export_bundle_supports_explicit_anim8gen_results_root_without_internal_artifacts() -> None:
