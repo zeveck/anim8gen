@@ -21,7 +21,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--run-root", help="Hidden run root. Defaults to the spec parent package root.")
     parser.add_argument("--frames", help="Aligned frame directory. Defaults to <run-root>/aligned.")
     parser.add_argument("--validation", help="Validation JSON. Defaults to <run-root>/reports/<id>.validation.json.")
-    parser.add_argument("--gif", help="Optional GIF to export. Defaults to <run-root>/gifs/<id>.gif when present.")
+    parser.add_argument("--gif", help="GIF to export. Defaults to <run-root>/gifs/<id>.gif.")
     parser.add_argument("--out", required=True, help="Visible export package directory.")
     parser.add_argument(
         "--raw",
@@ -135,6 +135,8 @@ def export_bundle(
     frames_dir = frames_dir or run_root / "aligned"
     validation_path = validation_path or run_root / "reports" / f"{animation_id}.validation.json"
     gif_path = gif_path or run_root / "gifs" / f"{animation_id}.gif"
+    if not gif_path.exists():
+        raise FileNotFoundError(f"missing GIF export: {gif_path}")
 
     if force and out_dir.exists():
         shutil.rmtree(out_dir)
@@ -149,16 +151,14 @@ def export_bundle(
             raise FileNotFoundError(f"missing aligned frame: {src}")
         shutil.copy2(src, frames_out / src.name)
 
+    gif_out = out_dir / f"{animation_id}.gif"
+    shutil.copy2(gif_path, gif_out)
+    exported_gif = gif_out
+
     validation = load_json(validation_path, default={"frames": []})
     preview_out = out_dir / "preview.html"
-    payload = make_preview.build_payload(spec, validation, frames_out, preview_out)
+    payload = make_preview.build_payload(spec, validation, frames_out, preview_out, exported_gif)
     preview_out.write_text(make_preview.render_html(payload), encoding="utf-8")
-
-    exported_gif = None
-    if gif_path.exists():
-        gif_out = out_dir / f"{animation_id}.gif"
-        shutil.copy2(gif_path, gif_out)
-        exported_gif = gif_out
 
     raw_count = export_raw_candidates(
         spec,

@@ -59,10 +59,9 @@ requests where the user only wants a single static image.
    report. Regenerate only frames affected by the notes unless the notes imply
    the whole sequence is weak. If no recent package can be determined, ask
    which animation id to retry.
-4. Recognize output and preview flags: `gif` as a request to export an
-   animated GIF package artifact, and `noshow` as a request to skip the preview
-   server. Remove these flag tokens from the prompt before deriving subject,
-   style, frame labels, or poses.
+4. Recognize `noshow` as a preview flag that skips the local preview server.
+   Remove this flag token from the prompt before deriving subject, style,
+   frame labels, or poses.
 5. Parse the natural-language request into a brief: `id`, subject, style, view,
    frame count, frame labels, per-frame pose descriptions, canvas size, FPS,
    references, anchor behavior, and preview-only effects. Default to the fewest
@@ -91,7 +90,10 @@ requests where the user only wants a single static image.
 9. Run `imagegen2` directly and let its bundled CLI handle credentials. Do not
    source `.env`, inspect `OPENAI_API_KEY`, echo credential state, or wrap
    imagegen2 with ad hoc key-loading shell. The imagegen2 CLI loads `.env`
-   itself and reports missing or invalid credentials safely.
+   itself and reports missing or invalid credentials safely. For anim8gen
+   frame generation, pass `--no-history`; anim8gen records per-run provenance
+   in `.anim8gen/runs/<id>/manifests/`, so imagegen2's root
+   `.imagegen2-history.jsonl` log is redundant and should not be produced.
 10. For sprite work that needs transparency, prefer imagegen2's GPT Image 2
    chroma-key mode:
    `--background transparent --transparent-mode chroma-key --chroma-key <key>`.
@@ -158,15 +160,16 @@ requests where the user only wants a single static image.
     `python3 scripts/skill_paths.py align-frames`, validate with
     `python3 scripts/skill_paths.py validate-sprites`, create a contact sheet
     with `python3 scripts/skill_paths.py make-contact-sheet`, and create an
-    HTML preview with `python3 scripts/skill_paths.py make-preview`. If the
-    request included `gif`, export it with
-    `python3 scripts/skill_paths.py export-gif` after the preview is built.
-    GIF export should honor `render.fps`,
-    `preview.playbackIndexes`, `reuseFrame`, and `preview.displayOffsets`.
+    HTML preview with `python3 scripts/skill_paths.py make-preview`. Export an
+    animated GIF with `python3 scripts/skill_paths.py export-gif` for every
+    complete or partial package after the preview is built. GIF export is local
+    post-processing, should not call image generation, and should honor
+    `render.fps`, `preview.playbackIndexes`, `reuseFrame`, and
+    `preview.displayOffsets`.
 20. Export the visible deliverable bundle with
     `python3 scripts/skill_paths.py export-bundle`. The bundle should contain
-    `frames/`, `preview.html`, and `<id>.gif` when requested; raw candidates
-    should appear only when they materially differ from final aligned frames.
+    `frames/`, `preview.html`, and `<id>.gif`; raw candidates should appear
+    only when they materially differ from final aligned frames.
 21. Review the contact sheet and exported preview. For grounded in-place
     sprites, keep
     `alignment.stabilizeAnchorX` enabled so tails, paws, robes, or weapons do
@@ -234,8 +237,8 @@ Keep prompts frame-specific and continuity-aware:
   subjects, no shadows that prevent segmentation, and no baked runtime effects.
 - For transparent sprite requests, the live imagegen2 command should include
   `--background transparent --transparent-mode chroma-key --chroma-key <key>`
-  and normally leave `--chroma-tolerance` at the CLI default unless review shows
-  retained key pixels or subject erosion.
+  and `--no-history`, and normally leave `--chroma-tolerance` at the CLI
+  default unless review shows retained key pixels or subject erosion.
 
 Use `references/prompting.md` when a task needs a prompt template.
 
@@ -370,7 +373,6 @@ python3 "$(python3 scripts/skill_paths.py make-preview)" \
   --validation .anim8gen/runs/<id>/reports/<id>.validation.json \
   --out .anim8gen/runs/<id>/preview/<id>.html
 
-# Only when the request includes the order-insensitive `gif` flag:
 python3 "$(python3 scripts/skill_paths.py export-gif)" \
   --spec .anim8gen/runs/<id>/config/<id>.json \
   --frames .anim8gen/runs/<id>/aligned \
@@ -413,7 +415,6 @@ End every run with package paths and an honest status:
 - `blocked`: generation, credentials, missing tools, or invalid inputs prevent
   a meaningful package.
 
-Include validation failures and advisory continuity drift in the package
-report. When `gif` was requested, include the GIF path in the package report
-and final response. Never describe a preview as final without reviewing both the
-generated frames and the playback package.
+Include validation failures, advisory continuity drift, and the exported GIF
+path in the package report and final response. Never describe a preview as
+final without reviewing both the generated frames and the playback package.

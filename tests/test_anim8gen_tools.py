@@ -259,13 +259,15 @@ def test_export_bundle_writes_visible_deliverables_without_manifests() -> None:
         assert not (out_dir / "reports").exists()
         assert not (out_dir / "raw").exists()
         assert '"src":"frames/frame-000.idle.png"' in html
+        assert '"gifSrc":"fixture.gif"' in html
+        assert "Animated GIF" in html
 
 
 def test_export_bundle_exports_raw_when_candidates_differ() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         project = Path(tmp)
         run_root = project / ".anim8gen" / "runs" / "fixture"
-        for path in [run_root / "config", run_root / "aligned", run_root / "raw", run_root / "manifests"]:
+        for path in [run_root / "config", run_root / "aligned", run_root / "gifs", run_root / "raw", run_root / "manifests"]:
             path.mkdir(parents=True)
 
         spec = base_spec("fixture")
@@ -285,6 +287,7 @@ def test_export_bundle_exports_raw_when_candidates_differ() -> None:
                 }
             )
         )
+        export_gif.export_gif(spec, run_root / "aligned", run_root / "gifs" / "fixture.gif", fps=4, scale=1)
 
         out_dir = project / "assets" / "anim8gen" / "fixture"
         result = export_bundle.export_bundle(spec_path, out_dir)
@@ -412,6 +415,12 @@ def test_readme_and_skill_document_new_output_contract() -> None:
     assert "asks before starting a preview server" not in readme
     assert "showit" not in readme
     assert "showit" not in skill
+    assert "API Organization Verification" in readme
+    assert "--no-history" in skill
+    assert "`gif` exports an animated GIF" not in readme
+    assert "request includes `gif`" not in readme
+    assert "request includes `gif`" not in skill
+    assert "animated GIF with `python3 scripts/skill_paths.py export-gif`" in skill
     assert "does not include tools, schemas, manifests, retry" in readme
     assert "package reports" in readme
     assert "http://127.0.0.1:<port>/preview.html" in skill
@@ -595,7 +604,7 @@ def test_export_bundle_supports_explicit_anim8gen_results_root_without_internal_
     with tempfile.TemporaryDirectory() as tmp:
         project = Path(tmp)
         run_root = project / ".anim8gen" / "runs" / "fixture"
-        for path in [run_root / "config", run_root / "aligned", run_root / "manifests", run_root / "reports"]:
+        for path in [run_root / "config", run_root / "aligned", run_root / "gifs", run_root / "manifests", run_root / "reports"]:
             path.mkdir(parents=True)
 
         spec = base_spec("fixture")
@@ -606,16 +615,42 @@ def test_export_bundle_supports_explicit_anim8gen_results_root_without_internal_
         (run_root / "reports" / "fixture.validation.json").write_text(json.dumps({"frames": []}))
         for frame in spec["frames"]:
             write_frame(run_root / "aligned" / make_preview.aligned_name(frame), (20, frame["index"] * 60, 180, 255))
+        export_gif.export_gif(spec, run_root / "aligned", run_root / "gifs" / "fixture.gif", fps=4, scale=1)
 
         out_dir = project / "anim8gen" / "fixture"
         export_bundle.export_bundle(spec_path, out_dir)
 
         assert (out_dir / "frames" / "frame-000.idle.png").exists()
         assert (out_dir / "preview.html").exists()
+        assert (out_dir / "fixture.gif").exists()
         assert not (out_dir / "manifests").exists()
         assert not (out_dir / "reports").exists()
         assert not (out_dir / "config").exists()
         assert not (project / "anim8gen" / "tools").exists()
+
+
+def test_export_bundle_requires_gif_export() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp)
+        run_root = project / ".anim8gen" / "runs" / "fixture"
+        for path in [run_root / "config", run_root / "aligned", run_root / "manifests", run_root / "reports"]:
+            path.mkdir(parents=True)
+
+        spec = base_spec("fixture")
+        spec_path = run_root / "config" / "fixture.json"
+        spec_path.write_text(json.dumps(spec))
+        (run_root / "reports" / "fixture.validation.json").write_text(json.dumps({"frames": []}))
+        for frame in spec["frames"]:
+            write_frame(run_root / "aligned" / make_preview.aligned_name(frame), (20, frame["index"] * 60, 180, 255))
+
+        out_dir = project / "assets" / "anim8gen" / "fixture"
+        try:
+            export_bundle.export_bundle(spec_path, out_dir)
+        except FileNotFoundError as exc:
+            assert "missing GIF export" in str(exc)
+        else:
+            raise AssertionError("export_bundle should require an existing GIF")
+        assert not out_dir.exists()
 
 
 def test_complete_synthetic_run_uses_hidden_workspace_and_visible_bundle() -> None:
@@ -749,6 +784,8 @@ def test_complete_synthetic_run_uses_hidden_workspace_and_visible_bundle() -> No
         assert (export_dir / "frames" / "frame-002.settle.png").exists()
         assert (export_dir / f"{animation_id}.gif").exists()
         assert '"src":"frames/frame-000.idle.png"' in exported_preview
+        assert f'"gifSrc":"{animation_id}.gif"' in exported_preview
+        assert "Animated GIF" in exported_preview
         assert not (export_dir / "manifests").exists()
         assert not (export_dir / "reports").exists()
         assert not (project / "anim8gen").exists()

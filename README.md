@@ -8,8 +8,7 @@ frames, aligned sprites or scenes, contact sheets, and an interactive HTML
 preview.
 
 The intended output is individual animation frames, including
-transparent-background sprites and full-frame scenes. You can also request an
-animated GIF.
+transparent-background sprites and full-frame scenes, plus an animated GIF.
 
 It is designed for compact game loops and actions, not long-form video.
 
@@ -64,6 +63,9 @@ OPENAI_API_KEY=sk-proj-your-key-here
 ```
 
 `imagegen2` loads `.env` itself and reports missing or invalid credentials.
+OpenAI may require API Organization Verification before GPT Image models are
+available to your API organization; if generation is denied even with a valid
+key, check the verification status in the OpenAI developer console.
 
 ## Use
 
@@ -226,22 +228,21 @@ default so you can review the animation in motion.
   </a>
 </p>
 
-Use the optional request words below when you want to export a GIF or suppress
-the default local preview server.
+Use the optional request word below when you want to suppress the default local
+preview server.
 
-## Optional Request Words
+## Optional Request Word
 
-- `gif` exports an animated GIF.
 - `noshow` skips the preview server and does not start one.
 - without `noshow`, anim8gen starts a local preview server and reports the
   preview link.
 
-For example, this asks for a GIF:
+For example, this skips starting the preview server:
 
 ```text
-Use anim8gen gif to make a 3-frame transparent-background 16-bit RPG pixel art
-sprite of a cute orange tabby cat facing the viewer while its tail swishes left
-and right.
+Use anim8gen noshow to make a 3-frame transparent-background 16-bit RPG pixel
+art sprite of a cute orange tabby cat facing the viewer while its tail swishes
+left and right.
 ```
 
 ## Good Fits
@@ -267,7 +268,7 @@ default. It contains:
 
 - `frames/` with the finished sprite or scene frames
 - `preview.html`
-- `<id>.gif` when the request includes `gif`
+- `<id>.gif`
 - `raw/` only when the raw candidates materially differ from the final frames
 
 The default visible output does not include tools, schemas, manifests, retry

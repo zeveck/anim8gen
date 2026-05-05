@@ -62,7 +62,13 @@ def build_payload_for_indexes(spec: dict[str, Any]) -> list[int]:
     return indexes
 
 
-def build_payload(spec: dict[str, Any], validation: dict[str, Any], frames_dir: Path, out_path: Path) -> dict[str, Any]:
+def build_payload(
+    spec: dict[str, Any],
+    validation: dict[str, Any],
+    frames_dir: Path,
+    out_path: Path,
+    gif_path: Path | None = None,
+) -> dict[str, Any]:
     preview = spec.get("preview", {})
     frames = []
     for frame in spec["frames"]:
@@ -80,7 +86,7 @@ def build_payload(spec: dict[str, Any], validation: dict[str, Any], frames_dir: 
                 "src": relative_src(path, out_path),
             }
         )
-    return {
+    payload = {
         "id": spec["id"],
         "canvas": spec["render"]["canvas"],
         "fps": spec["render"].get("fps", 8),
@@ -89,6 +95,9 @@ def build_payload(spec: dict[str, Any], validation: dict[str, Any], frames_dir: 
         "runtimeEffects": preview.get("runtimeEffects", []),
         "frames": frames,
     }
+    if gif_path is not None:
+        payload["gifSrc"] = relative_src(gif_path, out_path)
+    return payload
 
 
 def render_html(payload: dict[str, Any]) -> str:
@@ -146,6 +155,25 @@ def render_html(payload: dict[str, Any]) -> str:
       font-size: 13px;
       text-align: right;
     }}
+    .asset-links {{
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 6px;
+    }}
+    .asset-link {{
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      border: 1px solid #a8a496;
+      background: #fffdf8;
+      color: var(--ink);
+      padding: 0 10px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 650;
+    }}
+    .asset-link:hover {{ border-color: var(--accent); }}
     .stage-row {{
       display: grid;
       grid-template-columns: minmax(560px, 1fr) 300px;
@@ -346,6 +374,7 @@ def render_html(payload: dict[str, Any]) -> str:
       .controls {{ height: auto; }}
       header {{ align-items: start; flex-direction: column; }}
       .meta {{ text-align: left; }}
+      .asset-links {{ justify-content: flex-start; }}
     }}
   </style>
 </head>
@@ -353,7 +382,10 @@ def render_html(payload: dict[str, Any]) -> str:
   <main>
     <header>
       <h1>{html.escape(payload["id"])}</h1>
-      <div class="meta" id="meta"></div>
+      <div class="meta">
+        <div id="meta"></div>
+        <div class="asset-links" id="assetLinks"></div>
+      </div>
     </header>
     <div class="stage-row">
       <section class="stage" id="stage" aria-label="Sprite preview stage" style="--canvas-aspect: {payload["canvas"][0]} / {payload["canvas"][1]}">
@@ -404,6 +436,7 @@ def render_html(payload: dict[str, Any]) -> str:
     const checkerInput = document.getElementById("checker");
     const zToggle = document.getElementById("zToggle");
     const meta = document.getElementById("meta");
+    const assetLinks = document.getElementById("assetLinks");
     const strip = document.getElementById("strip");
     const images = [];
     let frameIndex = 0;
@@ -417,6 +450,13 @@ def render_html(payload: dict[str, Any]) -> str:
     miniCtx.imageSmoothingEnabled = false;
     fpsInput.value = fpsInput.min || 1;
     meta.textContent = `${{payload.frames.length}} frames`;
+    if (payload.gifSrc) {{
+      const link = document.createElement("a");
+      link.className = "asset-link";
+      link.href = payload.gifSrc;
+      link.textContent = "Animated GIF";
+      assetLinks.appendChild(link);
+    }}
 
     function updateFpsUi() {{
       const min = Number(fpsInput.min || 1);
