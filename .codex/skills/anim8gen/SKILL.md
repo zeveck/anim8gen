@@ -59,12 +59,10 @@ requests where the user only wants a single static image.
    report. Regenerate only frames affected by the notes unless the notes imply
    the whole sequence is weak. If no recent package can be determined, ask
    which animation id to retry.
-4. Recognize output and preview flags:
-   `gif` as a request to export an animated GIF package artifact, `showit` as
-   a request to automatically serve the final preview, and `noshow` as a
-   request to skip the preview-server offer. Remove these flag tokens from the
-   prompt before deriving subject, style, frame labels, or poses. If both
-   `showit` and `noshow` are present, prefer `noshow` and mention the conflict.
+4. Recognize output and preview flags: `gif` as a request to export an
+   animated GIF package artifact, and `noshow` as a request to skip the preview
+   server. Remove these flag tokens from the prompt before deriving subject,
+   style, frame labels, or poses.
 5. Parse the natural-language request into a brief: `id`, subject, style, view,
    frame count, frame labels, per-frame pose descriptions, canvas size, FPS,
    references, anchor behavior, and preview-only effects. Default to the fewest
@@ -180,10 +178,9 @@ requests where the user only wants a single static image.
     wrong identity, wrong pose, wrong camera angle, or unclean sprite pixels.
     Keep `preview.runtimeEffects` separate from sprite pixels unless the user
     explicitly asks for baked effects.
-22. After exporting a preview, handle preview display according to flags. With
-    `showit` or with no preview flag, automatically choose an unused localhost
-    port, start a static server rooted at `assets/anim8gen/<id>` for the
-    generated preview, and provide a clickable URL such as
+22. After exporting a preview, automatically choose an unused localhost port,
+    start a static server rooted at `assets/anim8gen/<id>` for the generated
+    preview, and provide a clickable URL such as
     `http://127.0.0.1:<port>/preview.html`. With `noshow`, do not offer or
     start a preview server. Prefer
     `python3 -m http.server <port> --bind 127.0.0.1 --directory assets/anim8gen/<id>`;
@@ -387,10 +384,9 @@ python3 "$(python3 scripts/skill_paths.py export-bundle)" \
 
 Preview display flags:
 
-- `showit`: automatically start a local preview server after packaging and
-  provide the clickable preview URL.
 - `noshow`: skip the preview server and do not start one.
-- no flag: automatically start a local preview server after packaging.
+- no flag: automatically start a local preview server after packaging and
+  provide the clickable preview URL.
 
 When showing a generated preview, start a local static server on an unused
 port:

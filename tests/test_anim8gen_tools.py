@@ -410,6 +410,8 @@ def test_readme_and_skill_document_new_output_contract() -> None:
     assert "`noshow` skips the preview server and does not start one" in readme
     assert "starts a local preview server" in readme
     assert "asks before starting a preview server" not in readme
+    assert "showit" not in readme
+    assert "showit" not in skill
     assert "does not include tools, schemas, manifests, retry" in readme
     assert "package reports" in readme
     assert "http://127.0.0.1:<port>/preview.html" in skill

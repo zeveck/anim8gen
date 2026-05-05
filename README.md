@@ -226,23 +226,22 @@ default so you can review the animation in motion.
   </a>
 </p>
 
-Use the optional request words below when you want to control whether a GIF is
-exported or whether the preview opens automatically.
+Use the optional request words below when you want to export a GIF or suppress
+the default local preview server.
 
 ## Optional Request Words
 
 - `gif` exports an animated GIF.
-- `showit` opens the finished local preview when the run completes.
 - `noshow` skips the preview server and does not start one.
-- with neither `showit` nor `noshow`, anim8gen starts a local preview server
-  and reports the preview link.
+- without `noshow`, anim8gen starts a local preview server and reports the
+  preview link.
 
-For example, this asks for both a GIF and an opened preview:
+For example, this asks for a GIF:
 
 ```text
-Use anim8gen gif showit to make a 3-frame transparent-background 16-bit RPG
-pixel art sprite of a cute orange tabby cat facing the viewer while its tail
-swishes left and right.
+Use anim8gen gif to make a 3-frame transparent-background 16-bit RPG pixel art
+sprite of a cute orange tabby cat facing the viewer while its tail swishes left
+and right.
 ```
 
 ## Good Fits
