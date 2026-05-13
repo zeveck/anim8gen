@@ -12,6 +12,8 @@ from statistics import median
 
 from PIL import Image
 
+import render_options
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
@@ -186,6 +188,9 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     canvas_w, canvas_h = spec["render"]["canvas"]
     floor_y = spec["alignment"]["floorY"]
+    resampling_name = render_options.resolve_resampling(spec)
+    edge_treatment = render_options.resolve_edge_treatment(spec)
+    crop_padding = 1 if resampling_name == "lanczos" or edge_treatment == "soft" else 0
     top_padding = spec["alignment"].get("topPadding", 8)
     side_padding = spec["alignment"].get("sidePadding", 8)
     bottom_padding = spec["alignment"].get("bottomPadding", 4)
@@ -263,6 +268,9 @@ def main() -> None:
         "floorY": floor_y,
         "padding": {"top": top_padding, "side": side_padding, "bottom": bottom_padding},
         "scale": scale,
+        "resampling": resampling_name,
+        "edgeTreatment": edge_treatment,
+        "cropPadding": crop_padding,
         "targetX": round(target_x, 3),
         "targetXBounds": [round(target_x_min, 3), round(target_x_max, 3)],
         "frames": [],
@@ -270,19 +278,24 @@ def main() -> None:
     for item in loaded:
         frame = item["frame"]
         min_x, min_y, max_x, max_y = item["bbox"]
-        crop_w, crop_h = max_x - min_x + 1, max_y - min_y + 1
+        crop_min_x = max(0, min_x - crop_padding)
+        crop_min_y = max(0, min_y - crop_padding)
+        crop_max_x = min(item["image"].width - 1, max_x + crop_padding)
+        crop_max_y = min(item["image"].height - 1, max_y + crop_padding)
+        crop_w, crop_h = crop_max_x - crop_min_x + 1, crop_max_y - crop_min_y + 1
         mask_img = Image.new("L", item["image"].size, 0)
         mask_img.putdata([255 if visible else 0 for visible in item["mask"]])
         sprite = Image.new("RGBA", item["image"].size, (0, 0, 0, 0))
         sprite.paste(item["image"], (0, 0), mask_img)
-        crop = sprite.crop((min_x, min_y, max_x + 1, max_y + 1))
+        crop = sprite.crop((crop_min_x, crop_min_y, crop_max_x + 1, crop_max_y + 1))
         scaled_w, scaled_h = max(1, round(crop_w * scale)), max(1, round(crop_h * scale))
-        crop = crop.resize((scaled_w, scaled_h), Image.Resampling.NEAREST)
+        crop = render_options.resize_rgba(crop, (scaled_w, scaled_h), resampling_name)
+        edge_metrics = render_options.soften_sprite_edges(crop, edge_treatment)
 
         source_anchor_x, anchor_y = item["anchor"]
         anchor_x = stable_anchor_x if stable_anchor_x is not None else source_anchor_x
         target_y = canvas_h / 2 if frame.get("anchor") == "body_center" else floor_y
-        offset = (round(target_x - (anchor_x - min_x) * scale), round(target_y - (anchor_y - min_y) * scale))
+        offset = (round(target_x - (anchor_x - crop_min_x) * scale), round(target_y - (anchor_y - crop_min_y) * scale))
         canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
         canvas.alpha_composite(crop, offset)
 
@@ -297,6 +310,7 @@ def main() -> None:
                 "anchorStrategy": item["anchorStrategy"],
                 "sourceDimensions": list(item["image"].size),
                 "sourceBBox": list(item["bbox"]),
+                "cropBBox": [crop_min_x, crop_min_y, crop_max_x, crop_max_y],
                 "sourceVisibleArea": item["visibleArea"],
                 "sourceCentroid": [round(item["centroid"][0], 3), round(item["centroid"][1], 3)],
                 "sourceAnchor": [round(source_anchor_x, 3), round(anchor_y, 3)],
@@ -304,6 +318,7 @@ def main() -> None:
                 "scaledSize": [scaled_w, scaled_h],
                 "alignedBBox": list(visible_bbox(canvas)),
                 "alignedVisibleArea": visible_area_rgba(canvas),
+                "edgeMetrics": edge_metrics,
                 "appliedOffset": list(offset),
             }
         )

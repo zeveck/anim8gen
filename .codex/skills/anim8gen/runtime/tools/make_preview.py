@@ -10,6 +10,8 @@ import os
 from pathlib import Path
 from typing import Any
 
+import render_options
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
@@ -68,6 +70,9 @@ def build_payload(
     frames_dir: Path,
     out_path: Path,
     gif_path: Path | None = None,
+    webp_path: Path | None = None,
+    gif_href: Path | None = None,
+    webp_href: Path | None = None,
 ) -> dict[str, Any]:
     preview = spec.get("preview", {})
     frames = []
@@ -90,6 +95,7 @@ def build_payload(
         "id": spec["id"],
         "canvas": spec["render"]["canvas"],
         "fps": spec["render"].get("fps", 8),
+        "resampling": render_options.resolve_resampling(spec),
         "playbackIndexes": build_payload_for_indexes(spec),
         "previewStrategy": preview.get("strategy", "canvas-playback"),
         "runtimeEffects": preview.get("runtimeEffects", []),
@@ -97,12 +103,21 @@ def build_payload(
     }
     if gif_path is not None:
         payload["gifSrc"] = relative_src(gif_path, out_path)
+        payload["gifHref"] = relative_src(gif_href or gif_path, out_path)
+    if webp_path is not None:
+        payload["webpSrc"] = relative_src(webp_path, out_path)
+        payload["webpHref"] = relative_src(webp_href or webp_path, out_path)
     return payload
 
 
 def render_html(payload: dict[str, Any]) -> str:
     payload_json = json.dumps(payload, separators=(",", ":"))
     title = html.escape(f"{payload['id']} preview")
+    image_rendering_css = ""
+    if payload.get("resampling") != "lanczos":
+        image_rendering_css = """
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;"""
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -155,25 +170,6 @@ def render_html(payload: dict[str, Any]) -> str:
       font-size: 13px;
       text-align: right;
     }}
-    .asset-links {{
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 6px;
-    }}
-    .asset-link {{
-      display: inline-flex;
-      align-items: center;
-      min-height: 28px;
-      border: 1px solid #a8a496;
-      background: #fffdf8;
-      color: var(--ink);
-      padding: 0 10px;
-      text-decoration: none;
-      font-size: 12px;
-      font-weight: 650;
-    }}
-    .asset-link:hover {{ border-color: var(--accent); }}
     .stage-row {{
       display: grid;
       grid-template-columns: minmax(560px, 1fr) 300px;
@@ -183,7 +179,7 @@ def render_html(payload: dict[str, Any]) -> str:
     .side {{
       display: grid;
       gap: 12px;
-      grid-template-rows: 430px 176px;
+      grid-template-rows: 430px 176px auto;
       align-items: start;
     }}
     .stage {{
@@ -204,6 +200,7 @@ def render_html(payload: dict[str, Any]) -> str:
       overflow: hidden;
     }}
     .mini {{
+      position: relative;
       display: grid;
       gap: 6px;
       justify-items: center;
@@ -212,6 +209,21 @@ def render_html(payload: dict[str, Any]) -> str:
       padding: 8px;
       border: 1px solid var(--line);
       background: #fffdf8;
+    }}
+    .mini-asset-link {{
+      position: absolute;
+      right: 8px;
+      bottom: 7px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 650;
+      line-height: 1;
+    }}
+    .mini-asset-link:hover {{ color: var(--accent); }}
+    .mini-asset-link[hidden] {{ display: none; }}
+    .mini-asset-link.webp {{
+      right: 36px;
     }}
     .mini canvas {{
       width: min(128px, 100%);
@@ -232,9 +244,7 @@ def render_html(payload: dict[str, Any]) -> str:
       height: var(--display-height, auto);
       max-width: 100%;
       max-height: 100%;
-      aspect-ratio: var(--canvas-aspect);
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
+      aspect-ratio: var(--canvas-aspect);{image_rendering_css}
     }}
     .zs {{
       position: absolute;
@@ -363,9 +373,7 @@ def render_html(payload: dict[str, Any]) -> str:
       display: block;
       width: 100%;
       aspect-ratio: 1 / 1;
-      object-fit: contain;
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
+      object-fit: contain;{image_rendering_css}
     }}
     @media (max-width: 760px) {{
       .stage-row {{ grid-template-columns: 1fr; }}
@@ -374,7 +382,6 @@ def render_html(payload: dict[str, Any]) -> str:
       .controls {{ height: auto; }}
       header {{ align-items: start; flex-direction: column; }}
       .meta {{ text-align: left; }}
-      .asset-links {{ justify-content: flex-start; }}
     }}
   </style>
 </head>
@@ -384,7 +391,6 @@ def render_html(payload: dict[str, Any]) -> str:
       <h1>{html.escape(payload["id"])}</h1>
       <div class="meta">
         <div id="meta"></div>
-        <div class="asset-links" id="assetLinks"></div>
       </div>
     </header>
     <div class="stage-row">
@@ -415,6 +421,8 @@ def render_html(payload: dict[str, Any]) -> str:
         </section>
         <div class="mini" aria-label="Spec speed preview">
           <canvas id="miniSprite" width="{payload["canvas"][0]}" height="{payload["canvas"][1]}"></canvas>
+          <a class="mini-asset-link webp" id="miniWebpLink" href="" hidden>WebP</a>
+          <a class="mini-asset-link" id="miniGifLink" href="" hidden>GIF</a>
         </div>
       </div>
     </div>
@@ -436,7 +444,8 @@ def render_html(payload: dict[str, Any]) -> str:
     const checkerInput = document.getElementById("checker");
     const zToggle = document.getElementById("zToggle");
     const meta = document.getElementById("meta");
-    const assetLinks = document.getElementById("assetLinks");
+    const miniWebpLink = document.getElementById("miniWebpLink");
+    const miniGifLink = document.getElementById("miniGifLink");
     const strip = document.getElementById("strip");
     const images = [];
     let frameIndex = 0;
@@ -446,16 +455,17 @@ def render_html(payload: dict[str, Any]) -> str:
     let lastTime = 0;
     let miniLastTime = 0;
 
-    ctx.imageSmoothingEnabled = false;
-    miniCtx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = payload.resampling === "lanczos";
+    miniCtx.imageSmoothingEnabled = payload.resampling === "lanczos";
     fpsInput.value = fpsInput.min || 1;
     meta.textContent = `${{payload.frames.length}} frames`;
+    if (payload.webpSrc) {{
+      miniWebpLink.href = payload.webpHref || payload.webpSrc;
+      miniWebpLink.hidden = false;
+    }}
     if (payload.gifSrc) {{
-      const link = document.createElement("a");
-      link.className = "asset-link";
-      link.href = payload.gifSrc;
-      link.textContent = "Animated GIF";
-      assetLinks.appendChild(link);
+      miniGifLink.href = payload.gifHref || payload.gifSrc;
+      miniGifLink.hidden = false;
     }}
 
     function updateFpsUi() {{

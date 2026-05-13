@@ -21,8 +21,10 @@ import align_frames  # noqa: E402
 import clean_reference  # noqa: E402
 import export_bundle  # noqa: E402
 import export_gif  # noqa: E402
+import export_webp  # noqa: E402
 import export_public_demo  # noqa: E402
 import make_preview  # noqa: E402
+import render_options  # noqa: E402
 
 SKILL_SCRIPT_DIR = REPO_ROOT / ".codex" / "skills" / "anim8gen" / "scripts"
 sys.path.insert(0, str(SKILL_SCRIPT_DIR))
@@ -63,6 +65,11 @@ def base_spec(animation_id: str = "fixture") -> dict:
 
 
 def gif_frames(path: Path) -> list[Image.Image]:
+    with Image.open(path) as image:
+        return [frame.convert("RGBA") for frame in ImageSequence.Iterator(image)]
+
+
+def animation_frames(path: Path) -> list[Image.Image]:
     with Image.open(path) as image:
         return [frame.convert("RGBA") for frame in ImageSequence.Iterator(image)]
 
@@ -125,6 +132,50 @@ def test_export_gif_dimensions_frame_count_and_terminal_reuse() -> None:
         assert out.exists()
         assert frames[0].size == (8, 8)
         assert len(frames) == 2
+
+
+def test_export_gif_thresholds_low_alpha_artifacts() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        frames_dir = root / "frames"
+        frames_dir.mkdir()
+        spec = base_spec()
+        image = Image.new("RGBA", (4, 4), (0, 0, 0, 0))
+        image.putpixel((0, 0), (255, 255, 255, 24))
+        image.putpixel((1, 1), (200, 80, 60, 255))
+        image.save(frames_dir / "frame-000.idle.png")
+        image.save(frames_dir / "frame-001.hop.png")
+        image.save(frames_dir / "frame-002.return.png")
+
+        out = root / "threshold.gif"
+        export_gif.export_gif(spec, frames_dir, out, fps=4, scale=1)
+        first = gif_frames(out)[0]
+
+        assert first.getpixel((0, 0))[3] == 0
+        assert first.getpixel((1, 1))[3] > 0
+
+
+def test_export_webp_preserves_soft_alpha_animation() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        frames_dir = root / "frames"
+        frames_dir.mkdir()
+        spec = base_spec()
+        image = Image.new("RGBA", (4, 4), (0, 0, 0, 0))
+        image.putpixel((0, 0), (255, 255, 255, 24))
+        image.putpixel((1, 1), (200, 80, 60, 255))
+        image.save(frames_dir / "frame-000.idle.png")
+        write_frame(frames_dir / "frame-001.hop.png", (0, 255, 0, 255))
+        image.save(frames_dir / "frame-002.return.png")
+
+        out = root / "out.webp"
+        export_webp.export_webp(spec, frames_dir, out, fps=4, scale=1)
+        frames = animation_frames(out)
+
+        assert out.exists()
+        assert len(frames) == 2
+        assert 0 < frames[0].getpixel((0, 0))[3] < 255
+        assert frames[0].getpixel((1, 1))[3] > 0
 
 
 def test_non_terminal_reuse_is_preserved() -> None:
@@ -250,6 +301,9 @@ def test_export_bundle_writes_visible_deliverables_without_manifests() -> None:
 
         gif_path = run_root / "gifs" / "fixture.gif"
         export_gif.export_gif(spec, run_root / "aligned", gif_path, fps=4, scale=1)
+        webp_path = run_root / "webp" / "fixture.webp"
+        webp_path.parent.mkdir()
+        export_webp.export_webp(spec, run_root / "aligned", webp_path, fps=4, scale=1)
         out_dir = project / "assets" / "anim8gen" / "fixture"
         result = export_bundle.export_bundle(spec_path, out_dir)
         html = (out_dir / "preview.html").read_text()
@@ -258,12 +312,22 @@ def test_export_bundle_writes_visible_deliverables_without_manifests() -> None:
         assert (out_dir / "frames" / "frame-001.hop.png").exists()
         assert (out_dir / "preview.html").exists()
         assert (out_dir / "fixture.gif").exists()
+        assert (out_dir / "fixture.webp").exists()
+        assert (out_dir / "fixture.gif.html").exists()
+        assert (out_dir / "fixture.webp.html").exists()
         assert not (out_dir / "manifests").exists()
         assert not (out_dir / "reports").exists()
         assert not (out_dir / "raw").exists()
         assert '"src":"frames/frame-000.idle.png"' in html
         assert '"gifSrc":"fixture.gif"' in html
-        assert "Animated GIF" in html
+        assert '"webpSrc":"fixture.webp"' in html
+        assert '"gifHref":"fixture.gif.html"' in html
+        assert '"webpHref":"fixture.webp.html"' in html
+        assert 'id="miniWebpLink"' in html
+        assert 'id="miniGifLink"' in html
+        assert "background: #ffffff" in (out_dir / "fixture.webp.html").read_text()
+        assert 'id="stageGifLink"' not in html
+        assert "Animated GIF" not in html
 
 
 def test_export_bundle_exports_raw_when_candidates_differ() -> None:
@@ -308,6 +372,154 @@ def test_chroma_key_color_families_are_background() -> None:
         spec = {"segmentation": {"alphaThreshold": 8, "chromaKey": key, "chromaTolerance": 12}}
         assert not align_frames.is_visible(family_pixel, spec)
         assert align_frames.is_visible((120, 80, 40, 255), spec)
+
+
+def test_render_options_infer_pixel_and_watercolor_defaults() -> None:
+    pixel_spec = {"asset": {"style": "16-bit pixel art"}, "render": {}}
+    watercolor_spec = {"asset": {"style": "watercolor storybook sprite"}, "render": {}}
+    unknown_spec = {"asset": {"style": "game asset"}, "render": {}}
+
+    assert render_options.resolve_resampling(pixel_spec) == "nearest"
+    assert render_options.resolve_edge_treatment(pixel_spec) == "hard"
+    assert render_options.resolve_resampling(watercolor_spec) == "lanczos"
+    assert render_options.resolve_edge_treatment(watercolor_spec) == "soft"
+    assert render_options.resolve_resampling(unknown_spec) == "nearest"
+    assert render_options.resolve_edge_treatment(unknown_spec) == "hard"
+
+
+def test_render_options_explicit_overrides_win_over_style() -> None:
+    spec = {"asset": {"style": "watercolor storybook sprite"}, "render": {"resampling": "nearest", "edgeTreatment": "hard"}}
+
+    assert render_options.resolve_resampling(spec) == "nearest"
+    assert render_options.resolve_edge_treatment(spec) == "hard"
+
+
+def test_premultiplied_resize_avoids_hidden_key_rgb_halo() -> None:
+    image = Image.new("RGBA", (3, 3), (0, 255, 255, 0))
+    image.putpixel((1, 1), (200, 80, 60, 255))
+
+    resized = render_options.resize_rgba(image, (9, 9), "lanczos")
+    edge_pixels = [pixel for pixel in resized.get_flattened_data() if 0 < pixel[3] < 255]
+
+    assert edge_pixels
+    assert not any(g > 210 and b > 210 and r < 80 for r, g, b, _a in edge_pixels)
+
+
+def test_align_frames_auto_lanczos_creates_soft_alpha_for_watercolor() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        raw_dir = root / "raw"
+        out_dir = root / "aligned"
+        manifests = root / "manifests"
+        raw_dir.mkdir()
+        manifests.mkdir()
+        source = Image.new("RGBA", (8, 8), (0, 255, 255, 0))
+        for y in range(2, 6):
+            for x in range(2, 6):
+                source.putpixel((x, y), (200, 80, 60, 255))
+        source.save(raw_dir / "frame-000.retry-001.png")
+        spec = {
+            "id": "watercolor-align",
+            "asset": {"style": "watercolor storybook sprite"},
+            "render": {"canvas": [16, 16], "resampling": "auto", "edgeTreatment": "auto"},
+            "segmentation": {"alphaThreshold": 8, "chromaKey": "#00ffff", "chromaTolerance": 24},
+            "alignment": {"defaultAnchor": "body_center", "floorY": 15, "sidePadding": 0, "topPadding": 0, "bottomPadding": 0},
+            "generation": {"candidateManifest": str(manifests / "candidates.jsonl")},
+            "frames": [{"index": 0, "label": "idle", "pose": "idle", "anchor": "body_center"}],
+        }
+        spec_path = root / "spec.json"
+        spec_path.write_text(json.dumps(spec))
+
+        run_command(
+            [
+                sys.executable,
+                str(RUNTIME_TOOLS_DIR / "align_frames.py"),
+                "--spec",
+                str(spec_path),
+                "--input",
+                str(raw_dir),
+                "--output",
+                str(out_dir),
+            ],
+            cwd=REPO_ROOT,
+        )
+
+        aligned = Image.open(out_dir / "frame-000.idle.png").convert("RGBA")
+        metrics = json.loads((manifests / "alignment-metrics.json").read_text())
+        assert render_options.alpha_level_count(aligned) > 2
+        assert metrics["resampling"] == "lanczos"
+        assert metrics["edgeTreatment"] == "soft"
+        assert metrics["frames"][0]["edgeMetrics"]["edgeTreatment"] == "soft"
+
+
+def test_align_frames_keeps_pixel_art_nearest_and_hard() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        raw_dir = root / "raw"
+        out_dir = root / "aligned"
+        manifests = root / "manifests"
+        raw_dir.mkdir()
+        manifests.mkdir()
+        source = Image.new("RGBA", (8, 8), (0, 0, 0, 0))
+        for y in range(2, 6):
+            for x in range(2, 6):
+                source.putpixel((x, y), (200, 80, 60, 255))
+        source.save(raw_dir / "frame-000.retry-001.png")
+        spec = {
+            "id": "pixel-align",
+            "asset": {"style": "16-bit pixel art"},
+            "render": {"canvas": [16, 16], "resampling": "auto", "edgeTreatment": "auto"},
+            "segmentation": {"alphaThreshold": 8, "chromaKey": "#ff00ff", "chromaTolerance": 24},
+            "alignment": {"defaultAnchor": "body_center", "floorY": 15, "sidePadding": 0, "topPadding": 0, "bottomPadding": 0},
+            "generation": {"candidateManifest": str(manifests / "candidates.jsonl")},
+            "frames": [{"index": 0, "label": "idle", "pose": "idle", "anchor": "body_center"}],
+        }
+        spec_path = root / "spec.json"
+        spec_path.write_text(json.dumps(spec))
+
+        run_command(
+            [
+                sys.executable,
+                str(RUNTIME_TOOLS_DIR / "align_frames.py"),
+                "--spec",
+                str(spec_path),
+                "--input",
+                str(raw_dir),
+                "--output",
+                str(out_dir),
+            ],
+            cwd=REPO_ROOT,
+        )
+
+        aligned = Image.open(out_dir / "frame-000.idle.png").convert("RGBA")
+        metrics = json.loads((manifests / "alignment-metrics.json").read_text())
+        assert render_options.alpha_level_count(aligned) == 2
+        assert metrics["resampling"] == "nearest"
+        assert metrics["edgeTreatment"] == "hard"
+
+
+def test_preview_image_rendering_tracks_resampling_mode() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        frames_dir = root / "frames"
+        frames_dir.mkdir()
+        spec = base_spec("fixture")
+        spec["asset"] = {"style": "watercolor storybook sprite"}
+        spec["render"]["resampling"] = "auto"
+        write_frame(frames_dir / "frame-000.idle.png", (255, 0, 0, 255))
+        write_frame(frames_dir / "frame-001.hop.png", (0, 255, 0, 255))
+        write_frame(frames_dir / "frame-002.return.png", (0, 0, 255, 255))
+
+        smooth_payload = make_preview.build_payload(spec, {"frames": []}, frames_dir, root / "smooth.html")
+        smooth_html = make_preview.render_html(smooth_payload)
+        assert smooth_payload["resampling"] == "lanczos"
+        assert "image-rendering: pixelated" not in smooth_html
+
+        spec["asset"] = {"style": "16-bit pixel art"}
+        pixel_payload = make_preview.build_payload(spec, {"frames": []}, frames_dir, root / "pixel.html")
+        pixel_html = make_preview.render_html(pixel_payload)
+        assert pixel_payload["resampling"] == "nearest"
+        assert "image-rendering: pixelated" in pixel_html
 
 
 def test_clean_reference_alpha_bleeds_hidden_key_rgb_without_changing_alpha_shape() -> None:
@@ -442,8 +654,10 @@ def test_anim8gen_skill_runtime_bundle_is_minimal_and_self_contained() -> None:
         "clean_reference.py",
         "export_bundle.py",
         "export_gif.py",
+        "export_webp.py",
         "make_contact_sheet.py",
         "make_preview.py",
+        "render_options.py",
         "validate_sprites.py",
     }
     expected_config = {"brief.schema.json", "template.animation-spec.json"}
@@ -830,6 +1044,7 @@ def test_complete_synthetic_run_uses_hidden_workspace_and_visible_bundle() -> No
         contact_sheet_path = run_root / "review" / "contact-sheet.png"
         preview_path = run_root / "preview" / f"{animation_id}.html"
         gif_path = run_root / "gifs" / f"{animation_id}.gif"
+        webp_path = run_root / "webp" / f"{animation_id}.webp"
         export_dir = project / "assets" / "anim8gen" / animation_id
 
         run_command(
@@ -910,6 +1125,19 @@ def test_complete_synthetic_run_uses_hidden_workspace_and_visible_bundle() -> No
         run_command(
             [
                 sys.executable,
+                str(RUNTIME_TOOLS_DIR / "export_webp.py"),
+                "--spec",
+                str(spec_path),
+                "--frames",
+                str(aligned_dir),
+                "--out",
+                str(webp_path),
+            ],
+            cwd=project,
+        )
+        run_command(
+            [
+                sys.executable,
                 str(RUNTIME_TOOLS_DIR / "export_bundle.py"),
                 "--spec",
                 str(spec_path),
@@ -930,11 +1158,20 @@ def test_complete_synthetic_run_uses_hidden_workspace_and_visible_bundle() -> No
         assert contact_sheet_path.exists()
         assert preview_path.exists()
         assert gif_path.exists()
+        assert webp_path.exists()
         assert (export_dir / "frames" / "frame-002.settle.png").exists()
         assert (export_dir / f"{animation_id}.gif").exists()
+        assert (export_dir / f"{animation_id}.webp").exists()
+        assert (export_dir / f"{animation_id}.gif.html").exists()
+        assert (export_dir / f"{animation_id}.webp.html").exists()
         assert '"src":"frames/frame-000.idle.png"' in exported_preview
         assert f'"gifSrc":"{animation_id}.gif"' in exported_preview
-        assert "Animated GIF" in exported_preview
+        assert f'"webpSrc":"{animation_id}.webp"' in exported_preview
+        assert f'"gifHref":"{animation_id}.gif.html"' in exported_preview
+        assert f'"webpHref":"{animation_id}.webp.html"' in exported_preview
+        assert 'id="miniWebpLink"' in exported_preview
+        assert 'id="miniGifLink"' in exported_preview
+        assert "Animated GIF" not in exported_preview
         assert not (export_dir / "manifests").exists()
         assert not (export_dir / "reports").exists()
         assert not (project / "anim8gen").exists()

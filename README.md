@@ -226,8 +226,9 @@ the reference exactly as provided.
 Each run creates an HTML preview page with playback controls, frame stepping,
 FPS control, and a checkerboard toggle for transparent sprites. The exported
 preview is written to `assets/anim8gen/<id>/preview.html` so it can be opened
-as a static artifact. After a run, anim8gen serves this page locally by
-default so you can review the animation in motion.
+as a static artifact. The preview links the high-fidelity animated WebP when
+available and keeps GIF as a compatibility fallback. After a run, anim8gen
+serves this page locally by default so you can review the animation in motion.
 
 <p>
   <a href="https://zeveck.github.io/anim8gen/demos/quality-dragon-tail-flick-v4/">
@@ -275,6 +276,7 @@ default. It contains:
 
 - `frames/` with the finished sprite or scene frames
 - `preview.html`
+- `<id>.webp` when animated WebP export is available
 - `<id>.gif`
 - `raw/` only when the raw candidates materially differ from the final frames
 

@@ -64,6 +64,18 @@
       "minimum": 1,
       "maximum": 24
     },
+    "resampling": {
+      "type": "string",
+      "description": "How aligned frames and scaled exports should be resampled. Auto keeps pixel art crisp and smooths painterly styles.",
+      "default": "auto",
+      "enum": ["auto", "nearest", "lanczos"]
+    },
+    "edgeTreatment": {
+      "type": "string",
+      "description": "Whether binary-alpha sprite edges should stay hard or receive conservative inward softening for painterly styles.",
+      "default": "auto",
+      "enum": ["auto", "hard", "soft"]
+    },
     "maxFrameCount": {
       "type": "integer",
       "description": "Initial bounded scope for one request. Codex should default to the fewest pleasing frames and ask users to split broader actions.",

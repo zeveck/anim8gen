@@ -18,6 +18,8 @@
     "workingSize": [1024, 1024],
     "exportScale": 8,
     "fps": 8,
+    "resampling": "auto",
+    "edgeTreatment": "auto",
     "paletteLimit": 48
   },
   "generation": {

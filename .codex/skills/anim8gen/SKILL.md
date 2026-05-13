@@ -170,14 +170,17 @@ requests where the user only wants a single static image.
     with `python3 scripts/skill_paths.py make-contact-sheet`, and create an
     HTML preview with `python3 scripts/skill_paths.py make-preview`. Export an
     animated GIF with `python3 scripts/skill_paths.py export-gif` for every
-    complete or partial package after the preview is built. GIF export is local
-    post-processing, should not call image generation, and should honor
-    `render.fps`, `preview.playbackIndexes`, `reuseFrame`, and
-    `preview.displayOffsets`.
+    complete or partial package after the preview is built, and export an
+    animated WebP with `python3 scripts/skill_paths.py export-webp` when
+    transparent or painterly edges need a higher-fidelity review artifact.
+    GIF and WebP export are local post-processing, should not call image
+    generation, and should honor `render.fps`, `preview.playbackIndexes`,
+    `reuseFrame`, and `preview.displayOffsets`.
 20. Export the visible deliverable bundle with
     `python3 scripts/skill_paths.py export-bundle`. The bundle should contain
-    `frames/`, `preview.html`, and `<id>.gif`; raw candidates should appear
-    only when they materially differ from final aligned frames.
+    `frames/`, `preview.html`, `<id>.gif`, and `<id>.webp` when WebP export is
+    available; raw candidates should appear only when they materially differ
+    from final aligned frames.
 21. Review the contact sheet and exported preview. For grounded in-place
     sprites, keep
     `alignment.stabilizeAnchorX` enabled so tails, paws, robes, or weapons do

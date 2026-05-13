@@ -170,6 +170,12 @@ def build_spec(
     fps = brief.get("fps", 8)
     if not isinstance(fps, int) or not (1 <= fps <= 24):
         raise SystemExit("brief.fps must be an integer between 1 and 24")
+    resampling = brief.get("resampling", "auto")
+    if resampling not in {"auto", "nearest", "lanczos"}:
+        raise SystemExit("brief.resampling must be one of auto, nearest, lanczos")
+    edge_treatment = brief.get("edgeTreatment", "auto")
+    if edge_treatment not in {"auto", "hard", "soft"}:
+        raise SystemExit("brief.edgeTreatment must be one of auto, hard, soft")
     retry_budget = brief.get("retryBudget", 2)
     if not isinstance(retry_budget, int) or not (0 <= retry_budget <= 5):
         raise SystemExit("brief.retryBudget must be an integer between 0 and 5")
@@ -218,6 +224,8 @@ def build_spec(
             "exportScale": brief.get("exportScale", 8),
             "fps": fps,
             "paletteLimit": brief.get("paletteLimit", 48),
+            "resampling": resampling,
+            "edgeTreatment": edge_treatment,
         },
         "generation": {
             "preferredSkill": "imagegen2",
