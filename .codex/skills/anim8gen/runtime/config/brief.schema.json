@@ -107,9 +107,18 @@
           "note": {
             "type": "string",
             "maxLength": 240
+          },
+          "cleanup": {
+            "type": "boolean",
+            "description": "Override automatic reference cleanup for this reference. Defaults to referenceCleanup."
           }
         }
       }
+    },
+    "referenceCleanup": {
+      "type": "boolean",
+      "description": "Prepare PNG references for animation by cleaning hidden transparent pixels while preserving originals.",
+      "default": true
     },
     "displayOffsets": {
       "type": "object",

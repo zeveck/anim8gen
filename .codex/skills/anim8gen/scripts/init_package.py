@@ -132,6 +132,11 @@ def validate_references(data: dict[str, Any]) -> list[dict[str, Any]]:
             if not isinstance(note, str):
                 raise SystemExit(f"brief.references[{index}].note must be a string")
             reference["note"] = note
+        cleanup = raw_reference.get("cleanup")
+        if cleanup is not None:
+            if not isinstance(cleanup, bool):
+                raise SystemExit(f"brief.references[{index}].cleanup must be a boolean")
+            reference["cleanup"] = cleanup
         references.append(reference)
     return references
 
@@ -168,6 +173,9 @@ def build_spec(
     retry_budget = brief.get("retryBudget", 2)
     if not isinstance(retry_budget, int) or not (0 <= retry_budget <= 5):
         raise SystemExit("brief.retryBudget must be an integer between 0 and 5")
+    reference_cleanup = brief.get("referenceCleanup", True)
+    if not isinstance(reference_cleanup, bool):
+        raise SystemExit("brief.referenceCleanup must be a boolean")
     runtime_effects = brief.get("runtimeEffects", [])
     if not isinstance(runtime_effects, list) or not all(isinstance(item, str) for item in runtime_effects):
         raise SystemExit("brief.runtimeEffects must be an array of strings")
@@ -216,6 +224,7 @@ def build_spec(
             "candidateManifest": candidate_manifest or f".anim8gen/runs/{animation_id}/manifests/candidates.jsonl",
             "acceptedManifest": accepted_manifest or f".anim8gen/runs/{animation_id}/manifests/accepted-frames.json",
             "retryBudget": retry_budget,
+            "referenceCleanup": reference_cleanup,
         },
         "segmentation": {
             "strategy": "chroma-key",

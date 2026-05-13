@@ -18,6 +18,7 @@ TOOLS_DIR = REPO_ROOT / "anim8gen" / "tools"
 sys.path.insert(0, str(TOOLS_DIR))
 
 import align_frames  # noqa: E402
+import clean_reference  # noqa: E402
 import export_bundle  # noqa: E402
 import export_gif  # noqa: E402
 import export_public_demo  # noqa: E402
@@ -27,9 +28,11 @@ SKILL_SCRIPT_DIR = REPO_ROOT / ".codex" / "skills" / "anim8gen" / "scripts"
 sys.path.insert(0, str(SKILL_SCRIPT_DIR))
 
 import layout_paths  # noqa: E402
+import prepare_references  # noqa: E402
 
 
 INIT_PACKAGE_SCRIPT = SKILL_SCRIPT_DIR / "init_package.py"
+PREPARE_REFERENCES_SCRIPT = SKILL_SCRIPT_DIR / "prepare_references.py"
 CREATE_SYNTHETIC_SCRIPT = SKILL_SCRIPT_DIR / "create_synthetic_frames.py"
 RUNTIME_TOOLS_DIR = REPO_ROOT / ".codex" / "skills" / "anim8gen" / "runtime" / "tools"
 
@@ -307,6 +310,80 @@ def test_chroma_key_color_families_are_background() -> None:
         assert align_frames.is_visible((120, 80, 40, 255), spec)
 
 
+def test_clean_reference_alpha_bleeds_hidden_key_rgb_without_changing_alpha_shape() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        source = root / "source.png"
+        output = root / "clean.png"
+        report_path = root / "report.json"
+        image = Image.new("RGBA", (3, 1), (255, 0, 255, 0))
+        image.putpixel((1, 0), (12, 34, 56, 255))
+        image.save(source)
+
+        report = clean_reference.clean_reference(source, output, chroma_key="#ff00ff", chroma_tolerance=32)
+        cleaned = Image.open(output).convert("RGBA")
+
+        assert report["before"]["nearKeyHiddenRgb"] == 2
+        assert report["after"]["nearKeyHiddenRgb"] == 0
+        assert report["alphaBleedPixels"] == 2
+        assert report["before"]["transparentPixels"] == report["after"]["transparentPixels"] == 2
+        assert cleaned.getpixel((0, 0)) == (12, 34, 56, 0)
+        assert cleaned.getpixel((1, 0)) == (12, 34, 56, 255)
+        assert cleaned.getpixel((2, 0)) == (12, 34, 56, 0)
+
+        subprocess.run(
+            [
+                sys.executable,
+                str(RUNTIME_TOOLS_DIR / "clean_reference.py"),
+                "--input",
+                str(source),
+                "--output",
+                str(output),
+                "--report",
+                str(report_path),
+            ],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+        assert json.loads(report_path.read_text())["after"]["nearKeyHiddenRgb"] == 0
+
+
+def test_clean_reference_removes_visible_chroma_key_pixels() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        source = root / "source.png"
+        output = root / "clean.png"
+        image = Image.new("RGBA", (101, 1), (10, 20, 30, 255))
+        image.putpixel((0, 0), (255, 0, 255, 255))
+        image.save(source)
+
+        report = clean_reference.clean_reference(source, output, chroma_key="#ff00ff", chroma_tolerance=0)
+        cleaned = Image.open(output).convert("RGBA")
+
+        assert report["removedVisibleKeyPixels"] == 1
+        assert report["after"]["transparentPixels"] == 1
+        assert cleaned.getpixel((0, 0)) == (10, 20, 30, 0)
+        assert cleaned.getpixel((1, 0)) == (10, 20, 30, 255)
+
+
+def test_clean_reference_refuses_large_visible_subject_erosion() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        source = root / "source.png"
+        output = root / "clean.png"
+        image = Image.new("RGBA", (2, 1), (255, 0, 255, 255))
+        image.putpixel((1, 0), (10, 20, 30, 255))
+        image.save(source)
+
+        try:
+            clean_reference.clean_reference(source, output, chroma_key="#ff00ff", chroma_tolerance=0)
+        except ValueError as exc:
+            assert "removed too much visible artwork" in str(exc)
+        else:
+            raise AssertionError("expected visible subject erosion guardrail")
+
+
 def test_anim8gen_layout_defaults_keep_state_hidden_and_exports_visible() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         project = Path(tmp) / "client"
@@ -362,6 +439,7 @@ def test_anim8gen_skill_runtime_bundle_is_minimal_and_self_contained() -> None:
 
     expected_tools = {
         "align_frames.py",
+        "clean_reference.py",
         "export_bundle.py",
         "export_gif.py",
         "make_contact_sheet.py",
@@ -512,6 +590,77 @@ def test_init_package_defaults_to_hidden_workspace_without_visible_anim8gen_root
         gitignore_text = (project / ".gitignore").read_text()
         assert ".anim8gen/" in gitignore_text
         assert "assets/anim8gen/" not in gitignore_text
+
+
+def test_prepare_references_cleans_pngs_and_preserves_originals() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        source = project / "luna.png"
+        image = Image.new("RGBA", (3, 1), (255, 0, 255, 0))
+        image.putpixel((1, 0), (12, 34, 56, 255))
+        image.save(source)
+        brief_data = brief()
+        brief_data["references"] = [{"path": "luna.png", "role": "canonical"}]
+        brief_path = Path(tmp) / "trex.brief.json"
+        brief_path.write_text(json.dumps(brief_data))
+
+        run_command(
+            [sys.executable, str(INIT_PACKAGE_SCRIPT), "--brief", str(brief_path), "--project-root", str(project)],
+            cwd=REPO_ROOT,
+        )
+        spec_path = project / ".anim8gen" / "runs" / "trex-roar-v1" / "config" / "trex-roar-v1.json"
+        manifest = prepare_references.prepare_references(spec_path, project)
+
+        item = manifest["references"][0]
+        original = project / item["storedOriginal"]
+        generation = project / item["generationPath"]
+        report = project / item["cleanupReport"]
+        assert original.exists()
+        assert generation.exists()
+        assert report.exists()
+        assert item["cleanupApplied"] is True
+        assert Image.open(generation).convert("RGBA").getpixel((0, 0)) == (12, 34, 56, 0)
+        assert "prepared the reference image" in manifest["userSummary"][0]
+
+
+def test_prepare_references_no_cleanup_uses_original_reference_exactly() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        source = project / "luna.png"
+        Image.new("RGBA", (1, 1), (255, 0, 255, 0)).save(source)
+        brief_data = brief()
+        brief_data["referenceCleanup"] = False
+        brief_data["references"] = [{"path": "luna.png", "role": "canonical"}]
+        brief_path = Path(tmp) / "trex.brief.json"
+        brief_path.write_text(json.dumps(brief_data))
+
+        run_command(
+            [sys.executable, str(INIT_PACKAGE_SCRIPT), "--brief", str(brief_path), "--project-root", str(project)],
+            cwd=REPO_ROOT,
+        )
+        spec_path = project / ".anim8gen" / "runs" / "trex-roar-v1" / "config" / "trex-roar-v1.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(PREPARE_REFERENCES_SCRIPT),
+                "--spec",
+                str(spec_path),
+                "--project-root",
+                str(project),
+            ],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+        manifest = json.loads(result.stdout)
+        item = manifest["references"][0]
+
+        assert item["cleanupApplied"] is False
+        assert item["cleanupReport"] is None
+        assert item["generationPath"] == item["storedOriginal"]
+        assert manifest["userSummary"] == []
 
 
 def test_init_package_generated_specs_and_manifests_have_no_new_visible_workbench_paths() -> None:

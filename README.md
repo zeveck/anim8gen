@@ -214,6 +214,13 @@ Details that help:
 - frame count, if important
 - any reference image or sprite sheet to preserve identity
 
+When references include PNG transparency, anim8gen cleans the internal copy
+before using it for generation. This removes visible chroma-key pixels,
+alpha-bleeds hidden RGB in fully transparent pixels, and reports hard binary
+alpha edges that can otherwise cause magenta or black artifacts. The original
+reference is always preserved. If exact source pixels are required, say to use
+the reference exactly as provided.
+
 ## Preview Page
 
 Each run creates an HTML preview page with playback controls, frame stepping,

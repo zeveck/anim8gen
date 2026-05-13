@@ -108,11 +108,19 @@ requests where the user only wants a single static image.
    fringe is likely to be confused with art. Cyan or green keys are acceptable
    when they contrast better with the sprite palette.
 11. Resolve any user-provided reference image, sprite, contact sheet, or frame
-   set before generation. Copy verified references into
-   `.anim8gen/runs/<id>/reference/` and record their original paths in
-   manifests/reports. If the user provides a sequence, use matching frames as
-   pose references when possible; otherwise use the strongest identity/style
-   image as the canonical reference.
+   set before generation. Add them to `brief.references`, preserving any
+   request to use a reference exactly as provided with `referenceCleanup:
+   false` or per-reference `"cleanup": false`. After package initialization,
+   run the bundled helper resolved by
+   `python3 scripts/skill_paths.py prepare-references`. This copies originals,
+   prepares PNG references by default, writes
+   `reference/prepared-references.json`, and returns the image paths to pass to
+   imagegen2. Use `generationPath` from that manifest for all image inputs. In
+   normal user-facing output, summarize this only as "I prepared the reference
+   image for animation. The original was preserved." Keep technical cleanup
+   details in the JSON reports. If the user provides a sequence, use matching
+   prepared frames as pose references when possible; otherwise use the strongest
+   prepared identity/style image as the canonical reference.
 12. Run an `imagegen2 --dry-run` before live generation. If no suitable
    canonical reference was provided, generate frame 0 first and treat the
    accepted frame 0 image as the canonical visual reference for the package.

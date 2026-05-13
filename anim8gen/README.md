@@ -33,6 +33,15 @@ python3 anim8gen/tools/make_preview.py \
   --frames anim8gen/assets/<animation-id>/aligned \
   --validation anim8gen/reports/<animation-id>.validation.json \
   --out anim8gen/preview/<animation-id>.html
+
+python3 anim8gen/tools/clean_reference.py \
+  --input path/to/reference.png \
+  --output .anim8gen/runs/<animation-id>/reference/reference.clean.png \
+  --report .anim8gen/runs/<animation-id>/reference/reference.clean.report.json
+
+python3 .codex/skills/anim8gen/scripts/prepare_references.py \
+  --spec .anim8gen/runs/<animation-id>/config/<animation-id>.json \
+  --project-root .
 ```
 
 To publish a selected package as a GitHub Pages demo:
