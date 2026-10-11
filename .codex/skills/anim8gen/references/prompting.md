@@ -6,10 +6,15 @@ Use this template for each generated frame:
 <style> sprite frame of <subject>, <view> view, single centered full-body
 subject, pose for frame <index> (<label>): <frame pose>. Compact readable
 silhouette, consistent identity with the reference, full body inside the image,
-solid #ff00ff chroma-key background, no text, no watermark, no labels, no UI
-overlay, no extra subjects, no props unless requested, no motion marks, no
-baked preview effects.
+isolated on a transparent background, no shadows, no ground, no text, no
+watermark, no labels, no UI overlay, no extra subjects, no props unless
+requested, no motion marks, no baked preview effects.
 ```
+
+For a `chroma-key` package, replace "isolated on a transparent background, no
+shadows, no ground" with "solid flat <key> chroma-key background, no shadows,
+no gradients, no background objects", using the spec's
+`segmentation.chromaKey`.
 
 For animation packages, use references aggressively:
 

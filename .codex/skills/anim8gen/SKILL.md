@@ -29,15 +29,16 @@ requests where the user only wants a single static image.
    invoke `python3 scripts/skill_paths.py ...`. Do not assume a `.codex/` path
    exists, and do not install a second anim8gen copy just to make helper paths
    resolve.
-2. Locate the `imagegen2` skill before parsing or initializing a package. Check
-   sibling skill installs first, then common project and user-level skill
-   directories:
-   `../imagegen2`, `.claude/skills/imagegen2`, `.codex/skills/imagegen2`,
-   `.agents/skills/imagegen2`, `~/.claude/skills/imagegen2`,
-   `${CLAUDE_CONFIG_DIR}/skills/imagegen2`, `~/.codex/skills/imagegen2`, and
-   `${CODEX_HOME}/skills/imagegen2`. Internally, a valid install must include
-   the imagegen2 CLI. If imagegen2 cannot be found, stop and tell the user
-   exactly:
+2. Locate the `imagegen2` skill before parsing or initializing a package by
+   running `python3 scripts/skill_paths.py imagegen2-info --start <project-root>`
+   from this skill directory. It prints JSON with the imagegen2 CLI `path`, its
+   `version`, and `defaultSegmentation`. It checks, in order: `IMAGEGEN2_CLI`,
+   a sibling `../imagegen2` skill, project skill folders (`.claude/skills`,
+   `.codex/skills`, `.agents/skills`, `skills/`), Claude Code plugin installs,
+   then user skill folders (`~/.claude/skills`, `${CLAUDE_CONFIG_DIR}/skills`,
+   `~/.codex/skills`, `${CODEX_HOME}/skills`). Run imagegen2 as
+   `node <path> ...` with that exact path. If the command fails, stop and tell
+   the user exactly:
 
    ```text
    anim8gen requires the imagegen2 skill, but I could not find it.
@@ -94,19 +95,23 @@ requests where the user only wants a single static image.
    frame generation, pass `--no-history`; anim8gen records per-run provenance
    in `.anim8gen/runs/<id>/manifests/`, so imagegen2's root
    `.imagegen2-history.jsonl` log is redundant and should not be produced.
-10. For sprite work that needs transparency, prefer imagegen2's GPT Image 2
-   chroma-key mode:
+10. For sprite work, use imagegen2's native transparency by default: set the
+   brief's `segmentation` to `native-alpha` (the default) and run imagegen2
+   with `--background transparent --transparent-mode native-alpha`. The model
+   returns real PNG alpha, which keeps soft edges such as fire, smoke, glow,
+   fur, and sparks without key-color fringes. Record `transparentMode`,
+   `postprocess`, `model`, and `imagegen2Version` from imagegen2's JSON output
+   in `candidates.jsonl` and the package report.
+   Use `chroma-key` segmentation instead when `imagegen2-info` reports
+   `defaultSegmentation: chroma-key` (an imagegen2 release older than
+   v2026.10.10), when the project pins a model without native alpha such as
+   `IMAGEGEN2_MODEL=gpt-image-2`, or when the user asks for hard binary
+   edges. Then set the brief's `segmentation` to `chroma-key` and pass
    `--background transparent --transparent-mode chroma-key --chroma-key <key>`.
-   This asks the model for an opaque solid key background, then lets imagegen2
-   remove that key locally into PNG alpha. Record `transparentMode`, `chromaKey`,
-   `chromaTolerance`, and postprocess metadata in `candidates.jsonl` and the
-   package report. Use `--transparent-mode fallback-model` only when the user
-   explicitly asks for native model alpha or when chroma-key output is
-   unavailable or repeatedly fails review. Choose a key color that is absent
-   from the subject and requested effects: magenta is fine for many sprites,
-   but avoid it for purple/blue-heavy subjects, magic, or sprites where magenta
-   fringe is likely to be confused with art. Cyan or green keys are acceptable
-   when they contrast better with the sprite palette.
+   Choose a key color that is absent from the subject and requested effects:
+   magenta is fine for many sprites, but avoid it for purple/blue-heavy
+   subjects or magic. Cyan or green keys are acceptable when they contrast
+   better with the sprite palette.
 11. Resolve any user-provided reference image, sprite, contact sheet, or frame
    set before generation. Add them to `brief.references`, preserving any
    request to use a reference exactly as provided with `referenceCleanup:
@@ -235,10 +240,11 @@ reports, specs, and hidden preview HTML are provenance in `.anim8gen/runs/`.
 Keep prompts frame-specific and continuity-aware:
 
 - State the subject, style, camera view, and exact pose for that frame.
-- Request a single centered subject on a solid flat chroma-key background,
-  using the spec's `segmentation.chromaKey`. Include "no
-  shadows", "no gradients", and "no background objects" when segmentation
-  quality matters.
+- Request a single centered subject "isolated on a transparent background,
+  no shadows, no ground" for `native-alpha` packages. For `chroma-key`
+  packages, request a solid flat background in the spec's
+  `segmentation.chromaKey` with "no shadows", "no gradients", and "no
+  background objects".
 - Ask for a compact readable silhouette and full body within the canvas.
 - For continuity, always use the accepted frame 0 image as the canonical
   reference for later frames. Pass it as the first `--image` to imagegen2.
@@ -247,9 +253,12 @@ Keep prompts frame-specific and continuity-aware:
 - Explicitly say no text, no watermark, no labels, no UI overlay, no extra
   subjects, no shadows that prevent segmentation, and no baked runtime effects.
 - For transparent sprite requests, the live imagegen2 command should include
-  `--background transparent --transparent-mode chroma-key --chroma-key <key>`
-  and `--no-history`, and normally leave `--chroma-tolerance` at the CLI
-  default unless review shows retained key pixels or subject erosion.
+  `--background transparent --transparent-mode native-alpha` (or
+  `--transparent-mode chroma-key --chroma-key <key>` for `chroma-key`
+  packages) and `--no-history`. Leave `--chroma-tolerance` at the CLI default
+  unless review shows retained key pixels or subject erosion.
+- Do not pass `--model`; imagegen2 picks its default model or the project's
+  `IMAGEGEN2_MODEL` pin, and every frame of a package uses the same one.
 
 Use `references/prompting.md` when a task needs a prompt template.
 
@@ -344,8 +353,9 @@ package `.gitignore`, empty candidate manifest, accepted-frame manifest, and
 package manifest. It refuses to overwrite an existing package unless `--force`
 is passed.
 
-For local smoke tests only, create synthetic chroma-keyed raw frames without
-calling image generation:
+For local smoke tests only, create synthetic raw frames (transparent for
+`native-alpha` specs, key-colored for `chroma-key` specs) without calling
+image generation:
 
 ```bash
 cd <installed-anim8gen-skill-dir>

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Create deterministic chroma-keyed raw PNG candidates for Anim8gen tests."""
+"""Create deterministic raw PNG candidates for Anim8gen tests.
+
+Frames have a transparent background for native-alpha specs and a solid
+chroma-key background for chroma-key specs.
+"""
 
 from __future__ import annotations
 
@@ -148,7 +152,11 @@ def main() -> None:
     working_size = tuple(spec.get("render", {}).get("workingSize", [1024, 1024]))
     if len(working_size) != 2:
         raise SystemExit("render.workingSize must contain width and height")
-    background = parse_hex_color(spec.get("segmentation", {}).get("chromaKey", "#ff00ff"))
+    segmentation = spec.get("segmentation", {})
+    if segmentation.get("strategy") == "native-alpha":
+        background = (0, 0, 0, 0)
+    else:
+        background = parse_hex_color(segmentation.get("chromaKey", "#ff00ff"))
 
     raw_dir = root / "raw"
     manifest_dir = root / "manifests"

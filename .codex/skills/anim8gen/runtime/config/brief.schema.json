@@ -76,6 +76,18 @@
       "default": "auto",
       "enum": ["auto", "hard", "soft"]
     },
+    "segmentation": {
+      "type": "string",
+      "description": "How frames get transparency. native-alpha uses imagegen2's native PNG alpha (imagegen2 v2026.10.10 or later); chroma-key asks for a solid key-color background that imagegen2 removes locally.",
+      "default": "native-alpha",
+      "enum": ["native-alpha", "chroma-key"]
+    },
+    "chromaKey": {
+      "type": "string",
+      "description": "Key color for chroma-key segmentation.",
+      "default": "#ff00ff",
+      "pattern": "^#[0-9a-fA-F]{6}$"
+    },
     "maxFrameCount": {
       "type": "integer",
       "description": "Initial bounded scope for one request. Codex should default to the fewest pleasing frames and ask users to split broader actions.",

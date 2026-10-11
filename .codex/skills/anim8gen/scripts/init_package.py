@@ -10,12 +10,17 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import skill_paths
 from layout_paths import resolve_layout
 
 
 ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 ANCHORS = {"body_bottom_center", "feet_center", "body_center", "head_center", "manual"}
 VIEWS = {"side", "front", "three-quarter", "top-down", "isometric"}
+# native-alpha: imagegen2 returns real PNG alpha (GPT Image 2.5); alignment
+# segments by alpha only. chroma-key: the model paints a solid key color that
+# imagegen2 removes; alignment also drops key-colored fringe pixels.
+SEGMENTATION_STRATEGIES = ("native-alpha", "chroma-key")
 PACKAGE_DIRS = ("reference", "raw", "aligned", "review", "manifests")
 
 
@@ -200,11 +205,15 @@ def build_spec(
     if not isinstance(floor_y, int) or not (0 <= floor_y < canvas[1]):
         raise SystemExit("brief.floorY must be an integer inside the canvas height")
 
+    segmentation = brief.get("segmentation", "native-alpha")
+    if segmentation not in SEGMENTATION_STRATEGIES:
+        raise SystemExit(f"brief.segmentation must be one of {', '.join(SEGMENTATION_STRATEGIES)}")
+
     prompt_traits = [
         "single subject",
         f"{view}-view",
         "compact readable silhouette",
-        "solid chroma-key background",
+        "isolated on a transparent background" if segmentation == "native-alpha" else "solid chroma-key background",
         "no text",
     ]
     references = validate_references(brief)
@@ -229,13 +238,14 @@ def build_spec(
         },
         "generation": {
             "preferredSkill": "imagegen2",
+            "anim8genVersion": skill_paths.ANIM8GEN_VERSION,
             "candidateManifest": candidate_manifest or f".anim8gen/runs/{animation_id}/manifests/candidates.jsonl",
             "acceptedManifest": accepted_manifest or f".anim8gen/runs/{animation_id}/manifests/accepted-frames.json",
             "retryBudget": retry_budget,
             "referenceCleanup": reference_cleanup,
         },
         "segmentation": {
-            "strategy": "chroma-key",
+            "strategy": segmentation,
             "chromaKey": brief.get("chromaKey", "#ff00ff"),
             "alphaThreshold": brief.get("alphaThreshold", 8),
             "chromaTolerance": brief.get("chromaTolerance", 32),

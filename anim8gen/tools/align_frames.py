@@ -49,6 +49,10 @@ def is_visible(pixel: tuple[int, int, int, int], spec: dict) -> bool:
     r, g, b, a = pixel
     if a <= spec["segmentation"].get("alphaThreshold", 8):
         return False
+    if spec["segmentation"].get("strategy") == "native-alpha":
+        # Real model alpha: no key color to filter, and subject colors that
+        # happen to look like a key (magenta magic, green slime) must stay.
+        return True
     key = chroma_key(spec)
     tolerance = spec["segmentation"].get("chromaTolerance", 32)
     rgb = (r, g, b)
