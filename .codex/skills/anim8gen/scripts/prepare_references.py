@@ -75,6 +75,7 @@ def prepare_references(
     global_cleanup = bool(spec.get("generation", {}).get("referenceCleanup", True)) and not no_cleanup
     prepared: list[dict[str, Any]] = []
     selected_key: str | None = None
+    native_alpha = spec.get("segmentation", {}).get("strategy") == "native-alpha"
     for index, reference in enumerate(references):
         if not isinstance(reference, dict):
             raise ValueError(f"spec.asset.references[{index}] must be an object")
@@ -90,9 +91,12 @@ def prepare_references(
             clean_name = f"{stored_original.stem.removeprefix('original-')}.clean.png"
             generation_path = reference_dir / clean_name
             cleanup_report_path = reference_dir / f"{generation_path.stem}.report.json"
-            image = clean_reference.Image.open(source).convert("RGBA")
-            selected_key = selected_key or clean_reference.choose_chroma_key(image)
-            report = clean_reference.clean_reference(source, generation_path, chroma_key=selected_key)
+            if native_alpha:
+                report = clean_reference.clean_reference(source, generation_path, remove_key=False)
+            else:
+                image = clean_reference.Image.open(source).convert("RGBA")
+                selected_key = selected_key or clean_reference.choose_chroma_key(image)
+                report = clean_reference.clean_reference(source, generation_path, chroma_key=selected_key)
             cleanup_report_path.write_text(json.dumps(report, indent=2) + "\n")
             cleanup_summary = "prepared reference image; original preserved"
         elif cleanup_enabled:

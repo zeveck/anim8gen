@@ -20,8 +20,9 @@ new package spec.
   `/plugin install anim8gen --marketplace zeveck/anim8gen`.
 - anim8gen now finds imagegen2 when it is installed as a Claude Code plugin.
   `python3 scripts/skill_paths.py imagegen2-info` prints which imagegen2 it
-  found, where, and its version. A managed plugin install wins over an old
-  copied `~/.claude/skills/imagegen2`; `IMAGEGEN2_CLI` overrides the lookup.
+  found, where, its version, and the model this project will use. A managed
+  plugin install wins over an old copied `~/.claude/skills/imagegen2`;
+  `IMAGEGEN2_CLI` names an exact copy to use.
 - This repository no longer vendors imagegen2, imagegen, or nanogen. The
   vendored imagegen2 was an old build, and as a sibling of the anim8gen skill
   it shadowed whatever imagegen2 the user installed. The Codex install script
@@ -29,16 +30,24 @@ new package spec.
 
 ### Native transparency
 
-- New sprite packages use imagegen2's native alpha (GPT Image 2.5) by default:
-  frames are requested "isolated on a transparent background" with
-  `--transparent-mode native-alpha` and aligned by alpha only. Soft edges such
-  as fire, smoke, glow, and fur no longer pick up key-color fringes, and
-  subject colors close to the key (magenta magic, green slime) are no longer
-  cut out.
-- Chroma-key is still available: set the brief's `segmentation` to
-  `chroma-key`. anim8gen uses it automatically with imagegen2 releases older
-  than v2026.10.10, which have no native alpha. Existing packages keep the
-  segmentation recorded in their spec.
+- New sprite packages use imagegen2's native alpha (GPT Image 2.5) when the
+  project's imagegen2 and model support it: frames are requested "isolated
+  on a transparent background" with `--transparent-mode native-alpha` and
+  aligned by alpha only. Soft edges such as fire, smoke, glow, and fur no
+  longer pick up key-color fringes, subject colors close to the key (magenta
+  magic, green slime) are no longer cut out, and detached sparks, embers, and
+  smoke puffs are kept instead of dropped.
+- `init-package` decides with an imagegen2 dry run in the project, so it
+  picks chroma-key for imagegen2 releases older than v2026.10.11 and for
+  projects that pin a model without native alpha (`IMAGEGEN2_MODEL=gpt-image-2`).
+  Set the brief's `segmentation` to `chroma-key` or `native-alpha` to choose
+  explicitly. Existing packages keep the segmentation recorded in their spec.
+- Reference preparation no longer strips key-colored pixels from references
+  in native-alpha packages.
+- SKILL.md now runs every command from the project root and calls helpers by
+  the skill's absolute path. The old "cd into the skill folder" instructions
+  could write packages into the skill's own folder, which a plugin update
+  replaces.
 
 ### Also
 

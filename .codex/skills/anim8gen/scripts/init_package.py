@@ -154,6 +154,16 @@ def path_text(path: Path, project_root: Path) -> str:
         return resolved.as_posix()
 
 
+def default_segmentation(project_root: Path) -> str:
+    """native-alpha when this project's imagegen2 and model support it."""
+    try:
+        return skill_paths.imagegen2_info(project_root)["defaultSegmentation"]
+    except SystemExit:
+        # imagegen2 not found: keep the modern default; generation will stop
+        # on the missing imagegen2 anyway.
+        return "native-alpha"
+
+
 def build_spec(
     brief: dict[str, Any],
     *,
@@ -439,6 +449,8 @@ def main() -> None:
         root = layout.run_root
         export_root = layout.export_root.parent
 
+    if "segmentation" not in brief:
+        brief["segmentation"] = default_segmentation(project_root)
     spec = build_spec(
         brief,
         canonical_reference=path_text(root / "reference" / "reference.png", project_root),

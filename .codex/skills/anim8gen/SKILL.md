@@ -24,21 +24,31 @@ requests where the user only wants a single static image.
    carries its own runtime tools and minimal config templates under
    `runtime/`, while per-run project state belongs under `.anim8gen/runs/<id>`
    by default.
-   Helper scripts live next to this `SKILL.md` in `scripts/`. When running a
-   helper command, first `cd` to this installed anim8gen skill directory, then
-   invoke `python3 scripts/skill_paths.py ...`. Do not assume a `.codex/` path
-   exists, and do not install a second anim8gen copy just to make helper paths
-   resolve.
+   Helper scripts live next to this `SKILL.md` in `scripts/`. In the commands
+   below, `<skill-dir>` is the absolute path of the directory containing this
+   `SKILL.md` (the skill's base directory; for a Claude Code plugin it is
+   inside the plugin cache). Run every command from the project root and call
+   helpers by absolute path, for example
+   `python3 <skill-dir>/scripts/skill_paths.py ...`. Never `cd` into the skill
+   directory to run commands: package paths such as `.anim8gen/runs/<id>/`
+   are relative to the project root, and a plugin's directory is replaced on
+   every update. Do not assume a `.codex/` path exists, and do not install a
+   second anim8gen copy just to make helper paths resolve.
 2. Locate the `imagegen2` skill before parsing or initializing a package by
-   running `python3 scripts/skill_paths.py imagegen2-info --start <project-root>`
-   from this skill directory. It prints JSON with the imagegen2 CLI `path`, its
-   `version`, and `defaultSegmentation`. It checks, in order: `IMAGEGEN2_CLI`,
-   a sibling `../imagegen2` skill, project skill folders (`.claude/skills`,
-   `.codex/skills`, `.agents/skills`, `skills/`), Claude Code plugin installs,
-   then user skill folders (`~/.claude/skills`, `${CLAUDE_CONFIG_DIR}/skills`,
-   `~/.codex/skills`, `${CODEX_HOME}/skills`). Run imagegen2 as
-   `node <path> ...` with that exact path. If the command fails, stop and tell
-   the user exactly:
+   running `python3 <skill-dir>/scripts/skill_paths.py imagegen2-info --start <project-root>`.
+   It prints JSON with the imagegen2 CLI `path`, its `version`, the `model`
+   this project will use, and `defaultSegmentation` (from an imagegen2
+   dry run in the project, so it honors `IMAGEGEN2_MODEL` pins). It checks,
+   in order: `IMAGEGEN2_CLI` (an exact path; an error if missing), a sibling
+   `../imagegen2` skill, project folders (`.claude/skills/imagegen2`,
+   `.codex/skills/imagegen2`, `.agents/skills/imagegen2`, `skills/imagegen2`,
+   `imagegen2/`) in the project and its parents, Claude Code plugin installs,
+   then user skill folders (`${CLAUDE_CONFIG_DIR}/skills`, `~/.claude/skills`,
+   `${CODEX_HOME}/skills`, `~/.codex/skills`, `~/.agents/skills`). Run
+   imagegen2 as `node <path> ...` with that exact path. If imagegen2 is
+   installed somewhere else (for example a plugin loaded with
+   `--plugin-dir`), set `IMAGEGEN2_CLI` to its `generate.cjs`. If the command
+   fails because imagegen2 cannot be found, stop and tell the user exactly:
 
    ```text
    anim8gen requires the imagegen2 skill, but I could not find it.
@@ -78,9 +88,9 @@ requests where the user only wants a single static image.
    anim8gen scope.
 7. Initialize the package paths under `.anim8gen/runs/<id>/` with the
    installed skill helper:
-   `python3 "$(python3 scripts/skill_paths.py init-package)" --brief <brief.json>`
-   from the installed anim8gen skill directory. Use the reusable shape in
-   `$(python3 scripts/skill_paths.py template-animation-spec)`. The
+   `python3 "$(python3 <skill-dir>/scripts/skill_paths.py init-package)" --brief <brief.json> --project-root <project-root>`.
+   Use the reusable shape in
+   `$(python3 <skill-dir>/scripts/skill_paths.py template-animation-spec)`. The
    initializer adds `.anim8gen/` to the project root `.gitignore` when needed.
    Do not automatically ignore `assets/anim8gen/`; that export bundle is a
    project asset decision.
@@ -95,29 +105,36 @@ requests where the user only wants a single static image.
    frame generation, pass `--no-history`; anim8gen records per-run provenance
    in `.anim8gen/runs/<id>/manifests/`, so imagegen2's root
    `.imagegen2-history.jsonl` log is redundant and should not be produced.
-10. For sprite work, use imagegen2's native transparency by default: set the
-   brief's `segmentation` to `native-alpha` (the default) and run imagegen2
-   with `--background transparent --transparent-mode native-alpha`. The model
-   returns real PNG alpha, which keeps soft edges such as fire, smoke, glow,
-   fur, and sparks without key-color fringes. Record `transparentMode`,
-   `postprocess`, `model`, and `imagegen2Version` from imagegen2's JSON output
-   in `candidates.jsonl` and the package report.
-   Use `chroma-key` segmentation instead when `imagegen2-info` reports
-   `defaultSegmentation: chroma-key` (an imagegen2 release older than
-   v2026.10.10), when the project pins a model without native alpha such as
-   `IMAGEGEN2_MODEL=gpt-image-2`, or when the user asks for hard binary
-   edges. Then set the brief's `segmentation` to `chroma-key` and pass
-   `--background transparent --transparent-mode chroma-key --chroma-key <key>`.
-   Choose a key color that is absent from the subject and requested effects:
-   magenta is fine for many sprites, but avoid it for purple/blue-heavy
-   subjects or magic. Cyan or green keys are acceptable when they contrast
-   better with the sprite palette.
+10. For sprite work, use imagegen2's native transparency when it is
+   available. Leave `segmentation` out of the brief and `init-package` picks
+   `imagegen2-info`'s `defaultSegmentation`: `native-alpha` with GPT Image 2.5
+   (imagegen2 v2026.10.11 or later), otherwise `chroma-key`. Set it
+   explicitly only when the user asks for hard binary edges (`chroma-key`)
+   or names a mode. Read the chosen mode from the spec's
+   `segmentation.strategy`:
+   - `native-alpha`: run imagegen2 with
+     `--background transparent --transparent-mode native-alpha`. The model
+     returns real PNG alpha, which keeps soft edges such as fire, smoke,
+     glow, fur, and sparks without key-color fringes, and alignment keeps
+     detached sparks or embers.
+   - `chroma-key`: run imagegen2 with
+     `--background transparent --transparent-mode chroma-key --chroma-key <key>`
+     using the spec's `segmentation.chromaKey`. Choose a key color absent
+     from the subject and effects (set the brief's `chromaKey`): magenta is
+     fine for many sprites, but avoid it for purple/blue-heavy subjects or
+     magic. Cyan or green keys work when they contrast better.
+   If a native-alpha call fails because the model lacks native transparency
+   (for example after the project pinned `IMAGEGEN2_MODEL=gpt-image-2`),
+   re-run `init-package` with `"segmentation": "chroma-key"` in the brief and
+   `--force`, then regenerate. Record `transparentMode`, `postprocess`,
+   `model`, and `imagegen2Version` from imagegen2's JSON output in
+   `candidates.jsonl` and the package report.
 11. Resolve any user-provided reference image, sprite, contact sheet, or frame
    set before generation. Add them to `brief.references`, preserving any
    request to use a reference exactly as provided with `referenceCleanup:
    false` or per-reference `"cleanup": false`. After package initialization,
    run the bundled helper resolved by
-   `python3 scripts/skill_paths.py prepare-references`. This copies originals,
+   `python3 <skill-dir>/scripts/skill_paths.py prepare-references`. This copies originals,
    prepares PNG references by default, writes
    `reference/prepared-references.json`, and returns the image paths to pass to
    imagegen2. Use `generationPath` from that manifest for all image inputs. In
@@ -170,19 +187,19 @@ requests where the user only wants a single static image.
     succeeds or fails. Every accepted frame must have an explicit pose,
     identity, camera, hygiene, background, and decision record.
 19. Align accepted frames with the bundled runtime tool resolved by
-    `python3 scripts/skill_paths.py align-frames`, validate with
-    `python3 scripts/skill_paths.py validate-sprites`, create a contact sheet
-    with `python3 scripts/skill_paths.py make-contact-sheet`, and create an
-    HTML preview with `python3 scripts/skill_paths.py make-preview`. Export an
-    animated GIF with `python3 scripts/skill_paths.py export-gif` for every
+    `python3 <skill-dir>/scripts/skill_paths.py align-frames`, validate with
+    `python3 <skill-dir>/scripts/skill_paths.py validate-sprites`, create a contact sheet
+    with `python3 <skill-dir>/scripts/skill_paths.py make-contact-sheet`, and create an
+    HTML preview with `python3 <skill-dir>/scripts/skill_paths.py make-preview`. Export an
+    animated GIF with `python3 <skill-dir>/scripts/skill_paths.py export-gif` for every
     complete or partial package after the preview is built, and export an
-    animated WebP with `python3 scripts/skill_paths.py export-webp` when
+    animated WebP with `python3 <skill-dir>/scripts/skill_paths.py export-webp` when
     transparent or painterly edges need a higher-fidelity review artifact.
     GIF and WebP export are local post-processing, should not call image
     generation, and should honor `render.fps`, `preview.playbackIndexes`,
     `reuseFrame`, and `preview.displayOffsets`.
 20. Export the visible deliverable bundle with
-    `python3 scripts/skill_paths.py export-bundle`. The bundle should contain
+    `python3 <skill-dir>/scripts/skill_paths.py export-bundle`. The bundle should contain
     `frames/`, `preview.html`, `<id>.gif`, and `<id>.webp` when WebP export is
     available; raw candidates should appear only when they materially differ
     from final aligned frames.
@@ -255,8 +272,9 @@ Keep prompts frame-specific and continuity-aware:
 - For transparent sprite requests, the live imagegen2 command should include
   `--background transparent --transparent-mode native-alpha` (or
   `--transparent-mode chroma-key --chroma-key <key>` for `chroma-key`
-  packages) and `--no-history`. Leave `--chroma-tolerance` at the CLI default
-  unless review shows retained key pixels or subject erosion.
+  packages) and `--no-history`. In `chroma-key` packages, leave
+  `--chroma-tolerance` at the CLI default unless review shows retained key
+  pixels or subject erosion.
 - Do not pass `--model`; imagegen2 picks its default model or the project's
   `IMAGEGEN2_MODEL` pin, and every frame of a package uses the same one.
 
@@ -308,8 +326,7 @@ identity, camera, hygiene, background, decision, retry reason, and notes.
 Validate these records with:
 
 ```bash
-cd <installed-anim8gen-skill-dir>
-python3 "$(python3 scripts/skill_paths.py validate-review-records)" \
+python3 "$(python3 <skill-dir>/scripts/skill_paths.py validate-review-records)" \
   --candidates .anim8gen/runs/<id>/manifests/candidates.jsonl \
   --reviews .anim8gen/runs/<id>/review/frame-reviews.json
 ```
@@ -343,9 +360,9 @@ After parsing the user's request, write a prepared brief JSON and initialize
 the package deterministically:
 
 ```bash
-cd <installed-anim8gen-skill-dir>
-python3 "$(python3 scripts/skill_paths.py init-package)" \
-  --brief /tmp/<id>.brief.json
+python3 "$(python3 <skill-dir>/scripts/skill_paths.py init-package)" \
+  --brief /tmp/<id>.brief.json \
+  --project-root <project-root>
 ```
 
 The initializer creates the spec, package directories, `.gitkeep` files,
@@ -358,8 +375,7 @@ For local smoke tests only, create synthetic raw frames (transparent for
 image generation:
 
 ```bash
-cd <installed-anim8gen-skill-dir>
-python3 "$(python3 scripts/skill_paths.py create-synthetic-frames)" \
+python3 "$(python3 <skill-dir>/scripts/skill_paths.py create-synthetic-frames)" \
   --spec .anim8gen/runs/<id>/config/<id>.json \
   --root .anim8gen/runs/<id>
 ```
@@ -371,35 +387,35 @@ Do not present synthetic helper frames as `imagegen2` output.
 Replace `<id>` with the package id:
 
 ```bash
-python3 "$(python3 scripts/skill_paths.py align-frames)" \
+python3 "$(python3 <skill-dir>/scripts/skill_paths.py align-frames)" \
   --spec .anim8gen/runs/<id>/config/<id>.json \
   --input .anim8gen/runs/<id>/raw \
   --output .anim8gen/runs/<id>/aligned
 
-python3 "$(python3 scripts/skill_paths.py validate-sprites)" \
+python3 "$(python3 <skill-dir>/scripts/skill_paths.py validate-sprites)" \
   --spec .anim8gen/runs/<id>/config/<id>.json \
   --frames .anim8gen/runs/<id>/aligned \
   --out .anim8gen/runs/<id>/reports/<id>.validation.json
 
-python3 "$(python3 scripts/skill_paths.py make-contact-sheet)" \
+python3 "$(python3 <skill-dir>/scripts/skill_paths.py make-contact-sheet)" \
   --spec .anim8gen/runs/<id>/config/<id>.json \
   --raw .anim8gen/runs/<id>/raw \
   --aligned .anim8gen/runs/<id>/aligned \
   --validation .anim8gen/runs/<id>/reports/<id>.validation.json \
   --out .anim8gen/runs/<id>/review/contact-sheet.png
 
-python3 "$(python3 scripts/skill_paths.py make-preview)" \
+python3 "$(python3 <skill-dir>/scripts/skill_paths.py make-preview)" \
   --spec .anim8gen/runs/<id>/config/<id>.json \
   --frames .anim8gen/runs/<id>/aligned \
   --validation .anim8gen/runs/<id>/reports/<id>.validation.json \
   --out .anim8gen/runs/<id>/preview/<id>.html
 
-python3 "$(python3 scripts/skill_paths.py export-gif)" \
+python3 "$(python3 <skill-dir>/scripts/skill_paths.py export-gif)" \
   --spec .anim8gen/runs/<id>/config/<id>.json \
   --frames .anim8gen/runs/<id>/aligned \
   --out .anim8gen/runs/<id>/gifs/<id>.gif
 
-python3 "$(python3 scripts/skill_paths.py export-bundle)" \
+python3 "$(python3 <skill-dir>/scripts/skill_paths.py export-bundle)" \
   --spec .anim8gen/runs/<id>/config/<id>.json \
   --out assets/anim8gen/<id> \
   --force

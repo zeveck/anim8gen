@@ -715,7 +715,9 @@ def test_readme_and_skill_document_new_output_contract() -> None:
     assert "`gif` exports an animated GIF" not in readme
     assert "request includes `gif`" not in readme
     assert "request includes `gif`" not in skill
-    assert "animated GIF with `python3 scripts/skill_paths.py export-gif`" in skill
+    assert "animated GIF with `python3 <skill-dir>/scripts/skill_paths.py export-gif`" in skill
+    assert "cd <installed-anim8gen-skill-dir>" not in skill
+    assert "--project-root <project-root>" in skill
     assert "does not include tools, schemas, manifests, retry" in readme
     assert "package reports" in readme
     assert "http://127.0.0.1:<port>/preview.html" in skill
@@ -1450,6 +1452,154 @@ def test_workbench_copies_match_skill_runtime() -> None:
         assert (skill_runtime / "config" / name).read_text() == (REPO_ROOT / "anim8gen" / "runtime" / "config" / name).read_text()
     for path in (skill_runtime / "tools").glob("*.py"):
         assert path.read_text() == (TOOLS_DIR / path.name).read_text(), path.name
+
+
+def test_imagegen2_info_honors_project_model_pin() -> None:
+    real_cli = next(
+        (
+            path
+            for path in [
+                Path(os.environ.get("ANIM8GEN_TEST_IMAGEGEN2_CLI", "")),
+                REPO_ROOT.parent / "imagegen2" / "cli" / "generate.cjs",
+                REPO_ROOT.parent / "cli" / "generate.cjs",
+            ]
+            if path.is_file() and "IMAGEGEN2_VERSION" in path.read_text()
+        ),
+        None,
+    )
+    if real_cli is None or shutil.which("node") is None:
+        print("SKIP test_imagegen2_info_honors_project_model_pin (no imagegen2 checkout or node)")
+        return
+    with tempfile.TemporaryDirectory() as tmp:
+        home = Path(tmp) / "home"
+        project = Path(tmp) / "work" / "client"
+        project.mkdir(parents=True)
+        env = {"IMAGEGEN2_CLI": str(real_cli)}
+
+        info = imagegen2_info(project, home, env)
+        assert info["nativeAlpha"] is True
+        assert info["model"].startswith("gpt-image-2.5")
+
+        (project / ".env").write_text("IMAGEGEN2_MODEL=gpt-image-2\n")
+        info = imagegen2_info(project, home, env)
+        assert info["nativeAlpha"] is False
+        assert info["defaultSegmentation"] == "chroma-key"
+        assert "gpt-image-2" in info["detail"]
+
+
+def test_missing_imagegen2_cli_override_is_an_error() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        home = Path(tmp) / "home"
+        project = Path(tmp) / "work" / "client"
+        project.mkdir(parents=True)
+        register_plugin(home / ".claude", "imagegen2", "2026.10.11")
+        result = subprocess.run(
+            [sys.executable, str(SKILL_PATHS_SCRIPT), "imagegen2-info", "--start", str(project)],
+            text=True,
+            capture_output=True,
+            env={"PATH": os.environ.get("PATH", ""), "HOME": str(home), "IMAGEGEN2_CLI": str(Path(tmp) / "nope.cjs")},
+        )
+        assert result.returncode != 0
+        assert "IMAGEGEN2_CLI points to a missing file" in result.stderr
+
+
+def test_project_skill_found_when_home_is_inside_project() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        home = project / ".home"
+        home.mkdir(parents=True)
+        register_plugin(home / ".claude", "imagegen2", "2026.10.11")
+        project_cli = write_imagegen2_cli(project / ".claude" / "skills" / "imagegen2", "2026.10.11")
+
+        assert Path(imagegen2_info(project, home)["path"]) == project_cli
+
+
+def test_project_scoped_plugin_install_only_applies_to_its_project() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        home = Path(tmp) / "home"
+        project = Path(tmp) / "work" / "client"
+        other = Path(tmp) / "work" / "other"
+        project.mkdir(parents=True)
+        other.mkdir(parents=True)
+        config = home / ".claude"
+        user_cli = register_plugin(config, "imagegen2", "2026.10.11")
+        registry = config / "plugins" / "installed_plugins.json"
+        data = json.loads(registry.read_text())
+        scoped_path = config / "plugins" / "cache" / "imagegen2" / "imagegen2" / "2026.10.12"
+        scoped_cli = write_imagegen2_cli(scoped_path / "skills" / "imagegen2", "2026.10.12")
+        data["plugins"]["imagegen2@imagegen2"].append(
+            {"scope": "project", "projectPath": str(other), "installPath": str(scoped_path), "version": "2026.10.12"}
+        )
+        registry.write_text(json.dumps(data))
+
+        assert Path(imagegen2_info(project, home)["path"]) == user_cli
+        assert Path(imagegen2_info(other, home)["path"]) == scoped_cli
+
+
+def test_registered_plugin_beats_orphaned_newer_cache_folder() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        home = Path(tmp) / "home"
+        project = Path(tmp) / "work" / "client"
+        project.mkdir(parents=True)
+        registered = register_plugin(home / ".claude", "imagegen2", "2026.10.11")
+        write_imagegen2_cli(
+            home / ".claude" / "plugins" / "cache" / "imagegen2" / "imagegen2" / "2026.12.1" / "skills" / "imagegen2",
+            "2026.12.1",
+        )
+
+        assert Path(imagegen2_info(project, home)["path"]) == registered
+
+
+def test_native_alpha_alignment_keeps_detached_effects() -> None:
+    spec = {
+        "segmentation": {"strategy": "native-alpha", "alphaThreshold": 8},
+    }
+    width, height = 40, 20
+    mask = [False] * (width * height)
+    for y in range(5, 15):
+        for x in range(2, 12):
+            mask[y * width + x] = True
+    for y in range(8, 13):
+        for x in range(25, 30):
+            mask[y * width + x] = True
+    mask[2 * width + 35] = True
+
+    body, sprite = align_frames.segment(mask, width, height, spec)
+    assert sum(body) == 100
+    assert sum(sprite) == 125
+    assert not sprite[2 * width + 35]
+
+    chroma_spec = {"segmentation": {"strategy": "chroma-key", "alphaThreshold": 8}}
+    body, sprite = align_frames.segment(mask, width, height, chroma_spec)
+    assert sum(sprite) == 100
+
+
+def test_prepare_references_keeps_key_colored_pixels_for_native_alpha() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        reference = project / "wizard.png"
+        image = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+        for x in range(8, 24):
+            for y in range(8, 24):
+                image.putpixel((x, y), (255, 0, 255, 255) if x < 12 else (40, 90, 200, 255))
+        image.save(reference)
+        data = brief("magenta-wizard")
+        data["segmentation"] = "native-alpha"
+        data["references"] = [{"path": str(reference), "role": "canonical"}]
+        brief_path = project / "wizard.brief.json"
+        brief_path.write_text(json.dumps(data))
+        run_command(
+            [sys.executable, str(INIT_PACKAGE_SCRIPT), "--brief", str(brief_path), "--project-root", str(project)],
+            cwd=project,
+        )
+        spec_path = project / ".anim8gen" / "runs" / "magenta-wizard" / "config" / "magenta-wizard.json"
+        manifest = prepare_references.prepare_references(spec_path, project)
+
+        prepared = project / manifest["references"][0]["generationPath"]
+        with Image.open(prepared) as cleaned:
+            assert cleaned.convert("RGBA").getpixel((9, 9)) == (255, 0, 255, 255)
+        assert manifest["selectedChromaKey"] is None
 
 
 def run() -> None:

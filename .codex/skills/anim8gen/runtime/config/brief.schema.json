@@ -78,7 +78,7 @@
     },
     "segmentation": {
       "type": "string",
-      "description": "How frames get transparency. native-alpha uses imagegen2's native PNG alpha (imagegen2 v2026.10.10 or later); chroma-key asks for a solid key-color background that imagegen2 removes locally.",
+      "description": "How frames get transparency. native-alpha uses imagegen2's native PNG alpha (imagegen2 v2026.10.11 or later); chroma-key asks for a solid key-color background that imagegen2 removes locally.",
       "default": "native-alpha",
       "enum": ["native-alpha", "chroma-key"]
     },

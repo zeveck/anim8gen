@@ -59,9 +59,9 @@ def is_visible(pixel: tuple[int, int, int, int], spec: dict) -> bool:
     return not (key_distance(rgb, key) <= tolerance or is_key_family(rgb, key))
 
 
-def largest_component(mask: list[bool], width: int, height: int) -> list[bool]:
+def connected_components(mask: list[bool], width: int, height: int) -> list[list[int]]:
     visited = [False] * len(mask)
-    best: list[int] = []
+    components: list[list[int]] = []
     neighbors = ((1, 0), (-1, 0), (0, 1), (0, -1))
     for start, visible in enumerate(mask):
         if not visible or visited[start]:
@@ -81,12 +81,43 @@ def largest_component(mask: list[bool], width: int, height: int) -> list[bool]:
                 if mask[nidx] and not visited[nidx]:
                     visited[nidx] = True
                     queue.append(nidx)
-        if len(component) > len(best):
-            best = component
-    kept = [False] * len(mask)
-    for idx in best:
-        kept[idx] = True
+        components.append(component)
+    return components
+
+
+def mask_from(components: list[list[int]], size: int) -> list[bool]:
+    kept = [False] * size
+    for component in components:
+        for idx in component:
+            kept[idx] = True
     return kept
+
+
+def largest_component(mask: list[bool], width: int, height: int) -> list[bool]:
+    components = connected_components(mask, width, height)
+    return mask_from([max(components, key=len)] if components else [], len(mask))
+
+
+def segment(mask: list[bool], width: int, height: int, spec: dict) -> tuple[list[bool], list[bool]]:
+    """Return (body, sprite) masks.
+
+    The body is the largest connected component and drives anchors. For
+    chroma-key frames the sprite is the body alone, which drops leftover key
+    specks. Native-alpha frames have no key specks, so detached effects such
+    as sparks, embers, bubbles, and smoke puffs stay in the sprite when they
+    are at least segmentation.minDetachedPixels (default 16) pixels.
+    """
+    components = connected_components(mask, width, height)
+    if not components:
+        empty = [False] * len(mask)
+        return empty, empty
+    body = max(components, key=len)
+    body_mask = mask_from([body], len(mask))
+    if spec["segmentation"].get("strategy") != "native-alpha":
+        return body_mask, body_mask
+    min_pixels = spec["segmentation"].get("minDetachedPixels", 16)
+    kept = [component for component in components if component is body or len(component) >= min_pixels]
+    return body_mask, mask_from(kept, len(mask))
 
 
 def bbox_for(mask: list[bool], width: int) -> tuple[int, int, int, int]:
@@ -213,8 +244,9 @@ def main() -> None:
         image = Image.open(source).convert("RGBA")
         width, height = image.size
         pixels = list(image.get_flattened_data())
-        mask = largest_component([is_visible(pixel, spec) for pixel in pixels], width, height)
+        body, mask = segment([is_visible(pixel, spec) for pixel in pixels], width, height, spec)
         bbox = bbox_for(mask, width)
+        body_bbox = bbox_for(body, width)
         override_anchor = manual_override(spec, frame)
         anchor_strategy = frame.get("anchor", spec["alignment"]["defaultAnchor"])
         loaded.append(
@@ -224,9 +256,9 @@ def main() -> None:
                 "image": image,
                 "mask": mask,
                 "bbox": bbox,
-                "anchor": override_anchor if override_anchor else anchor_for(mask, width, bbox, anchor_strategy),
+                "anchor": override_anchor if override_anchor else anchor_for(body, width, body_bbox, anchor_strategy),
                 "anchorStrategy": "manual" if override_anchor else anchor_strategy,
-                "centroid": centroid(mask, width),
+                "centroid": centroid(body, width),
                 "visibleArea": sum(1 for visible in mask if visible),
             }
         )

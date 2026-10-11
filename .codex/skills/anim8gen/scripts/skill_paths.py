@@ -7,6 +7,8 @@ import argparse
 import json
 import os
 import re
+import subprocess
+import tempfile
 from pathlib import Path
 
 import layout_paths
@@ -18,8 +20,9 @@ SKILL_DIR = SCRIPT_DIR.parent
 ANIM8GEN_VERSION = "2026.10.11"
 
 # imagegen2 releases from this version on support --transparent-mode
-# native-alpha (GPT Image 2.5). Older copies only offer chroma-key.
-IMAGEGEN2_NATIVE_ALPHA_VERSION = (2026, 10, 10)
+# native-alpha (GPT Image 2.5). Older copies only offer chroma-key. Used only
+# when the dry-run probe below can't run.
+IMAGEGEN2_NATIVE_ALPHA_VERSION = (2026, 10, 11)
 
 
 def parse_args() -> argparse.Namespace:
@@ -56,18 +59,13 @@ def parse_args() -> argparse.Namespace:
 
 
 def project_roots(start: Path) -> list[Path]:
-    """The start directory and its parents, stopping above the home directory.
+    """The start directory and its parents, except the home directory.
 
     Home-level skill folders are user installs; they are checked after Claude
     Code plugin installs so a stale copied skill can't shadow a managed plugin.
     """
     home = Path.home().resolve()
-    roots: list[Path] = []
-    for root in [start.resolve(), *start.resolve().parents]:
-        if root == home or root in home.parents:
-            break
-        roots.append(root)
-    return roots
+    return [root for root in [start.resolve(), *start.resolve().parents] if root != home]
 
 
 def claude_config_dirs() -> list[Path]:
@@ -94,37 +92,49 @@ def version_key(version: str) -> tuple[int, ...]:
     return tuple(int(part) for part in parts[:3]) or (0,)
 
 
-def plugin_candidates() -> list[Path]:
+def plugin_install_applies(install: dict, start: Path) -> bool:
+    """User installs apply everywhere; project/local installs only inside their project."""
+    if install.get("scope", "user") == "user":
+        return True
+    project_path = install.get("projectPath")
+    if not project_path:
+        return False
+    project = Path(project_path).expanduser().resolve()
+    here = start.resolve()
+    return here == project or project in here.parents
+
+
+def plugin_candidates(start: Path) -> list[Path]:
     """imagegen2 CLIs from Claude Code plugin installs, newest version first."""
     found: list[tuple[tuple[int, ...], Path]] = []
     for config_dir in claude_config_dirs():
         plugins_dir = config_dir / "plugins"
         registry = plugins_dir / "installed_plugins.json"
         try:
-            data = json.loads(registry.read_text())
-            entries = data.get("plugins", {})
+            entries = json.loads(registry.read_text()).get("plugins", {})
+            readable = isinstance(entries, dict)
         except (OSError, ValueError, AttributeError):
-            entries = {}
-        for key, installs in entries.items() if isinstance(entries, dict) else []:
+            entries, readable = {}, False
+        for key, installs in entries.items() if readable else []:
             if key.split("@", 1)[0] != "imagegen2" or not isinstance(installs, list):
                 continue
             for install in installs:
                 if not isinstance(install, dict) or not install.get("installPath"):
                     continue
+                if not plugin_install_applies(install, start):
+                    continue
                 cli = Path(install["installPath"]) / "skills" / "imagegen2" / "generate.cjs"
                 found.append((version_key(str(install.get("version", ""))), cli))
-        # Fall back to the cache layout if the registry is missing or unreadable.
-        for cli in plugins_dir.glob("cache/*/imagegen2/*/skills/imagegen2/generate.cjs"):
-            found.append((version_key(cli.parents[2].name), cli))
+        if not readable:
+            # No usable registry: fall back to the cache layout.
+            for cli in plugins_dir.glob("cache/*/imagegen2/*/skills/imagegen2/generate.cjs"):
+                found.append((version_key(cli.parents[2].name), cli))
     found.sort(key=lambda item: item[0], reverse=True)
     return [cli for _, cli in found]
 
 
 def imagegen2_candidates(start: Path) -> list[tuple[str, Path]]:
     candidates: list[tuple[str, Path]] = []
-    override = os.environ.get("IMAGEGEN2_CLI")
-    if override:
-        candidates.append(("IMAGEGEN2_CLI", Path(override).expanduser()))
     candidates.append(("sibling skill", SKILL_DIR.parent / "imagegen2" / "generate.cjs"))
     for root in project_roots(start):
         for rel in (
@@ -135,7 +145,7 @@ def imagegen2_candidates(start: Path) -> list[tuple[str, Path]]:
             Path("imagegen2"),
         ):
             candidates.append(("project skill", root / rel / "generate.cjs"))
-    for cli in plugin_candidates():
+    for cli in plugin_candidates(start):
         candidates.append(("Claude Code plugin", cli))
     for root in user_skill_roots():
         candidates.append(("user skill", root / "skills" / "imagegen2" / "generate.cjs"))
@@ -143,6 +153,12 @@ def imagegen2_candidates(start: Path) -> list[tuple[str, Path]]:
 
 
 def find_imagegen2(start: Path) -> tuple[str, Path]:
+    override = os.environ.get("IMAGEGEN2_CLI")
+    if override:
+        cli = Path(override).expanduser()
+        if not cli.is_file():
+            raise SystemExit(f"ERROR: IMAGEGEN2_CLI points to a missing file: {cli}")
+        return "IMAGEGEN2_CLI", cli
     for source, candidate in imagegen2_candidates(start):
         if candidate.is_file():
             return source, candidate
@@ -161,16 +177,62 @@ def imagegen2_version(cli: Path) -> str | None:
     return match.group(1) if match else None
 
 
+def probe_transparency(cli: Path, start: Path) -> dict | None:
+    """Ask imagegen2 how it would handle a transparent request in this project.
+
+    A dry run needs no API key and makes no API call, but it applies the
+    project's .env and IMAGEGEN2_MODEL, so it reports the model that frames
+    will actually use. Returns None if the probe can't run (no node, old CLI
+    output, timeout).
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        try:
+            result = subprocess.run(
+                [
+                    "node",
+                    str(cli),
+                    "--dry-run",
+                    "--prompt",
+                    "anim8gen transparency probe",
+                    "--output",
+                    str(Path(tmp) / "probe.png"),
+                    "--background",
+                    "transparent",
+                ],
+                cwd=start,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return None
+    try:
+        payload = json.loads(result.stdout)
+    except ValueError:
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
 def imagegen2_info(start: Path) -> dict:
     source, cli = find_imagegen2(start)
     version = imagegen2_version(cli)
-    native_alpha = bool(version) and version_key(version) >= IMAGEGEN2_NATIVE_ALPHA_VERSION
+    probe = probe_transparency(cli, start)
+    if probe is not None:
+        native_alpha = bool(probe.get("success")) and probe.get("transparentMode") == "native-alpha"
+        model = probe.get("model")
+        detail = None if native_alpha else probe.get("error")
+    else:
+        native_alpha = bool(version) and version_key(version) >= IMAGEGEN2_NATIVE_ALPHA_VERSION
+        model = None
+        detail = "dry-run probe unavailable; decided from the imagegen2 version"
     return {
         "path": str(cli),
         "source": source,
         "version": version,
+        "model": model,
         "nativeAlpha": native_alpha,
         "defaultSegmentation": "native-alpha" if native_alpha else "chroma-key",
+        "detail": detail,
     }
 
 

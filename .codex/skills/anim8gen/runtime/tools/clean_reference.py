@@ -209,6 +209,7 @@ def clean_reference(
     alpha_threshold: int = 8,
     max_visible_removal_ratio: float = 0.02,
     remove_key_family: bool = False,
+    remove_key: bool = True,
 ) -> dict[str, Any]:
     if not (0 <= chroma_tolerance <= 442):
         raise ValueError("chroma_tolerance must be between 0 and 442")
@@ -221,12 +222,17 @@ def clean_reference(
     before_alpha = alpha_histogram(before)
     before_hidden = hidden_rgb_stats(before, key, chroma_tolerance, include_key_family=remove_key_family)
     before_visible = visible_color_stats(before, key, chroma_tolerance, include_key_family=remove_key_family)
-    removed = remove_key_pixels(
-        cleaned,
-        key,
-        chroma_tolerance,
-        alpha_threshold,
-        include_key_family=remove_key_family,
+    # Native-alpha packages have no key color: only alpha-bleed hidden RGB.
+    removed = (
+        remove_key_pixels(
+            cleaned,
+            key,
+            chroma_tolerance,
+            alpha_threshold,
+            include_key_family=remove_key_family,
+        )
+        if remove_key
+        else 0
     )
     alpha_bleed_pixels = alpha_bleed_transparent_pixels(cleaned)
     after_alpha = alpha_histogram(cleaned)
@@ -243,6 +249,7 @@ def clean_reference(
         "chromaTolerance": chroma_tolerance,
         "alphaThreshold": alpha_threshold,
         "removeKeyFamily": remove_key_family,
+        "removeKey": remove_key,
         "removedVisibleKeyPixels": removed,
         "alphaBleedPixels": alpha_bleed_pixels,
         "before": {
