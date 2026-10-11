@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -159,6 +160,8 @@ def default_segmentation(project_root: Path) -> str:
     try:
         return skill_paths.imagegen2_info(project_root)["defaultSegmentation"]
     except SystemExit:
+        if os.environ.get("IMAGEGEN2_CLI"):
+            raise  # an explicit path that doesn't exist is an error
         # imagegen2 not found: keep the modern default; generation will stop
         # on the missing imagegen2 anyway.
         return "native-alpha"
@@ -259,6 +262,7 @@ def build_spec(
             "chromaKey": brief.get("chromaKey", "#ff00ff"),
             "alphaThreshold": brief.get("alphaThreshold", 8),
             "chromaTolerance": brief.get("chromaTolerance", 32),
+            "minDetachedPixels": brief.get("minDetachedPixels", 16),
         },
         "alignment": {
             "defaultAnchor": brief.get("defaultAnchor", "body_bottom_center"),

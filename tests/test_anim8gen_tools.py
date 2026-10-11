@@ -1484,6 +1484,7 @@ def test_imagegen2_info_honors_project_model_pin() -> None:
         info = imagegen2_info(project, home, env)
         assert info["nativeAlpha"] is False
         assert info["defaultSegmentation"] == "chroma-key"
+        assert info["model"] == "gpt-image-2"
         assert "gpt-image-2" in info["detail"]
 
 
@@ -1498,6 +1499,23 @@ def test_missing_imagegen2_cli_override_is_an_error() -> None:
             text=True,
             capture_output=True,
             env={"PATH": os.environ.get("PATH", ""), "HOME": str(home), "IMAGEGEN2_CLI": str(Path(tmp) / "nope.cjs")},
+        )
+        assert result.returncode != 0
+        assert "IMAGEGEN2_CLI points to a missing file" in result.stderr
+
+
+def test_init_package_rejects_missing_imagegen2_cli_override() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        brief_path = project / "b.brief.json"
+        brief_path.write_text(json.dumps(brief("override-missing")))
+        result = subprocess.run(
+            [sys.executable, str(INIT_PACKAGE_SCRIPT), "--brief", str(brief_path), "--project-root", str(project)],
+            cwd=project,
+            text=True,
+            capture_output=True,
+            env={**os.environ, "IMAGEGEN2_CLI": str(Path(tmp) / "missing.cjs")},
         )
         assert result.returncode != 0
         assert "IMAGEGEN2_CLI points to a missing file" in result.stderr

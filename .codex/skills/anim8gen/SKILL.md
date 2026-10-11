@@ -116,7 +116,9 @@ requests where the user only wants a single static image.
      `--background transparent --transparent-mode native-alpha`. The model
      returns real PNG alpha, which keeps soft edges such as fire, smoke,
      glow, fur, and sparks without key-color fringes, and alignment keeps
-     detached sparks or embers.
+     detached sparks or embers of at least `segmentation.minDetachedPixels`
+     (default 16) source pixels. Lower it if tiny sparkles vanish; raise it
+     if faint haze enlarges the sprite's bounds and shrinks the frame.
    - `chroma-key`: run imagegen2 with
      `--background transparent --transparent-mode chroma-key --chroma-key <key>`
      using the spec's `segmentation.chromaKey`. Choose a key color absent

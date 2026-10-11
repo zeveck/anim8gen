@@ -5,9 +5,9 @@ which are also valid semver. For a second release on the same day, use the next
 day's date rather than a `-1` suffix, because semver sorts `2026.10.11-1`
 before `2026.10.11`.
 
-The running version is printed by `python3 scripts/skill_paths.py version`
-(from the skill folder) and recorded as `generation.anim8genVersion` in every
-new package spec.
+The running version is printed by
+`python3 <skill-dir>/scripts/skill_paths.py version` and recorded as
+`generation.anim8genVersion` in every new package spec.
 
 ## v2026.10.11
 
@@ -19,7 +19,7 @@ new package spec.
   `/plugin marketplace add zeveck/imagegen2`, then
   `/plugin install anim8gen --marketplace zeveck/anim8gen`.
 - anim8gen now finds imagegen2 when it is installed as a Claude Code plugin.
-  `python3 scripts/skill_paths.py imagegen2-info` prints which imagegen2 it
+  `python3 <skill-dir>/scripts/skill_paths.py imagegen2-info` prints which imagegen2 it
   found, where, its version, and the model this project will use. A managed
   plugin install wins over an old copied `~/.claude/skills/imagegen2`;
   `IMAGEGEN2_CLI` names an exact copy to use.
@@ -36,10 +36,12 @@ new package spec.
   aligned by alpha only. Soft edges such as fire, smoke, glow, and fur no
   longer pick up key-color fringes, subject colors close to the key (magenta
   magic, green slime) are no longer cut out, and detached sparks, embers, and
-  smoke puffs are kept instead of dropped.
+  smoke puffs of at least 16 source pixels (`segmentation.minDetachedPixels`)
+  are kept instead of dropped.
 - `init-package` decides with an imagegen2 dry run in the project, so it
-  picks chroma-key for imagegen2 releases older than v2026.10.11 and for
-  projects that pin a model without native alpha (`IMAGEGEN2_MODEL=gpt-image-2`).
+  picks chroma-key when the project's imagegen2 or model can't produce native
+  alpha: imagegen2 releases before v2026.10.11, or a pinned model without
+  native alpha (`IMAGEGEN2_MODEL=gpt-image-2`).
   Set the brief's `segmentation` to `chroma-key` or `native-alpha` to choose
   explicitly. Existing packages keep the segmentation recorded in their spec.
 - Reference preparation no longer strips key-colored pixels from references

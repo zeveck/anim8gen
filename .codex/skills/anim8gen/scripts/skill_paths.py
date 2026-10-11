@@ -219,8 +219,13 @@ def imagegen2_info(start: Path) -> dict:
     probe = probe_transparency(cli, start)
     if probe is not None:
         native_alpha = bool(probe.get("success")) and probe.get("transparentMode") == "native-alpha"
-        model = probe.get("model")
         detail = None if native_alpha else probe.get("error")
+        model = probe.get("model")
+        if not model and isinstance(detail, str):
+            # imagegen2 errors don't carry a model field; its transparency
+            # error starts with the model name.
+            match = re.match(r"(\S+) does not support", detail)
+            model = match.group(1) if match else None
     else:
         native_alpha = bool(version) and version_key(version) >= IMAGEGEN2_NATIVE_ALPHA_VERSION
         model = None

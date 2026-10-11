@@ -33,7 +33,8 @@
     "strategy": "native-alpha",
     "chromaKey": "#ff00ff",
     "alphaThreshold": 8,
-    "chromaTolerance": 32
+    "chromaTolerance": 32,
+    "minDetachedPixels": 16
   },
   "alignment": {
     "defaultAnchor": "body_bottom_center",
