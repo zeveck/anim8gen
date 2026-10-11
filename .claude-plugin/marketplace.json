@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "anim8gen",
-      "source": ".",
+      "source": "./.codex/skills",
       "description": "Generate short game sprite animations from natural-language prompts. Requires and installs the imagegen2 plugin."
     }
   ]

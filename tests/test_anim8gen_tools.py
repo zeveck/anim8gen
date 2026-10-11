@@ -1206,9 +1206,9 @@ def imagegen2_info(start: Path, home: Path, extra_env: dict[str, str] | None = N
     return json.loads(result.stdout)
 
 
-def register_plugin(config_dir: Path, marketplace: str, version: str) -> Path:
+def register_plugin(config_dir: Path, marketplace: str, version: str, skill_rel: str = "imagegen2") -> Path:
     install_path = config_dir / "plugins" / "cache" / marketplace / "imagegen2" / version
-    cli = write_imagegen2_cli(install_path / "skills" / "imagegen2", version)
+    cli = write_imagegen2_cli(install_path / skill_rel, version)
     registry = config_dir / "plugins" / "installed_plugins.json"
     data = json.loads(registry.read_text()) if registry.exists() else {"version": 2, "plugins": {}}
     data["plugins"].setdefault(f"imagegen2@{marketplace}", []).append(
@@ -1237,21 +1237,34 @@ def test_imagegen2_plugin_install_beats_stale_user_skill() -> None:
         assert info["defaultSegmentation"] == "native-alpha"
 
 
+def test_imagegen2_plugin_found_in_repo_rooted_install_layout() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        home = Path(tmp) / "home"
+        project = Path(tmp) / "work" / "client"
+        project.mkdir(parents=True)
+        cli = register_plugin(home / ".claude", "imagegen2", "2026.10.11", "skills/imagegen2")
+
+        info = imagegen2_info(project, home)
+
+        assert info["source"] == "Claude Code plugin"
+        assert Path(info["path"]) == cli
+
+
 def test_imagegen2_plugin_found_through_claude_config_dir_and_cache_fallback() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         home = Path(tmp) / "home"
         config_dir = Path(tmp) / "custom-claude"
         project = Path(tmp) / "work" / "client"
         project.mkdir(parents=True)
-        cli = write_imagegen2_cli(
-            config_dir / "plugins" / "cache" / "imagegen2" / "imagegen2" / "2026.10.11" / "skills" / "imagegen2",
-            "2026.10.11",
-        )
+        cache = config_dir / "plugins" / "cache" / "imagegen2" / "imagegen2"
+        write_imagegen2_cli(cache / "2026.10.10" / "skills" / "imagegen2", "2026.10.10")
+        cli = write_imagegen2_cli(cache / "2026.10.11" / "imagegen2", "2026.10.11")
 
         info = imagegen2_info(project, home, {"CLAUDE_CONFIG_DIR": str(config_dir)})
 
         assert Path(info["path"]) == cli
         assert info["source"] == "Claude Code plugin"
+        assert info["version"] == "2026.10.11"
 
 
 def test_imagegen2_project_skill_and_override_take_priority() -> None:
@@ -1300,8 +1313,9 @@ def test_missing_imagegen2_fails_clearly() -> None:
 
 
 def test_imagegen2_is_not_vendored() -> None:
+    # .claude-plugin holds the plugin manifest (the plugin is rooted here).
     skills = {path.name for path in (REPO_ROOT / ".codex" / "skills").iterdir() if path.is_dir()}
-    assert skills == {"anim8gen"}
+    assert skills == {"anim8gen", ".claude-plugin"}
 
 
 def test_native_alpha_keeps_key_colored_subject_pixels() -> None:
@@ -1415,7 +1429,7 @@ def test_synthetic_native_alpha_frames_are_transparent() -> None:
 
 def test_version_is_consistent_across_plugin_changelog_and_templates() -> None:
     version = skill_paths.ANIM8GEN_VERSION
-    plugin = json.loads((REPO_ROOT / ".claude-plugin" / "plugin.json").read_text())
+    plugin = json.loads((REPO_ROOT / ".codex" / "skills" / ".claude-plugin" / "plugin.json").read_text())
     changelog = (REPO_ROOT / "CHANGELOG.md").read_text()
     first_heading = re.search(r"^## v(\S+)", changelog, flags=re.M)
     templates = [
@@ -1435,11 +1449,16 @@ def test_version_is_consistent_across_plugin_changelog_and_templates() -> None:
 
 
 def test_plugin_manifest_points_at_skill_and_depends_on_imagegen2() -> None:
-    plugin = json.loads((REPO_ROOT / ".claude-plugin" / "plugin.json").read_text())
+    plugin_root = REPO_ROOT / ".codex" / "skills"
+    plugin = json.loads((plugin_root / ".claude-plugin" / "plugin.json").read_text())
     marketplace = json.loads((REPO_ROOT / ".claude-plugin" / "marketplace.json").read_text())
 
     assert plugin["name"] == "anim8gen"
-    assert (REPO_ROOT / plugin["skills"] / "SKILL.md").is_file()
+    # The plugin is rooted at .codex/skills, so an install copies only the skill.
+    assert [entry["source"] for entry in marketplace["plugins"]] == ["./.codex/skills"]
+    assert plugin["skills"] == "./anim8gen"
+    assert (plugin_root / plugin["skills"] / "SKILL.md").is_file()
+    assert not (REPO_ROOT / ".claude-plugin" / "plugin.json").exists()
     assert {"name": "imagegen2", "marketplace": "imagegen2"} in plugin["dependencies"]
     assert marketplace["name"] == "anim8gen"
     assert "imagegen2" in marketplace["allowCrossMarketplaceDependenciesOn"]

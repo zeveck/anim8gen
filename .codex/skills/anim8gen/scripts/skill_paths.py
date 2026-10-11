@@ -104,6 +104,12 @@ def plugin_install_applies(install: dict, start: Path) -> bool:
     return here == project or project in here.parents
 
 
+# Where generate.cjs sits inside an imagegen2 plugin install: the plugin is
+# rooted at the repo's skills/ folder (v2026.10.11 as published); the second
+# path covers an install rooted at the repo itself.
+PLUGIN_CLI_PATHS = (Path("imagegen2") / "generate.cjs", Path("skills") / "imagegen2" / "generate.cjs")
+
+
 def plugin_candidates(start: Path) -> list[Path]:
     """imagegen2 CLIs from Claude Code plugin installs, newest version first."""
     found: list[tuple[tuple[int, ...], Path]] = []
@@ -123,12 +129,15 @@ def plugin_candidates(start: Path) -> list[Path]:
                     continue
                 if not plugin_install_applies(install, start):
                     continue
-                cli = Path(install["installPath"]) / "skills" / "imagegen2" / "generate.cjs"
-                found.append((version_key(str(install.get("version", ""))), cli))
+                key = version_key(str(install.get("version", "")))
+                for rel in PLUGIN_CLI_PATHS:
+                    found.append((key, Path(install["installPath"]) / rel))
         if not readable:
             # No usable registry: fall back to the cache layout.
-            for cli in plugins_dir.glob("cache/*/imagegen2/*/skills/imagegen2/generate.cjs"):
-                found.append((version_key(cli.parents[2].name), cli))
+            for rel in PLUGIN_CLI_PATHS:
+                for cli in plugins_dir.glob(f"cache/*/imagegen2/*/{rel.as_posix()}"):
+                    version_dir = cli.parents[len(rel.parts) - 1]
+                    found.append((version_key(version_dir.name), cli))
     found.sort(key=lambda item: item[0], reverse=True)
     return [cli for _, cli in found]
 

@@ -1,7 +1,10 @@
 # Project Codex Skills
 
 `.codex/skills/anim8gen/` is the anim8gen skill itself. The same folder is the
-skill in the Claude Code plugin (see `.claude-plugin/plugin.json`).
+skill in the Claude Code plugin: the plugin is rooted at `.codex/skills/`
+(manifest in `.codex/skills/.claude-plugin/plugin.json`), so a plugin install
+copies only the skill. Load it in development with
+`claude --plugin-dir .codex/skills`.
 
 Codex discovers active skills from `${CODEX_HOME:-$HOME/.codex}/skills`, so a
 fresh clone still needs to install the skill into the local Codex home:

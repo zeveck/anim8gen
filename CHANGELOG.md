@@ -17,7 +17,9 @@ The running version is printed by
   imagegen2 as a dependency, so installing anim8gen also installs imagegen2
   once the imagegen2 marketplace is added:
   `/plugin marketplace add zeveck/imagegen2`, then
-  `/plugin install anim8gen --marketplace zeveck/anim8gen`.
+  `/plugin install anim8gen --marketplace zeveck/anim8gen`. The plugin is
+  rooted at `.codex/skills/`, so an install copies only the skill, not the
+  repository.
 - anim8gen now finds imagegen2 when it is installed as a Claude Code plugin.
   `python3 <skill-dir>/scripts/skill_paths.py imagegen2-info` prints which imagegen2 it
   found, where, its version, and the model this project will use. A managed
