@@ -1,0 +1,15 @@
+{
+  "name": "anim8gen",
+  "owner": {
+    "name": "zeveck"
+  },
+  "description": "anim8gen: short game sprite animations generated with imagegen2.",
+  "allowCrossMarketplaceDependenciesOn": ["imagegen2"],
+  "plugins": [
+    {
+      "name": "anim8gen",
+      "source": ".",
+      "description": "Generate short game sprite animations from natural-language prompts. Requires and installs the imagegen2 plugin."
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "anim8gen",
+  "version": "2026.10.11",
+  "description": "Generate short game sprite animations from natural-language prompts: imagegen2 frames, agentic review, alignment, contact sheets, previews, and GIF/WebP exports.",
+  "author": {
+    "name": "zeveck"
+  },
+  "homepage": "https://github.com/zeveck/anim8gen",
+  "repository": "https://github.com/zeveck/anim8gen",
+  "license": "MIT",
+  "keywords": ["animation", "sprites", "game-assets", "pixel-art", "imagegen2"],
+  "skills": "./.codex/skills/anim8gen",
+  "dependencies": [
+    { "name": "imagegen2", "marketplace": "imagegen2" }
+  ]
+}

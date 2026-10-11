@@ -1,0 +1,52 @@
+# Changelog
+
+anim8gen uses date-based versions: `vYYYY.M.D` (for example `v2026.10.11`),
+which are also valid semver. For a second release on the same day, use the next
+day's date rather than a `-1` suffix, because semver sorts `2026.10.11-1`
+before `2026.10.11`.
+
+The running version is printed by `python3 scripts/skill_paths.py version`
+(from the skill folder) and recorded as `generation.anim8genVersion` in every
+new package spec.
+
+## v2026.10.11
+
+### Claude Code plugin
+
+- anim8gen is now a Claude Code plugin with its own marketplace. It declares
+  imagegen2 as a dependency, so installing anim8gen also installs imagegen2
+  once the imagegen2 marketplace is added:
+  `/plugin marketplace add zeveck/imagegen2`, then
+  `/plugin install anim8gen --marketplace zeveck/anim8gen`.
+- anim8gen now finds imagegen2 when it is installed as a Claude Code plugin.
+  `python3 scripts/skill_paths.py imagegen2-info` prints which imagegen2 it
+  found, where, and its version. A managed plugin install wins over an old
+  copied `~/.claude/skills/imagegen2`; `IMAGEGEN2_CLI` overrides the lookup.
+- This repository no longer vendors imagegen2, imagegen, or nanogen. The
+  vendored imagegen2 was an old build, and as a sibling of the anim8gen skill
+  it shadowed whatever imagegen2 the user installed. The Codex install script
+  fetches the current imagegen2 Codex skill instead.
+
+### Native transparency
+
+- New sprite packages use imagegen2's native alpha (GPT Image 2.5) by default:
+  frames are requested "isolated on a transparent background" with
+  `--transparent-mode native-alpha` and aligned by alpha only. Soft edges such
+  as fire, smoke, glow, and fur no longer pick up key-color fringes, and
+  subject colors close to the key (magenta magic, green slime) are no longer
+  cut out.
+- Chroma-key is still available: set the brief's `segmentation` to
+  `chroma-key`. anim8gen uses it automatically with imagegen2 releases older
+  than v2026.10.10, which have no native alpha. Existing packages keep the
+  segmentation recorded in their spec.
+
+### Also
+
+- Dev container refreshed from github.com/zeveck/devcontainers (`gh`, `glab`,
+  `auth`, `dc`, Node 24, and agent sign-ins and history that survive
+  rebuilds).
+
+## Before v2026.10.11
+
+Unversioned releases, installed by copying the skill folder, using
+imagegen2's chroma-key transparency.

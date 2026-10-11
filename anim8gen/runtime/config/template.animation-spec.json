@@ -9,7 +9,7 @@
       "single subject",
       "side-view",
       "compact readable silhouette",
-      "solid chroma-key background",
+      "isolated on a transparent background",
       "no text"
     ]
   },
@@ -24,12 +24,13 @@
   },
   "generation": {
     "preferredSkill": "imagegen2",
+    "anim8genVersion": "2026.10.11",
     "candidateManifest": ".anim8gen/runs/example-animation-id/manifests/candidates.jsonl",
     "acceptedManifest": ".anim8gen/runs/example-animation-id/manifests/accepted-frames.json",
     "retryBudget": 2
   },
   "segmentation": {
-    "strategy": "chroma-key",
+    "strategy": "native-alpha",
     "chromaKey": "#ff00ff",
     "alphaThreshold": 8,
     "chromaTolerance": 32

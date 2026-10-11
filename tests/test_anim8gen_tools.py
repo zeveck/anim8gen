@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import json
+import os
+import re
 import shutil
 import subprocess
 import sys
@@ -31,6 +33,7 @@ sys.path.insert(0, str(SKILL_SCRIPT_DIR))
 
 import layout_paths  # noqa: E402
 import prepare_references  # noqa: E402
+import skill_paths  # noqa: E402
 
 
 INIT_PACKAGE_SCRIPT = SKILL_SCRIPT_DIR / "init_package.py"
@@ -1175,6 +1178,278 @@ def test_complete_synthetic_run_uses_hidden_workspace_and_visible_bundle() -> No
         assert not (export_dir / "manifests").exists()
         assert not (export_dir / "reports").exists()
         assert not (project / "anim8gen").exists()
+
+
+SKILL_PATHS_SCRIPT = SKILL_SCRIPT_DIR / "skill_paths.py"
+
+
+def write_imagegen2_cli(path: Path, version: str | None) -> Path:
+    path.mkdir(parents=True, exist_ok=True)
+    cli = path / "generate.cjs"
+    body = f'const IMAGEGEN2_VERSION = "{version}";\n' if version else "// legacy imagegen2 without a version\n"
+    cli.write_text(body)
+    return cli
+
+
+def imagegen2_info(start: Path, home: Path, extra_env: dict[str, str] | None = None) -> dict:
+    env = {"PATH": os.environ.get("PATH", ""), "HOME": str(home)}
+    env.update(extra_env or {})
+    result = subprocess.run(
+        [sys.executable, str(SKILL_PATHS_SCRIPT), "imagegen2-info", "--start", str(start)],
+        check=True,
+        text=True,
+        capture_output=True,
+        env=env,
+    )
+    return json.loads(result.stdout)
+
+
+def register_plugin(config_dir: Path, marketplace: str, version: str) -> Path:
+    install_path = config_dir / "plugins" / "cache" / marketplace / "imagegen2" / version
+    cli = write_imagegen2_cli(install_path / "skills" / "imagegen2", version)
+    registry = config_dir / "plugins" / "installed_plugins.json"
+    data = json.loads(registry.read_text()) if registry.exists() else {"version": 2, "plugins": {}}
+    data["plugins"].setdefault(f"imagegen2@{marketplace}", []).append(
+        {"scope": "user", "installPath": str(install_path), "version": version}
+    )
+    registry.parent.mkdir(parents=True, exist_ok=True)
+    registry.write_text(json.dumps(data))
+    return cli
+
+
+def test_imagegen2_plugin_install_beats_stale_user_skill() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        home = Path(tmp) / "home"
+        project = Path(tmp) / "work" / "client"
+        project.mkdir(parents=True)
+        write_imagegen2_cli(home / ".claude" / "skills" / "imagegen2", None)
+        register_plugin(home / ".claude", "imagegen2", "2026.10.10")
+        newest = register_plugin(home / ".claude", "imagegen2", "2026.10.11")
+
+        info = imagegen2_info(project, home)
+
+        assert info["source"] == "Claude Code plugin"
+        assert Path(info["path"]) == newest
+        assert info["version"] == "2026.10.11"
+        assert info["nativeAlpha"] is True
+        assert info["defaultSegmentation"] == "native-alpha"
+
+
+def test_imagegen2_plugin_found_through_claude_config_dir_and_cache_fallback() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        home = Path(tmp) / "home"
+        config_dir = Path(tmp) / "custom-claude"
+        project = Path(tmp) / "work" / "client"
+        project.mkdir(parents=True)
+        cli = write_imagegen2_cli(
+            config_dir / "plugins" / "cache" / "imagegen2" / "imagegen2" / "2026.10.11" / "skills" / "imagegen2",
+            "2026.10.11",
+        )
+
+        info = imagegen2_info(project, home, {"CLAUDE_CONFIG_DIR": str(config_dir)})
+
+        assert Path(info["path"]) == cli
+        assert info["source"] == "Claude Code plugin"
+
+
+def test_imagegen2_project_skill_and_override_take_priority() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        home = Path(tmp) / "home"
+        project = Path(tmp) / "work" / "client"
+        project.mkdir(parents=True)
+        register_plugin(home / ".claude", "imagegen2", "2026.10.11")
+        project_cli = write_imagegen2_cli(project / ".claude" / "skills" / "imagegen2", "2026.10.11")
+        override = write_imagegen2_cli(Path(tmp) / "custom", "2026.10.11")
+
+        assert Path(imagegen2_info(project, home)["path"]) == project_cli
+        info = imagegen2_info(project, home, {"IMAGEGEN2_CLI": str(override)})
+        assert Path(info["path"]) == override
+        assert info["source"] == "IMAGEGEN2_CLI"
+
+
+def test_legacy_imagegen2_defaults_to_chroma_key() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        home = Path(tmp) / "home"
+        project = Path(tmp) / "work" / "client"
+        project.mkdir(parents=True)
+        write_imagegen2_cli(home / ".codex" / "skills" / "imagegen2", None)
+
+        info = imagegen2_info(project, home)
+
+        assert info["source"] == "user skill"
+        assert info["version"] is None
+        assert info["nativeAlpha"] is False
+        assert info["defaultSegmentation"] == "chroma-key"
+
+
+def test_missing_imagegen2_fails_clearly() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        home = Path(tmp) / "home"
+        project = Path(tmp) / "work" / "client"
+        project.mkdir(parents=True)
+        result = subprocess.run(
+            [sys.executable, str(SKILL_PATHS_SCRIPT), "imagegen2-info", "--start", str(project)],
+            text=True,
+            capture_output=True,
+            env={"PATH": os.environ.get("PATH", ""), "HOME": str(home)},
+        )
+        assert result.returncode != 0
+        assert "could not find imagegen2" in result.stderr
+
+
+def test_imagegen2_is_not_vendored() -> None:
+    skills = {path.name for path in (REPO_ROOT / ".codex" / "skills").iterdir() if path.is_dir()}
+    assert skills == {"anim8gen"}
+
+
+def test_native_alpha_keeps_key_colored_subject_pixels() -> None:
+    spec = {"segmentation": {"strategy": "native-alpha", "alphaThreshold": 8, "chromaKey": "#ff00ff"}}
+    assert align_frames.is_visible((230, 35, 225, 255), spec)
+    assert align_frames.is_visible((255, 0, 255, 40), spec)
+    assert not align_frames.is_visible((255, 0, 255, 8), spec)
+
+
+def test_init_package_segmentation_defaults_and_overrides() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        for animation_id, segmentation, trait in [
+            ("native-default", None, "isolated on a transparent background"),
+            ("keyed", "chroma-key", "solid chroma-key background"),
+        ]:
+            data = brief(animation_id)
+            if segmentation:
+                data["segmentation"] = segmentation
+            brief_path = project / f"{animation_id}.brief.json"
+            brief_path.write_text(json.dumps(data))
+            run_command(
+                [sys.executable, str(INIT_PACKAGE_SCRIPT), "--brief", str(brief_path), "--project-root", str(project)],
+                cwd=project,
+            )
+            spec = json.loads((project / ".anim8gen" / "runs" / animation_id / "config" / f"{animation_id}.json").read_text())
+            assert spec["segmentation"]["strategy"] == (segmentation or "native-alpha")
+            assert trait in spec["asset"]["promptTraits"]
+            assert spec["generation"]["anim8genVersion"] == skill_paths.ANIM8GEN_VERSION
+
+        bad = brief("bad-seg")
+        bad["segmentation"] = "green-screen"
+        brief_path = project / "bad.brief.json"
+        brief_path.write_text(json.dumps(bad))
+        result = subprocess.run(
+            [sys.executable, str(INIT_PACKAGE_SCRIPT), "--brief", str(brief_path), "--project-root", str(project)],
+            cwd=project,
+            text=True,
+            capture_output=True,
+        )
+        assert result.returncode != 0
+        assert "brief.segmentation" in result.stderr
+
+
+def test_synthetic_chroma_key_run_still_aligns() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        animation_id = "keyed-smoke"
+        data = synthetic_brief(animation_id)
+        data["segmentation"] = "chroma-key"
+        brief_path = project / "keyed.brief.json"
+        brief_path.write_text(json.dumps(data))
+        run_command(
+            [sys.executable, str(INIT_PACKAGE_SCRIPT), "--brief", str(brief_path), "--project-root", str(project)],
+            cwd=project,
+        )
+        run_root = project / ".anim8gen" / "runs" / animation_id
+        spec_path = run_root / "config" / f"{animation_id}.json"
+        run_command(
+            [sys.executable, str(CREATE_SYNTHETIC_SCRIPT), "--spec", str(spec_path), "--root", str(run_root)],
+            cwd=project,
+        )
+        with Image.open(run_root / "raw" / "frame-000.retry-001.png") as raw:
+            assert raw.convert("RGBA").getpixel((0, 0)) == (255, 0, 255, 255)
+        run_command(
+            [
+                sys.executable,
+                str(RUNTIME_TOOLS_DIR / "align_frames.py"),
+                "--spec",
+                str(spec_path),
+                "--input",
+                str(run_root / "raw"),
+                "--output",
+                str(run_root / "aligned"),
+            ],
+            cwd=project,
+        )
+        aligned = sorted((run_root / "aligned").glob("frame-*.png"))
+        assert len(aligned) == 3
+        for path in aligned:
+            with Image.open(path) as image:
+                rgba = image.convert("RGBA")
+                assert rgba.getpixel((0, 0))[3] == 0
+                assert not any(
+                    a > 0 and r > 200 and g < 60 and b > 200 for r, g, b, a in rgba.get_flattened_data()
+                )
+
+
+def test_synthetic_native_alpha_frames_are_transparent() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "client"
+        project.mkdir()
+        animation_id = "native-smoke"
+        brief_path = project / "native.brief.json"
+        brief_path.write_text(json.dumps(synthetic_brief(animation_id)))
+        run_command(
+            [sys.executable, str(INIT_PACKAGE_SCRIPT), "--brief", str(brief_path), "--project-root", str(project)],
+            cwd=project,
+        )
+        run_root = project / ".anim8gen" / "runs" / animation_id
+        spec_path = run_root / "config" / f"{animation_id}.json"
+        run_command(
+            [sys.executable, str(CREATE_SYNTHETIC_SCRIPT), "--spec", str(spec_path), "--root", str(run_root)],
+            cwd=project,
+        )
+        with Image.open(run_root / "raw" / "frame-000.retry-001.png") as raw:
+            assert raw.convert("RGBA").getpixel((0, 0)) == (0, 0, 0, 0)
+
+
+def test_version_is_consistent_across_plugin_changelog_and_templates() -> None:
+    version = skill_paths.ANIM8GEN_VERSION
+    plugin = json.loads((REPO_ROOT / ".claude-plugin" / "plugin.json").read_text())
+    changelog = (REPO_ROOT / "CHANGELOG.md").read_text()
+    first_heading = re.search(r"^## v(\S+)", changelog, flags=re.M)
+    templates = [
+        REPO_ROOT / ".codex" / "skills" / "anim8gen" / "runtime" / "config" / "template.animation-spec.json",
+        REPO_ROOT / "anim8gen" / "runtime" / "config" / "template.animation-spec.json",
+    ]
+
+    assert re.fullmatch(r"\d{4}\.\d{1,2}\.\d{1,2}", version)
+    assert plugin["version"] == version
+    assert first_heading and first_heading.group(1) == version
+    for template in templates:
+        assert json.loads(template.read_text())["generation"]["anim8genVersion"] == version
+    result = subprocess.run(
+        [sys.executable, str(SKILL_PATHS_SCRIPT), "version"], check=True, text=True, capture_output=True
+    )
+    assert result.stdout.strip() == version
+
+
+def test_plugin_manifest_points_at_skill_and_depends_on_imagegen2() -> None:
+    plugin = json.loads((REPO_ROOT / ".claude-plugin" / "plugin.json").read_text())
+    marketplace = json.loads((REPO_ROOT / ".claude-plugin" / "marketplace.json").read_text())
+
+    assert plugin["name"] == "anim8gen"
+    assert (REPO_ROOT / plugin["skills"] / "SKILL.md").is_file()
+    assert {"name": "imagegen2", "marketplace": "imagegen2"} in plugin["dependencies"]
+    assert marketplace["name"] == "anim8gen"
+    assert "imagegen2" in marketplace["allowCrossMarketplaceDependenciesOn"]
+    assert [entry["name"] for entry in marketplace["plugins"]] == ["anim8gen"]
+
+
+def test_workbench_copies_match_skill_runtime() -> None:
+    skill_runtime = REPO_ROOT / ".codex" / "skills" / "anim8gen" / "runtime"
+    for name in ("brief.schema.json", "template.animation-spec.json"):
+        assert (skill_runtime / "config" / name).read_text() == (REPO_ROOT / "anim8gen" / "runtime" / "config" / name).read_text()
+    for path in (skill_runtime / "tools").glob("*.py"):
+        assert path.read_text() == (TOOLS_DIR / path.name).read_text(), path.name
 
 
 def run() -> None:

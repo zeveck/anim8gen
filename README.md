@@ -39,6 +39,34 @@ Full gallery: https://zeveck.github.io/anim8gen/
 
 ## Install
 
+### Claude Code
+
+anim8gen is a Claude Code plugin that depends on the
+[imagegen2](https://github.com/zeveck/imagegen2) plugin. Add the imagegen2
+marketplace first so Claude Code can install the dependency, then install
+anim8gen:
+
+```text
+/plugin marketplace add zeveck/imagegen2
+/plugin install anim8gen --marketplace zeveck/anim8gen
+```
+
+That installs both plugins. Run `/reload-plugins` (or restart Claude Code) to
+use them. If you skip the first line, Claude Code reports that the
+`imagegen2@imagegen2` dependency is missing; add the marketplace and install
+again.
+
+To update later:
+
+```text
+claude plugin marketplace update anim8gen
+claude plugin marketplace update imagegen2
+claude plugin update anim8gen@anim8gen
+claude plugin update imagegen2@imagegen2
+```
+
+### Other agents
+
 Ask your agent to install both skills:
 
 ```text
@@ -51,7 +79,15 @@ agent so the skills are available.
 `anim8gen` requires [`imagegen2`](https://github.com/zeveck/imagegen2) for
 image generation. A normal install should add the two skill directories only;
 it should not copy this repository's root `anim8gen/` development workbench
-into your project.
+into your project. The anim8gen skill lives in `.codex/skills/anim8gen/` in
+this repository.
+
+anim8gen's local tools need Python 3 with Pillow (`python3 -m pip install
+Pillow`).
+
+anim8gen finds imagegen2 in Claude Code plugin installs and in the usual
+skill folders. Set `IMAGEGEN2_CLI` to the path of imagegen2's `generate.cjs`
+to use a specific copy.
 
 ## Configure
 
