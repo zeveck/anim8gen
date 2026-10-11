@@ -56,8 +56,8 @@ The running version is printed by
 ### Also
 
 - Dev container refreshed from github.com/zeveck/devcontainers (`gh`, `glab`,
-  `auth`, `dc`, Node 24, and agent sign-ins and history that survive
-  rebuilds).
+  `auth`, `dc`, Node 24). Agent history, memory, settings, and plugins survive
+  rebuilds; sign-ins don't, and `dc volumes` manages the saved data.
 
 ## Before v2026.10.11
 
