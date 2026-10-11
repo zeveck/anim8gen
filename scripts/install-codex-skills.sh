@@ -42,6 +42,21 @@ for root in roots:
             path.write_text(updated, encoding="utf-8")
 PY
 
+# anim8gen requires imagegen2 but no longer vendors it. Install the current
+# release's Codex skill so this checkout works out of the box. Non-fatal: a
+# network failure should not block the rest of the container setup.
+IMAGEGEN2_REPO="${IMAGEGEN2_REPO:-https://github.com/zeveck/imagegen2.git}"
+tmp=$(mktemp -d)
+if git clone -q --depth 1 "$IMAGEGEN2_REPO" "$tmp/imagegen2" 2>/dev/null \
+  && [ -f "$tmp/imagegen2/.codex/skills/imagegen2/generate.cjs" ]; then
+  rm -rf "$DST_SKILLS/imagegen2"
+  cp -R "$tmp/imagegen2/.codex/skills/imagegen2" "$DST_SKILLS/imagegen2"
+  echo "Installed imagegen2 Codex skill from $IMAGEGEN2_REPO"
+else
+  echo "WARNING: could not install imagegen2 from $IMAGEGEN2_REPO; install it before running anim8gen." >&2
+fi
+rm -rf "$tmp"
+
 count=$(find "$SRC_SKILLS" -mindepth 2 -maxdepth 2 -name SKILL.md | wc -l | tr -d ' ')
 echo "Installed $count vendored Codex skills into $CODEX_HOME"
 echo "Restart Codex to pick up skill metadata changes."
