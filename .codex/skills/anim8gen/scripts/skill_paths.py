@@ -104,9 +104,9 @@ def plugin_install_applies(install: dict, start: Path) -> bool:
     return here == project or project in here.parents
 
 
-# Where generate.cjs sits inside an imagegen2 plugin install: the plugin is
-# rooted at the repo's skills/ folder (v2026.10.11 as published); the second
-# path covers an install rooted at the repo itself.
+# Where generate.cjs sits inside an imagegen2 plugin install. Published
+# imagegen2 roots its plugin at the repo's skills/ folder; the second path
+# covers a plugin rooted at the repo itself (local or development installs).
 PLUGIN_CLI_PATHS = (Path("imagegen2") / "generate.cjs", Path("skills") / "imagegen2" / "generate.cjs")
 
 

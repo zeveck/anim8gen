@@ -1267,6 +1267,23 @@ def test_imagegen2_plugin_found_through_claude_config_dir_and_cache_fallback() -
         assert info["version"] == "2026.10.11"
 
 
+def test_imagegen2_cache_fallback_picks_newest_version_in_either_layout() -> None:
+    for newer_rel, older_rel in (("skills/imagegen2", "imagegen2"), ("imagegen2", "skills/imagegen2")):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / "home"
+            config_dir = Path(tmp) / "custom-claude"
+            project = Path(tmp) / "work" / "client"
+            project.mkdir(parents=True)
+            cache = config_dir / "plugins" / "cache" / "imagegen2" / "imagegen2"
+            write_imagegen2_cli(cache / "2026.10.11" / older_rel, "2026.10.11")
+            newest = write_imagegen2_cli(cache / "2026.10.12" / newer_rel, "2026.10.12")
+
+            info = imagegen2_info(project, home, {"CLAUDE_CONFIG_DIR": str(config_dir)})
+
+            assert Path(info["path"]) == newest, newer_rel
+            assert info["version"] == "2026.10.12"
+
+
 def test_imagegen2_project_skill_and_override_take_priority() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         home = Path(tmp) / "home"
@@ -1459,6 +1476,8 @@ def test_plugin_manifest_points_at_skill_and_depends_on_imagegen2() -> None:
     assert plugin["skills"] == "./anim8gen"
     assert (plugin_root / plugin["skills"] / "SKILL.md").is_file()
     assert not (REPO_ROOT / ".claude-plugin" / "plugin.json").exists()
+    # Installs copy only the plugin root, so the license has to live there too.
+    assert (plugin_root / "LICENSE").read_text() == (REPO_ROOT / "LICENSE").read_text()
     assert {"name": "imagegen2", "marketplace": "imagegen2"} in plugin["dependencies"]
     assert marketplace["name"] == "anim8gen"
     assert "imagegen2" in marketplace["allowCrossMarketplaceDependenciesOn"]
