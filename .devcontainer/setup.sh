@@ -1,10 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Run a command quietly: its output appears only if it fails.
+quiet() {
+  local log
+  log="$(mktemp)"
+  if ! "$@" >"$log" 2>&1; then
+    cat "$log" >&2
+    rm -f "$log"
+    return 1
+  fi
+  rm -f "$log"
+}
+
 # Install Claude Code CLI (native installer).
 echo "🤖 Installing Claude Code..."
-curl -fsSL https://claude.ai/install.sh | bash
+install_claude() { curl -fsSL https://claude.ai/install.sh | bash; }
+quiet install_claude
 export PATH="$HOME/.local/bin:$PATH"
+echo "   $(claude --version)"
 
 # ── npm registry (optional) ──────────────────────────────────────────────────
 if [ -n "${NPM_REGISTRY:-}" ]; then
@@ -14,7 +28,8 @@ fi
 
 # Install Codex CLI (it picks its model at run time, not at install).
 echo "🧠 Installing Codex CLI..."
-npm install -g @openai/codex@latest
+quiet npm install -g @openai/codex@latest
+echo "   $(codex --version)"
 
 # Install the project's anim8gen Codex skill, plus the current imagegen2
 # Codex skill it depends on, into CODEX_HOME.
@@ -25,9 +40,14 @@ bash scripts/install-codex-skills.sh
 echo "🐍 Installing Python requirements..."
 python3 -m pip install --user -q -r anim8gen/requirements.txt
 
-# Install Gemini CLI.
+# Install Gemini CLI. Newer npm skips the install scripts of two optional
+# dependencies and warns; Gemini doesn't need them here. node-pty is a fallback
+# for the prebuilt @lydell/node-pty it uses, and without keytar it keeps its
+# key in ~/.gemini/gemini-credentials.json, which a container needs anyway
+# (there is no system keychain) and which on-create.sh deletes on rebuild.
 echo "✨ Installing Gemini CLI..."
-npm install -g @google/gemini-cli@latest
+quiet npm install -g @google/gemini-cli@latest
+echo "   gemini $(gemini --version)"
 
 # Install the GitLab CLI (glab).
 # gh comes from the github-cli devcontainer feature, but glab has no official
