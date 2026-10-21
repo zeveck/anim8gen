@@ -1478,10 +1478,14 @@ def test_plugin_manifest_points_at_skill_and_depends_on_imagegen2() -> None:
     assert not (REPO_ROOT / ".claude-plugin" / "plugin.json").exists()
     # Installs copy only the plugin root, so the license has to live there too.
     assert (plugin_root / "LICENSE").read_text() == (REPO_ROOT / "LICENSE").read_text()
-    assert {"name": "imagegen2", "marketplace": "imagegen2"} in plugin["dependencies"]
     assert marketplace["name"] == "anim8gen"
-    assert "imagegen2" in marketplace["allowCrossMarketplaceDependenciesOn"]
     assert [entry["name"] for entry in marketplace["plugins"]] == ["anim8gen"]
+    # The imagegen2 dependency lives in the marketplace entry, not plugin.json,
+    # so each marketplace that lists anim8gen says where imagegen2 comes from:
+    # here, imagegen2's own marketplace; in gamegen's, gamegen's copy.
+    assert "dependencies" not in plugin
+    assert marketplace["plugins"][0]["dependencies"] == [{"name": "imagegen2", "marketplace": "imagegen2"}]
+    assert "imagegen2" in marketplace["allowCrossMarketplaceDependenciesOn"]
 
 
 def test_workbench_copies_match_skill_runtime() -> None:

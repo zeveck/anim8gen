@@ -9,8 +9,5 @@
   "repository": "https://github.com/zeveck/anim8gen",
   "license": "MIT",
   "keywords": ["animation", "sprites", "game-assets", "pixel-art", "imagegen2"],
-  "skills": "./anim8gen",
-  "dependencies": [
-    { "name": "imagegen2", "marketplace": "imagegen2" }
-  ]
+  "skills": "./anim8gen"
 }
