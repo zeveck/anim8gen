@@ -55,7 +55,7 @@ The running version is printed by
 
 ### Also
 
-- Dev container refreshed from github.com/zeveck/devcontainers (`gh`, `glab`,
+- Dev container refreshed from github.com/zeveck/devcontainer-plus (`gh`, `glab`,
   `auth`, `dc`, Node 24). Agent history, memory, settings, and plugins survive
   rebuilds; sign-ins don't, and `dc volumes` manages the saved data.
 
