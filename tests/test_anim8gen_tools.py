@@ -1454,7 +1454,7 @@ def test_version_is_consistent_across_plugin_changelog_and_templates() -> None:
         REPO_ROOT / "anim8gen" / "runtime" / "config" / "template.animation-spec.json",
     ]
 
-    assert re.fullmatch(r"\d{4}\.\d{1,2}\.\d{1,2}", version)
+    assert re.fullmatch(r"\d{4}\.\d{1,2}\.\d{1,2}(\.\d+)?", version)
     assert plugin["version"] == version
     assert first_heading and first_heading.group(1) == version
     for template in templates:
