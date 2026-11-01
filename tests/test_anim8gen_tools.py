@@ -289,7 +289,9 @@ def test_export_bundle_writes_visible_deliverables_without_manifests() -> None:
         spec_path.write_text(json.dumps(spec))
         (run_root / "reports" / "fixture.validation.json").write_text(json.dumps({"frames": []}))
         for frame in spec["frames"]:
-            write_frame(run_root / "aligned" / make_preview.aligned_name(frame), (frame["index"] * 40, 120, 200, 255))
+            # A reuseFrame frame is identical to the frame it reuses.
+            source_index = frame.get("reuseFrame", frame["index"])
+            write_frame(run_root / "aligned" / make_preview.aligned_name(frame), (source_index * 40, 120, 200, 255))
             shutil.copy2(run_root / "aligned" / make_preview.aligned_name(frame), run_root / "raw" / f"raw-{frame['index']}.png")
         (run_root / "manifests" / "accepted-frames.json").write_text(
             json.dumps(
@@ -1713,6 +1715,76 @@ def test_align_frames_uses_accepted_retry_and_reuse_source() -> None:
         assert sources[1] == raw_dir / "frame-001.retry-002.png"
         assert sources[2] == raw_dir / "frame-002.retry-002.png"
         assert sources[3] == raw_dir / "frame-000.retry-001.png"
+
+
+def test_reuse_frame_follows_retried_source_frame() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        raw_dir = root / "raw"
+        manifests = root / "manifests"
+        raw_dir.mkdir()
+        manifests.mkdir()
+        for name in ("frame-000.retry-001.png", "frame-000.retry-002.png", "frame-001.retry-001.png"):
+            write_frame(raw_dir / name, (200, 80, 60, 255))
+        old, new, hop = (str(raw_dir / name) for name in ("frame-000.retry-001.png", "frame-000.retry-002.png", "frame-001.retry-001.png"))
+        records = [
+            {"frameIndex": 0, "retry": 1, "outputPath": old, "reviewStatus": "accepted"},
+            {"frameIndex": 1, "retry": 1, "outputPath": hop, "reviewStatus": "accepted"},
+            {"frameIndex": 2, "retry": 1, "outputPath": old, "reviewStatus": "accepted"},
+            {"frameIndex": 0, "retry": 1, "outputPath": old, "reviewStatus": "rejected-pose"},
+            {"frameIndex": 0, "retry": 2, "outputPath": new, "reviewStatus": "accepted"},
+        ]
+        (manifests / "candidates.jsonl").write_text("".join(json.dumps(record) + "\n" for record in records))
+        accepted = manifests / "accepted-frames.json"
+        spec = {
+            "generation": {"candidateManifest": str(manifests / "candidates.jsonl"), "acceptedManifest": str(accepted)},
+            "frames": [
+                {"index": 0, "label": "idle"},
+                {"index": 1, "label": "hop"},
+                {"index": 2, "label": "idle-again", "reuseFrame": 0},
+            ],
+        }
+
+        # Frame 0 was retried; only its own entries were updated.
+        accepted.write_text(json.dumps({"frames": [{"index": 0, "raw": new}, {"index": 1, "raw": hop}, {"index": 2, "raw": old}]}))
+        assert align_frames.frame_sources(spec, raw_dir)[2] == Path(new)
+        accepted.write_text(json.dumps({"frames": []}))
+        assert align_frames.frame_sources(spec, raw_dir)[2] == Path(new)
+
+
+def test_export_bundle_exports_raw_sources_from_candidates_manifest() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp)
+        run_root = project / ".anim8gen" / "runs" / "fixture"
+        for path in [run_root / "config", run_root / "aligned", run_root / "gifs", run_root / "raw", run_root / "manifests"]:
+            path.mkdir(parents=True)
+
+        spec = base_spec("fixture")
+        spec["generation"]["acceptedManifest"] = str(run_root / "manifests" / "accepted-frames.json")
+        spec["generation"]["candidateManifest"] = str(run_root / "manifests" / "candidates.jsonl")
+        spec_path = run_root / "config" / "fixture.json"
+        spec_path.write_text(json.dumps(spec))
+        for frame in spec["frames"]:
+            write_frame(run_root / "aligned" / make_preview.aligned_name(frame), (0, 0, 255, 255))
+        for name in ("frame-000.retry-001.png", "frame-001.retry-001.png", "frame-001.retry-002.png"):
+            write_frame(run_root / "raw" / name, (255, 0, 0, 255))
+        # init_package leaves accepted-frames.json empty; the review lives in candidates.jsonl.
+        (run_root / "manifests" / "accepted-frames.json").write_text(json.dumps({"frames": []}))
+        records = [
+            {"frameIndex": 0, "retry": 1, "outputPath": str(run_root / "raw" / "frame-000.retry-001.png"), "reviewStatus": "accepted"},
+            {"frameIndex": 1, "retry": 1, "outputPath": str(run_root / "raw" / "frame-001.retry-001.png"), "reviewStatus": "accepted"},
+            {"frameIndex": 1, "retry": 2, "outputPath": str(run_root / "raw" / "frame-001.retry-002.png"), "reviewStatus": "rejected-pose"},
+        ]
+        (run_root / "manifests" / "candidates.jsonl").write_text("".join(json.dumps(record) + "\n" for record in records))
+        export_gif.export_gif(spec, run_root / "aligned", run_root / "gifs" / "fixture.gif", fps=4, scale=1)
+
+        out_dir = project / "assets" / "anim8gen" / "fixture"
+        result = export_bundle.export_bundle(spec_path, out_dir, raw_policy="always")
+
+        assert result["rawFrames"] == 3
+        sources = export_bundle.accepted_raw_sources(spec, run_root)
+        assert sources[1] == run_root / "raw" / "frame-001.retry-001.png"
+        assert sources[2] == run_root / "raw" / "frame-000.retry-001.png"
 
 
 def test_center_anchored_alignment_keeps_lopsided_sprite_inside_canvas() -> None:

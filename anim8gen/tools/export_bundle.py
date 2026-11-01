@@ -13,6 +13,7 @@ from typing import Any
 
 from PIL import Image
 
+import align_frames
 import make_preview
 import render_options
 
@@ -88,26 +89,26 @@ def infer_run_root(spec_path: Path) -> Path:
     return spec_path.parent
 
 
-def accepted_raw_sources(spec: dict[str, Any], run_root: Path) -> dict[int, Path]:
-    manifest_text = spec.get("generation", {}).get("acceptedManifest")
-    manifest_path = Path(str(manifest_text)) if manifest_text else run_root / "manifests" / "accepted-frames.json"
+def resolve_manifest(spec: dict[str, Any], key: str, run_root: Path, default_name: str) -> Path:
+    manifest_text = spec.get("generation", {}).get(key)
+    manifest_path = Path(str(manifest_text)) if manifest_text else run_root / "manifests" / default_name
     if manifest_text and not manifest_path.is_absolute():
         manifest_path = Path.cwd() / manifest_path
     if not manifest_path.exists():
-        manifest_path = run_root / "manifests" / "accepted-frames.json"
-    if not manifest_path.exists():
-        return {}
+        manifest_path = run_root / "manifests" / default_name
+    return manifest_path
 
-    manifest = load_json(manifest_path, default={})
-    sources: dict[int, Path] = {}
-    for frame in manifest.get("frames", []):
-        if not isinstance(frame, dict) or "index" not in frame or "raw" not in frame:
-            continue
-        source = Path(str(frame["raw"]))
-        if not source.is_absolute():
-            source = Path.cwd() / source
-        sources[int(frame["index"])] = source
-    return sources
+
+def accepted_raw_sources(spec: dict[str, Any], run_root: Path) -> dict[int, Path]:
+    """The raw image alignment used for each frame (see align_frames.frame_sources)."""
+    resolved = dict(spec)
+    resolved["generation"] = {
+        **spec.get("generation", {}),
+        "acceptedManifest": str(resolve_manifest(spec, "acceptedManifest", run_root, "accepted-frames.json")),
+        "candidateManifest": str(resolve_manifest(spec, "candidateManifest", run_root, "candidates.jsonl")),
+    }
+    sources = align_frames.frame_sources(resolved, run_root / "raw", strict=False)
+    return {index: source if source.is_absolute() else Path.cwd() / source for index, source in sources.items()}
 
 
 def images_match(left: Path, right: Path) -> bool:

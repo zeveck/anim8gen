@@ -200,9 +200,12 @@ def accepted_sources(spec: dict) -> dict[int, Path]:
     manifest = json.loads(path.read_text())
     sources: dict[int, Path] = {}
     for frame in manifest.get("frames", []):
-        raw = frame.get("raw")
-        if raw:
-            sources[int(frame["index"])] = Path(raw)
+        if not isinstance(frame, dict) or not frame.get("raw"):
+            continue
+        try:
+            sources[int(frame["index"])] = Path(frame["raw"])
+        except (KeyError, TypeError, ValueError):
+            continue
     return sources
 
 
@@ -230,24 +233,28 @@ def reviewed_sources(spec: dict) -> dict[int, Path]:
     return sources
 
 
-def frame_sources(spec: dict, input_dir: Path) -> dict[int, Path]:
+def frame_sources(spec: dict, input_dir: Path, strict: bool = True) -> dict[int, Path]:
     """Pick the raw image for every spec frame.
 
-    In order: accepted-frames.json, the accepted candidate in
-    candidates.jsonl, the source of the frame named by reuseFrame, and
-    finally the newest raw retry on disk.
+    A reuseFrame frame always uses the source picked for the frame it
+    reuses, so it stays identical after that frame is retried. Other frames
+    use, in order: accepted-frames.json, the accepted candidate in
+    candidates.jsonl, and finally the newest raw retry on disk. With
+    strict=False, frames with no source are left out instead of raising.
     """
     accepted = accepted_sources(spec)
     reviewed = reviewed_sources(spec)
     sources: dict[int, Path] = {}
     for frame in spec["frames"]:
         index = frame["index"]
-        source = accepted.get(index) or reviewed.get(index)
-        if source is None and frame.get("reuseFrame") is not None:
-            source = sources.get(frame["reuseFrame"])
+        source = sources.get(frame["reuseFrame"]) if frame.get("reuseFrame") is not None else None
+        if source is None:
+            source = accepted.get(index) or reviewed.get(index)
         if source is None:
             matches = sorted(input_dir.glob(f"frame-{index:03d}.retry-*.png"))
             if not matches:
+                if not strict:
+                    continue
                 raise FileNotFoundError(f"missing raw frame for index {index}")
             source = matches[-1]
         sources[index] = source

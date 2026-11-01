@@ -325,9 +325,11 @@ then set the package state to `partial` or `blocked` and explain the gap.
 `manifests/accepted-frames.json` names the source image for each frame:
 `{"frames": [{"index": 0, "raw": ".anim8gen/runs/<id>/raw/frame-000.retry-002.png"}]}`.
 For a `reuseFrame` frame, point `raw` at the reused frame's accepted image.
-Alignment and the contact sheet read it first. For a frame it doesn't list,
-they use the last `accepted` or `accepted-with-warning` record in
-`candidates.jsonl`, then the `reuseFrame` source, then the newest raw retry.
+Alignment, the contact sheet, and the bundle's raw export read it first. For a
+frame it doesn't list, they use the last `accepted` or `accepted-with-warning`
+record in `candidates.jsonl`, then the newest raw retry. A `reuseFrame` frame
+always uses whatever image its reused frame got, so a retry of that frame
+carries over to it.
 
 `review/frame-reviews.json` is the visual review ledger. It records
 `packageStatus` as `complete`, `partial`, or `blocked`, plus per-frame pose,
