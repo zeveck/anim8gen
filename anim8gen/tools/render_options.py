@@ -12,6 +12,16 @@ PIXEL_STYLE_TERMS = ("pixel", "8-bit", "16-bit", "32-bit", "crisp", "low-res", "
 SMOOTH_STYLE_TERMS = ("watercolor", "storybook", "painted", "hand-painted", "painterly", "soft", "pastel")
 
 
+def pixel_data(image: Image.Image):
+    """Flattened pixel values on any supported Pillow.
+
+    get_flattened_data() arrived in Pillow 12.1 and getdata() is deprecated
+    for removal in Pillow 14, so use whichever this Pillow has.
+    """
+    getter = getattr(image, "get_flattened_data", None)
+    return getter() if getter is not None else image.getdata()
+
+
 def style_text(spec: dict[str, Any]) -> str:
     return str(spec.get("asset", {}).get("style", "")).lower()
 
@@ -94,7 +104,7 @@ def resize_rgba(image: Image.Image, size: tuple[int, int], resampling: str) -> I
     source = image.convert("RGBA")
     alpha_bleed_transparent_rgb(source)
     premultiplied = []
-    for red, green, blue, alpha in source.getdata():
+    for red, green, blue, alpha in pixel_data(source):
         premultiplied.append((
             round(red * alpha / 255),
             round(green * alpha / 255),
@@ -105,7 +115,7 @@ def resize_rgba(image: Image.Image, size: tuple[int, int], resampling: str) -> I
     premul.putdata(premultiplied)
     resized = premul.resize(size, resampling_filter(resampling))
     unpremultiplied = []
-    for red, green, blue, alpha in resized.getdata():
+    for red, green, blue, alpha in pixel_data(resized):
         if alpha == 0:
             unpremultiplied.append((0, 0, 0, 0))
         else:
@@ -144,8 +154,8 @@ def soften_sprite_edges(image: Image.Image, edge_treatment: str) -> dict[str, An
 
     alpha_bleed_pixels = alpha_bleed_transparent_rgb(image)
     blurred = alpha.filter(ImageFilter.GaussianBlur(radius=0.65))
-    original_pixels = list(alpha.getdata())
-    blurred_pixels = list(blurred.getdata())
+    original_pixels = list(pixel_data(alpha))
+    blurred_pixels = list(pixel_data(blurred))
     softened_alpha = []
     softened_pixels = 0
     for original, blurred_value in zip(original_pixels, blurred_pixels):

@@ -13,6 +13,8 @@ from typing import Any
 
 from PIL import Image
 
+import render_options
+
 
 Mask = list[bool]
 
@@ -42,7 +44,7 @@ def hue_delta(a: float, b: float) -> float:
 
 
 def mask_from_image(image: Image.Image, alpha_threshold: int) -> Mask:
-    return [pixel[3] > alpha_threshold for pixel in image.get_flattened_data()]
+    return [pixel[3] > alpha_threshold for pixel in render_options.pixel_data(image)]
 
 
 def bbox_for(mask: Mask, width: int) -> tuple[int, int, int, int] | None:
@@ -104,7 +106,7 @@ def frame_stats(path: Path, frame: dict[str, Any], alpha_threshold: int) -> tupl
     if bbox is None:
         return None, "empty sprite mask"
 
-    pixels = list(image.get_flattened_data())
+    pixels = list(render_options.pixel_data(image))
     visible_pixels = [pixels[idx] for idx, visible in enumerate(mask) if visible]
     luminance_values = [0.2126 * r + 0.7152 * g + 0.0722 * b for r, g, b, _a in visible_pixels]
     mean_luminance = sum(luminance_values) / len(luminance_values)

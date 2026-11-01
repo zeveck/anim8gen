@@ -1662,6 +1662,103 @@ def test_prepare_references_keeps_key_colored_pixels_for_native_alpha() -> None:
         assert manifest["selectedChromaKey"] is None
 
 
+def test_runtime_tools_run_on_pillow_without_get_flattened_data() -> None:
+    # get_flattened_data() is Pillow 12.1+; older Pillow only has getdata().
+    for path in RUNTIME_TOOLS_DIR.glob("*.py"):
+        if path.name != "render_options.py":
+            text = path.read_text()
+            assert ".get_flattened_data(" not in text, path.name
+            assert ".getdata(" not in text, path.name
+    image = Image.new("RGBA", (2, 1), (10, 20, 30, 255))
+    saved = Image.Image.get_flattened_data
+    try:
+        del Image.Image.get_flattened_data
+        assert list(render_options.pixel_data(image)) == [(10, 20, 30, 255)] * 2
+        assert clean_reference.choose_chroma_key(image).startswith("#")
+    finally:
+        Image.Image.get_flattened_data = saved
+
+
+def test_align_frames_uses_accepted_retry_and_reuse_source() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        raw_dir = root / "raw"
+        manifests = root / "manifests"
+        raw_dir.mkdir()
+        manifests.mkdir()
+        for name in ("frame-000.retry-001.png", "frame-001.retry-001.png", "frame-001.retry-002.png", "frame-002.retry-001.png", "frame-002.retry-002.png"):
+            write_frame(raw_dir / name, (200, 80, 60, 255))
+        records = [
+            {"frameIndex": 0, "retry": 1, "outputPath": str(raw_dir / "frame-000.retry-001.png"), "reviewStatus": "accepted"},
+            {"frameIndex": 1, "retry": 1, "outputPath": str(raw_dir / "frame-001.retry-001.png"), "reviewStatus": "rejected-pose"},
+            {"frameIndex": 1, "retry": 2, "outputPath": str(raw_dir / "frame-001.retry-002.png"), "reviewStatus": "accepted-with-warning"},
+        ]
+        (manifests / "candidates.jsonl").write_text("".join(json.dumps(record) + "\n" for record in records))
+        (manifests / "accepted-frames.json").write_text(json.dumps({"frames": []}))
+        spec = {
+            "generation": {
+                "candidateManifest": str(manifests / "candidates.jsonl"),
+                "acceptedManifest": str(manifests / "accepted-frames.json"),
+            },
+            "frames": [
+                {"index": 0, "label": "idle"},
+                {"index": 1, "label": "hop"},
+                {"index": 2, "label": "land"},
+                {"index": 3, "label": "idle-again", "reuseFrame": 0},
+            ],
+        }
+
+        sources = align_frames.frame_sources(spec, raw_dir)
+
+        assert sources[1] == raw_dir / "frame-001.retry-002.png"
+        assert sources[2] == raw_dir / "frame-002.retry-002.png"
+        assert sources[3] == raw_dir / "frame-000.retry-001.png"
+
+
+def test_center_anchored_alignment_keeps_lopsided_sprite_inside_canvas() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        raw_dir = root / "raw"
+        out_dir = root / "aligned"
+        manifests = root / "manifests"
+        raw_dir.mkdir()
+        manifests.mkdir()
+        for index, tongue_top in enumerate((40, 20)):
+            source = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
+            for y in range(160, 231):
+                for x in range(80, 177):
+                    source.putpixel((x, y), (255, 120, 0, 255))
+            for y in range(tongue_top, 160):
+                for x in range(124, 133):
+                    source.putpixel((x, y), (255, 220, 0, 255))
+            source.save(raw_dir / f"frame-{index:03d}.retry-001.png")
+        spec = {
+            "id": "flame",
+            "asset": {"style": "pixel art"},
+            "render": {"canvas": [128, 128]},
+            "segmentation": {"strategy": "native-alpha", "alphaThreshold": 8},
+            "alignment": {"defaultAnchor": "body_center", "floorY": 112},
+            "generation": {"candidateManifest": str(manifests / "candidates.jsonl")},
+            "frames": [
+                {"index": 0, "label": "low", "pose": "low", "anchor": "body_center"},
+                {"index": 1, "label": "high", "pose": "high", "anchor": "body_center"},
+            ],
+        }
+        spec_path = root / "spec.json"
+        spec_path.write_text(json.dumps(spec))
+
+        run_command(
+            [sys.executable, str(RUNTIME_TOOLS_DIR / "align_frames.py"), "--spec", str(spec_path), "--input", str(raw_dir), "--output", str(out_dir)],
+            cwd=REPO_ROOT,
+        )
+
+        metrics = json.loads((manifests / "alignment-metrics.json").read_text())
+        for frame in metrics["frames"]:
+            min_x, min_y, max_x, max_y = frame["alignedBBox"]
+            assert min_y >= 8 and max_y <= 128 - 4 - 1, frame["alignedBBox"]
+            assert frame["alignedBBox"][3] - frame["alignedBBox"][1] + 1 == frame["scaledSize"][1]
+
+
 def run() -> None:
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

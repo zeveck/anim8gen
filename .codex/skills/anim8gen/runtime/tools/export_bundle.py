@@ -14,6 +14,7 @@ from typing import Any
 from PIL import Image
 
 import make_preview
+import render_options
 
 
 def render_media_viewer(animation_id: str, media_src: str, label: str) -> str:
@@ -116,7 +117,7 @@ def images_match(left: Path, right: Path) -> bool:
         with Image.open(left) as left_image, Image.open(right) as right_image:
             left_rgba = left_image.convert("RGBA")
             right_rgba = right_image.convert("RGBA")
-            return left_rgba.size == right_rgba.size and list(left_rgba.getdata()) == list(right_rgba.getdata())
+            return left_rgba.size == right_rgba.size and list(render_options.pixel_data(left_rgba)) == list(render_options.pixel_data(right_rgba))
     except OSError:
         return False
 

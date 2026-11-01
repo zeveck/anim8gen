@@ -61,7 +61,7 @@ def gif_alpha_threshold(spec: dict[str, Any], override: int | None = None) -> in
 def prepare_gif_frame(image: Image.Image, alpha_threshold: int) -> Image.Image:
     rgba = image.convert("RGBA")
     pixels = []
-    for red, green, blue, alpha in rgba.getdata():
+    for red, green, blue, alpha in render_options.pixel_data(rgba):
         if alpha < alpha_threshold:
             pixels.append((red, green, blue, 0))
         else:

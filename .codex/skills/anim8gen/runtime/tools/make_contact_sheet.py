@@ -10,6 +10,8 @@ from typing import Any
 
 from PIL import Image, ImageDraw, ImageFont
 
+import align_frames
+
 
 CANVAS_BG = (34, 34, 38, 255)
 PANEL_BG = (246, 246, 242, 255)
@@ -37,29 +39,6 @@ def parse_args() -> argparse.Namespace:
 
 def aligned_name(frame: dict[str, Any]) -> str:
     return f"frame-{frame['index']:03d}.{frame['label']}.png"
-
-
-def raw_path(raw_dir: Path, frame: dict[str, Any]) -> Path:
-    matches = sorted(raw_dir.glob(f"frame-{frame['index']:03d}.retry-*.png"))
-    if not matches:
-        raise FileNotFoundError(f"missing raw frame for index {frame['index']}")
-    return matches[0]
-
-
-def accepted_sources(spec: dict[str, Any]) -> dict[int, Path]:
-    manifest_path = spec.get("generation", {}).get("acceptedManifest")
-    if not manifest_path:
-        return {}
-    path = Path(manifest_path)
-    if not path.exists():
-        return {}
-    manifest = json.loads(path.read_text())
-    sources: dict[int, Path] = {}
-    for frame in manifest.get("frames", []):
-        raw = frame.get("raw")
-        if raw:
-            sources[int(frame["index"])] = Path(raw)
-    return sources
 
 
 def load_font() -> ImageFont.ImageFont:
@@ -170,7 +149,7 @@ def main() -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     frames = list(spec["frames"])
-    accepted = accepted_sources(spec)
+    sources = align_frames.frame_sources(spec, raw_dir)
     scale = 2
     cell = (spec["render"]["canvas"][0] * scale, spec["render"]["canvas"][1] * scale)
     gap = 18
@@ -208,10 +187,7 @@ def main() -> None:
         for frame_index, frame in enumerate(frames):
             draw.rectangle((x - 1, y - 1, x + cell[0], y + cell[1]), fill=PANEL_BG)
             if row_index == 0:
-                source = accepted.get(frame["index"])
-                if source is None:
-                    source = raw_path(raw_dir, frame)
-                tile = fit_image(Image.open(source).convert("RGBA"), cell)
+                tile = fit_image(Image.open(sources[frame["index"]]).convert("RGBA"), cell)
             elif row_index == 1:
                 tile = overlay_aligned(
                     aligned_images[frame_index],

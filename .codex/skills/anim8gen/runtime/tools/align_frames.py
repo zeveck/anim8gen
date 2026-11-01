@@ -206,6 +206,54 @@ def accepted_sources(spec: dict) -> dict[int, Path]:
     return sources
 
 
+ACCEPTED_REVIEW_STATUSES = {"accepted", "accepted-with-warning"}
+
+
+def reviewed_sources(spec: dict) -> dict[int, Path]:
+    """The latest accepted candidate per frame from candidates.jsonl."""
+    manifest_path = spec.get("generation", {}).get("candidateManifest")
+    if not manifest_path:
+        return {}
+    path = Path(manifest_path)
+    if not path.exists():
+        return {}
+    sources: dict[int, Path] = {}
+    for line in path.read_text().splitlines():
+        try:
+            record = json.loads(line)
+        except ValueError:
+            continue
+        if not isinstance(record, dict) or record.get("reviewStatus") not in ACCEPTED_REVIEW_STATUSES:
+            continue
+        if isinstance(record.get("frameIndex"), int) and record.get("outputPath"):
+            sources[record["frameIndex"]] = Path(record["outputPath"])
+    return sources
+
+
+def frame_sources(spec: dict, input_dir: Path) -> dict[int, Path]:
+    """Pick the raw image for every spec frame.
+
+    In order: accepted-frames.json, the accepted candidate in
+    candidates.jsonl, the source of the frame named by reuseFrame, and
+    finally the newest raw retry on disk.
+    """
+    accepted = accepted_sources(spec)
+    reviewed = reviewed_sources(spec)
+    sources: dict[int, Path] = {}
+    for frame in spec["frames"]:
+        index = frame["index"]
+        source = accepted.get(index) or reviewed.get(index)
+        if source is None and frame.get("reuseFrame") is not None:
+            source = sources.get(frame["reuseFrame"])
+        if source is None:
+            matches = sorted(input_dir.glob(f"frame-{index:03d}.retry-*.png"))
+            if not matches:
+                raise FileNotFoundError(f"missing raw frame for index {index}")
+            source = matches[-1]
+        sources[index] = source
+    return sources
+
+
 def visible_bbox(image: Image.Image) -> tuple[int, int, int, int]:
     alpha = image.getchannel("A")
     bbox = alpha.getbbox()
@@ -229,21 +277,16 @@ def main() -> None:
     top_padding = spec["alignment"].get("topPadding", 8)
     side_padding = spec["alignment"].get("sidePadding", 8)
     bottom_padding = spec["alignment"].get("bottomPadding", 4)
-    accepted = accepted_sources(spec)
+    sources = frame_sources(spec, input_dir)
 
     loaded = []
     for frame in spec["frames"]:
-        source = accepted.get(frame["index"])
-        if source is None:
-            matches = sorted(input_dir.glob(f"frame-{frame['index']:03d}.retry-*.png"))
-            if not matches:
-                raise FileNotFoundError(f"missing raw frame for index {frame['index']}")
-            source = matches[0]
+        source = sources[frame["index"]]
         if not source.exists():
             raise FileNotFoundError(f"accepted raw frame does not exist: {source}")
         image = Image.open(source).convert("RGBA")
         width, height = image.size
-        pixels = list(image.get_flattened_data())
+        pixels = list(render_options.pixel_data(image))
         body, mask = segment([is_visible(pixel, spec) for pixel in pixels], width, height, spec)
         bbox = bbox_for(mask, width)
         body_bbox = bbox_for(body, width)
@@ -279,6 +322,12 @@ def main() -> None:
     center_anchored = all(item["frame"].get("anchor", spec["alignment"]["defaultAnchor"]) == "body_center" for item in loaded)
     if center_anchored:
         scale_limits.append((canvas_h - top_padding - bottom_padding) / max_bbox_h)
+        # The centroid sits at the canvas middle, so a sprite that is heavier
+        # at one end (a flame, a projectile with a trail) needs room for its
+        # longest reach above and below that centroid.
+        vertical_extent = max_above_anchor + max_below_anchor
+        if vertical_extent > 0:
+            scale_limits.append((canvas_h - top_padding - bottom_padding) / vertical_extent)
     else:
         if max_above_anchor > 0:
             scale_limits.append((floor_y - top_padding) / max_above_anchor)
@@ -297,6 +346,12 @@ def main() -> None:
     target_x = preferred_target_x
     if target_x_min <= target_x_max:
         target_x = clamp(preferred_target_x, target_x_min, target_x_max)
+    center_target_y = canvas_h / 2
+    if center_anchored:
+        target_y_min = top_padding + max_above_anchor * scale
+        target_y_max = canvas_h - bottom_padding - max_below_anchor * scale
+        if target_y_min <= target_y_max:
+            center_target_y = clamp(center_target_y, target_y_min, target_y_max)
 
     metrics = {
         "id": spec["id"],
@@ -330,7 +385,7 @@ def main() -> None:
 
         source_anchor_x, anchor_y = item["anchor"]
         anchor_x = stable_anchor_x if stable_anchor_x is not None else source_anchor_x
-        target_y = canvas_h / 2 if frame.get("anchor") == "body_center" else floor_y
+        target_y = center_target_y if frame.get("anchor") == "body_center" else floor_y
         offset = (round(target_x - (anchor_x - crop_min_x) * scale), round(target_y - (anchor_y - crop_min_y) * scale))
         canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
         canvas.alpha_composite(crop, offset)

@@ -12,6 +12,8 @@ from typing import Any
 
 from PIL import Image
 
+import render_options
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -68,7 +70,7 @@ def hidden_rgb_stats(
     transparent = 0
     near_key = 0
     blackish = 0
-    for red, green, blue, alpha in image.get_flattened_data():
+    for red, green, blue, alpha in render_options.pixel_data(image):
         if alpha != 0:
             continue
         transparent += 1
@@ -89,7 +91,7 @@ def visible_color_stats(
 ) -> dict[str, Any]:
     visible = 0
     near_key = 0
-    for red, green, blue, alpha in image.get_flattened_data():
+    for red, green, blue, alpha in render_options.pixel_data(image):
         if alpha == 0:
             continue
         visible += 1
@@ -105,7 +107,7 @@ def choose_chroma_key(image: Image.Image, candidates: list[str] | None = None, a
     rgba = image.convert("RGBA")
     visible_pixels = [
         (red, green, blue)
-        for red, green, blue, alpha in rgba.get_flattened_data()
+        for red, green, blue, alpha in render_options.pixel_data(rgba)
         if alpha > alpha_threshold
     ]
     if not visible_pixels:
