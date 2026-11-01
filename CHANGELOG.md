@@ -8,6 +8,15 @@ The running version is printed by
 `python3 <skill-dir>/scripts/skill_paths.py version` and recorded as
 `generation.anim8genVersion` in every new package spec.
 
+## v2026.11.1.2
+
+Fixes from a second bug review ([#2](https://github.com/zeveck/anim8gen/issues/2)):
+
+- A frame that reuses another now follows that frame's retries. Before, after
+  a retry it kept the old, rejected pose, so a loop popped back to it.
+- The bundle's raw frames come from the same accepted frames as the
+  animation, including packages that record them only in `candidates.jsonl`.
+
 ## v2026.11.1
 
 Fixes from a bug review ([#1](https://github.com/zeveck/anim8gen/issues/1)):

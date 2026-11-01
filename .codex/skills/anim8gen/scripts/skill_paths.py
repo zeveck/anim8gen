@@ -17,7 +17,7 @@ import layout_paths
 SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
 
-ANIM8GEN_VERSION = "2026.11.1"
+ANIM8GEN_VERSION = "2026.11.1.2"
 
 # imagegen2 releases from this version on support --transparent-mode
 # native-alpha (GPT Image 2.5). Older copies only offer chroma-key. Used only
