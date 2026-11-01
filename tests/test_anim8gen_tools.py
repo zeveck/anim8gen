@@ -1831,8 +1831,11 @@ def test_center_anchored_alignment_keeps_lopsided_sprite_inside_canvas() -> None
             assert frame["alignedBBox"][3] - frame["alignedBBox"][1] + 1 == frame["scaledSize"][1]
 
 
-def align_two_frame_sprites(drawings: list[list[tuple[int, int, int, int]]], anchor: str) -> dict:
+def align_two_frame_sprites(
+    drawings: list[list[tuple[int, int, int, int]]], anchor: str | list[str], alignment: dict | None = None
+) -> dict:
     """Align 256px native-alpha frames made of filled boxes onto a 128px canvas; return metrics."""
+    anchors = [anchor] * len(drawings) if isinstance(anchor, str) else anchor
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         raw_dir = root / "raw"
@@ -1845,13 +1848,13 @@ def align_two_frame_sprites(drawings: list[list[tuple[int, int, int, int]]], anc
             for left, top, right, bottom in boxes:
                 source.paste((255, 120, 0, 255), (left, top, right + 1, bottom + 1))
             source.save(raw_dir / f"frame-{index:03d}.retry-001.png")
-            frames.append({"index": index, "label": f"f{index}", "pose": "p", "anchor": anchor})
+            frames.append({"index": index, "label": f"f{index}", "pose": "p", "anchor": anchors[index]})
         spec = {
             "id": "extent",
             "asset": {"style": "pixel art"},
             "render": {"canvas": [128, 128]},
             "segmentation": {"strategy": "native-alpha", "alphaThreshold": 8},
-            "alignment": {"defaultAnchor": anchor, "floorY": 112},
+            "alignment": {"defaultAnchor": anchors[0], "floorY": 112, **(alignment or {})},
             "generation": {"candidateManifest": str(manifests / "candidates.jsonl")},
             "frames": frames,
         }
@@ -1883,6 +1886,53 @@ def test_extent_limited_alignment_does_not_clip_on_float_rounding() -> None:
             assert min_x >= 7 and max_x <= 128 - 8, frame
             assert min_y >= 7 and max_y <= 128 - 4, frame
             assert [max_x - min_x + 1, max_y - min_y + 1] == frame["scaledSize"], frame
+
+
+def assert_inside_padding(metrics: dict) -> None:
+    for frame in metrics["frames"]:
+        min_x, min_y, max_x, max_y = frame["alignedBBox"]
+        assert min_x >= 7 and max_x <= 128 - 8, frame
+        assert min_y >= 7 and max_y <= 128 - 4, frame
+        assert [max_x - min_x + 1, max_y - min_y + 1] == frame["scaledSize"], frame
+
+
+def test_head_center_alignment_fills_the_canvas() -> None:
+    # A talking-head bust: head on top, shoulders below. head_center used to
+    # put the head on floorY and shrink the bust to fit the 12px under it,
+    # leaving a 10x15 speck at the bottom of a 128px canvas.
+    bust = [(88, 30, 168, 120), (60, 120, 196, 230)]
+    metrics = align_two_frame_sprites([bust, bust + [(118, 95, 138, 101)]], "head_center")
+    assert metrics["scale"] > 0.5, metrics["scale"]
+    assert_inside_padding(metrics)
+    for frame in metrics["frames"]:
+        assert frame["scaledSize"][1] >= 100, frame
+
+
+def test_mixed_floor_and_center_anchors_keep_full_size_and_fit() -> None:
+    # A standing frame on feet_center and an airborne frame on body_center.
+    # The centred frame used to be sized against floorY, which shrank every
+    # frame to about a sixth of the canvas.
+    standing = [(96, 40, 160, 100), (104, 100, 152, 230)]
+    airborne = [(90, 60, 166, 140), (110, 140, 146, 200)]
+    metrics = align_two_frame_sprites([standing, airborne, standing], ["feet_center", "body_center", "feet_center"])
+    assert metrics["scale"] > 0.5, metrics["scale"]
+    assert_inside_padding(metrics)
+    standing_frame = metrics["frames"][0]
+    assert standing_frame["alignedBBox"][3] in (111, 112), standing_frame
+    assert standing_frame["scaledSize"][1] >= 100, standing_frame
+
+
+def test_unstabilized_anchor_x_does_not_clip_reaching_frames() -> None:
+    # stabilizeAnchorX=false, a sword swung far left then far right. Each
+    # frame is placed by its own feet, so the shared target x needs room for
+    # the widest reach on both sides; frames used to lose 40+ px at the edge.
+    body = (118, 100, 138, 220)
+    metrics = align_two_frame_sprites(
+        [[body, (10, 140, 118, 146)], [body, (138, 140, 246, 146)]],
+        "feet_center",
+        {"stabilizeAnchorX": False},
+    )
+    assert_inside_padding(metrics)
 
 
 def run() -> None:

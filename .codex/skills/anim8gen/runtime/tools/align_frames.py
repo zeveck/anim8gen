@@ -178,6 +178,14 @@ def manual_override(spec: dict, frame: dict) -> tuple[float, float] | None:
     return None
 
 
+# Anchors with no floor: the frame is placed around the canvas middle.
+FLOATING_ANCHORS = {"body_center", "head_center"}
+
+
+def is_floating_anchor(spec: dict, frame: dict) -> bool:
+    return frame.get("anchor", spec["alignment"]["defaultAnchor"]) in FLOATING_ANCHORS
+
+
 def should_stabilize_anchor_x(spec: dict) -> bool:
     return bool(spec["alignment"].get("stabilizeAnchorX", True))
 
@@ -323,40 +331,49 @@ def main() -> None:
             }
         )
 
-    max_bbox_w = max(item["bbox"][2] - item["bbox"][0] + 1 for item in loaded)
-    max_bbox_h = max(item["bbox"][3] - item["bbox"][1] + 1 for item in loaded)
-    max_above_anchor = max(item["anchor"][1] - item["bbox"][1] for item in loaded)
-    max_below_anchor = max(item["bbox"][3] - item["anchor"][1] for item in loaded)
     stable_anchor_x = median([item["anchor"][0] for item in loaded]) if should_stabilize_anchor_x(spec) else None
+    for item in loaded:
+        item["alignAnchorX"] = stable_anchor_x if stable_anchor_x is not None else item["anchor"][0]
+        item["floating"] = is_floating_anchor(spec, item["frame"])
+    floating = [item for item in loaded if item["floating"]]
+    grounded = [item for item in loaded if not item["floating"]]
+
+    max_bbox_w = max(item["bbox"][2] - item["bbox"][0] + 1 for item in loaded)
     scale_limits = [(canvas_w - side_padding * 2) / max_bbox_w]
-    anchor_x_for_scale = stable_anchor_x
-    if anchor_x_for_scale is not None:
-        max_left_extent = max(anchor_x_for_scale - item["bbox"][0] for item in loaded)
-        max_right_extent = max(item["bbox"][2] - anchor_x_for_scale for item in loaded)
-        horizontal_extent = max_left_extent + max_right_extent
-        if horizontal_extent > 0:
-            scale_limits.append((canvas_w - side_padding * 2) / horizontal_extent)
-    center_anchored = all(item["frame"].get("anchor", spec["alignment"]["defaultAnchor"]) == "body_center" for item in loaded)
-    if center_anchored:
+    # Every frame shares one target x, so leave room for the farthest reach
+    # left and right of the anchor x each frame is placed by.
+    horizontal_extent = max(item["alignAnchorX"] - item["bbox"][0] for item in loaded) + max(
+        item["bbox"][2] - item["alignAnchorX"] for item in loaded
+    )
+    if horizontal_extent > 0:
+        scale_limits.append((canvas_w - side_padding * 2) / horizontal_extent)
+    max_above_center = max_below_center = 0.0
+    if floating:
+        # Floating anchors (body_center, head_center) sit at the canvas middle,
+        # nudged to fit, so a sprite that is heavier at one end (a flame, a
+        # projectile with a trail, a bust under a head anchor) needs room for
+        # its longest reach above and below that anchor.
+        max_bbox_h = max(item["bbox"][3] - item["bbox"][1] + 1 for item in floating)
+        max_above_center = max(item["anchor"][1] - item["bbox"][1] for item in floating)
+        max_below_center = max(item["bbox"][3] - item["anchor"][1] for item in floating)
         scale_limits.append((canvas_h - top_padding - bottom_padding) / max_bbox_h)
-        # The centroid sits at the canvas middle, so a sprite that is heavier
-        # at one end (a flame, a projectile with a trail) needs room for its
-        # longest reach above and below that centroid.
-        vertical_extent = max_above_anchor + max_below_anchor
+        vertical_extent = max_above_center + max_below_center
         if vertical_extent > 0:
             scale_limits.append((canvas_h - top_padding - bottom_padding) / vertical_extent)
-    else:
-        if max_above_anchor > 0:
-            scale_limits.append((floor_y - top_padding) / max_above_anchor)
-        if max_below_anchor > 0:
-            scale_limits.append((canvas_h - bottom_padding - floor_y) / max_below_anchor)
+    if grounded:
+        # Grounded anchors sit on floorY.
+        max_above_floor = max(item["anchor"][1] - item["bbox"][1] for item in grounded)
+        max_below_floor = max(item["bbox"][3] - item["anchor"][1] for item in grounded)
+        if max_above_floor > 0:
+            scale_limits.append((floor_y - top_padding) / max_above_floor)
+        if max_below_floor > 0:
+            scale_limits.append((canvas_h - bottom_padding - floor_y) / max_below_floor)
     scale = min(scale_limits)
     target_x_min = -math.inf
     target_x_max = math.inf
     for item in loaded:
         min_x, _min_y, max_x, _max_y = item["bbox"]
-        source_anchor_x = item["anchor"][0]
-        anchor_x = stable_anchor_x if stable_anchor_x is not None else source_anchor_x
+        anchor_x = item["alignAnchorX"]
         target_x_min = max(target_x_min, side_padding + (anchor_x - min_x) * scale)
         target_x_max = min(target_x_max, canvas_w - side_padding - (max_x - anchor_x) * scale)
     preferred_target_x = canvas_w / 2
@@ -364,9 +381,9 @@ def main() -> None:
     if fits(target_x_min, target_x_max):
         target_x = clamp(preferred_target_x, target_x_min, target_x_max)
     center_target_y = canvas_h / 2
-    if center_anchored:
-        target_y_min = top_padding + max_above_anchor * scale
-        target_y_max = canvas_h - bottom_padding - max_below_anchor * scale
+    if floating:
+        target_y_min = top_padding + max_above_center * scale
+        target_y_max = canvas_h - bottom_padding - max_below_center * scale
         if fits(target_y_min, target_y_max):
             center_target_y = clamp(center_target_y, target_y_min, target_y_max)
 
@@ -401,8 +418,8 @@ def main() -> None:
         edge_metrics = render_options.soften_sprite_edges(crop, edge_treatment)
 
         source_anchor_x, anchor_y = item["anchor"]
-        anchor_x = stable_anchor_x if stable_anchor_x is not None else source_anchor_x
-        target_y = center_target_y if frame.get("anchor") == "body_center" else floor_y
+        anchor_x = item["alignAnchorX"]
+        target_y = center_target_y if item["floating"] else floor_y
         offset = (round(target_x - (anchor_x - crop_min_x) * scale), round(target_y - (anchor_y - crop_min_y) * scale))
         canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
         canvas.alpha_composite(crop, offset)
