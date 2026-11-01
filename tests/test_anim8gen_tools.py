@@ -1831,6 +1831,60 @@ def test_center_anchored_alignment_keeps_lopsided_sprite_inside_canvas() -> None
             assert frame["alignedBBox"][3] - frame["alignedBBox"][1] + 1 == frame["scaledSize"][1]
 
 
+def align_two_frame_sprites(drawings: list[list[tuple[int, int, int, int]]], anchor: str) -> dict:
+    """Align 256px native-alpha frames made of filled boxes onto a 128px canvas; return metrics."""
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        raw_dir = root / "raw"
+        manifests = root / "manifests"
+        raw_dir.mkdir()
+        manifests.mkdir()
+        frames = []
+        for index, boxes in enumerate(drawings):
+            source = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
+            for left, top, right, bottom in boxes:
+                source.paste((255, 120, 0, 255), (left, top, right + 1, bottom + 1))
+            source.save(raw_dir / f"frame-{index:03d}.retry-001.png")
+            frames.append({"index": index, "label": f"f{index}", "pose": "p", "anchor": anchor})
+        spec = {
+            "id": "extent",
+            "asset": {"style": "pixel art"},
+            "render": {"canvas": [128, 128]},
+            "segmentation": {"strategy": "native-alpha", "alphaThreshold": 8},
+            "alignment": {"defaultAnchor": anchor, "floorY": 112},
+            "generation": {"candidateManifest": str(manifests / "candidates.jsonl")},
+            "frames": frames,
+        }
+        spec_path = root / "spec.json"
+        spec_path.write_text(json.dumps(spec))
+        run_command(
+            [sys.executable, str(RUNTIME_TOOLS_DIR / "align_frames.py"), "--spec", str(spec_path), "--input", str(raw_dir), "--output", str(root / "aligned")],
+            cwd=REPO_ROOT,
+        )
+        return json.loads((manifests / "alignment-metrics.json").read_text())
+
+
+def test_extent_limited_alignment_does_not_clip_on_float_rounding() -> None:
+    # One frame reaches far up, the other far down (and left/right), so the
+    # extent limit sets the scale and the target range is a single point.
+    # Float rounding used to put its ends out of order, skip the clamp, and
+    # crop the sprite at the canvas edge.
+    vertical = align_two_frame_sprites(
+        [[(100, 110, 156, 150), (126, 5, 130, 151)], [(100, 110, 156, 150), (126, 110, 130, 200)]],
+        "body_center",
+    )
+    horizontal = align_two_frame_sprites(
+        [[(110, 100, 150, 180), (10, 120, 151, 124)], [(110, 100, 150, 180), (110, 120, 190, 124)]],
+        "body_bottom_center",
+    )
+    for metrics in (vertical, horizontal):
+        for frame in metrics["frames"]:
+            min_x, min_y, max_x, max_y = frame["alignedBBox"]
+            assert min_x >= 7 and max_x <= 128 - 8, frame
+            assert min_y >= 7 and max_y <= 128 - 4, frame
+            assert [max_x - min_x + 1, max_y - min_y + 1] == frame["scaledSize"], frame
+
+
 def run() -> None:
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

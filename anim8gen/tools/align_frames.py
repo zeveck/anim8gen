@@ -186,6 +186,16 @@ def clamp(value: float, minimum: float, maximum: float) -> float:
     return min(max(value, minimum), maximum)
 
 
+# When the padding/extent limit sets the scale, the allowed target range
+# collapses to one point, and float rounding can leave its ends a hair apart
+# in the wrong order. Treat that as a valid (single-point) range.
+RANGE_EPSILON = 1e-6
+
+
+def fits(minimum: float, maximum: float) -> bool:
+    return minimum <= maximum + RANGE_EPSILON
+
+
 def output_name(frame: dict) -> str:
     return f"frame-{frame['index']:03d}.{frame['label']}.png"
 
@@ -351,13 +361,13 @@ def main() -> None:
         target_x_max = min(target_x_max, canvas_w - side_padding - (max_x - anchor_x) * scale)
     preferred_target_x = canvas_w / 2
     target_x = preferred_target_x
-    if target_x_min <= target_x_max:
+    if fits(target_x_min, target_x_max):
         target_x = clamp(preferred_target_x, target_x_min, target_x_max)
     center_target_y = canvas_h / 2
     if center_anchored:
         target_y_min = top_padding + max_above_anchor * scale
         target_y_max = canvas_h - bottom_padding - max_below_anchor * scale
-        if target_y_min <= target_y_max:
+        if fits(target_y_min, target_y_max):
             center_target_y = clamp(center_target_y, target_y_min, target_y_max)
 
     metrics = {
