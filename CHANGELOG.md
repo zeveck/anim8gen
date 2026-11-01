@@ -8,6 +8,14 @@ The running version is printed by
 `python3 <skill-dir>/scripts/skill_paths.py version` and recorded as
 `generation.anim8genVersion` in every new package spec.
 
+## v2026.11.1.3
+
+Fix from a third bug review ([#3](https://github.com/zeveck/anim8gen/issues/3)):
+
+- Sprites whose reach sets the scale (a long tail, a swung weapon) are no
+  longer cut off at the canvas edge. A tiny rounding error used to skip the
+  step that keeps them inside.
+
 ## v2026.11.1.2
 
 Fixes from a second bug review ([#2](https://github.com/zeveck/anim8gen/issues/2)):
