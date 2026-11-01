@@ -8,6 +8,18 @@ The running version is printed by
 `python3 <skill-dir>/scripts/skill_paths.py version` and recorded as
 `generation.anim8genVersion` in every new package spec.
 
+## v2026.11.1
+
+Fixes from a bug review ([#1](https://github.com/zeveck/anim8gen/issues/1)):
+
+- The tools no longer crash on Pillow older than 12.1. Before, alignment and
+  validation failed after every frame had already been paid for.
+- Animations are built from the accepted retry of each frame, never an older
+  rejected one, and frames that reuse another frame no longer stop alignment
+  or the contact sheet. SKILL.md now shows what `accepted-frames.json` holds.
+- Sprites anchored at `body_center` (flames, explosions, projectiles) stay
+  inside the canvas instead of losing their top or bottom.
+
 ## v2026.10.11
 
 ### Claude Code plugin

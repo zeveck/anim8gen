@@ -1,6 +1,6 @@
 {
   "name": "anim8gen",
-  "version": "2026.10.11",
+  "version": "2026.11.1",
   "description": "Generate short game sprite animations from natural-language prompts: imagegen2 frames, agentic review, alignment, contact sheets, previews, and GIF/WebP exports.",
   "author": {
     "name": "zeveck"
