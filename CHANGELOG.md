@@ -8,6 +8,18 @@ The running version is printed by
 `python3 <skill-dir>/scripts/skill_paths.py version` and recorded as
 `generation.anim8genVersion` in every new package spec.
 
+## v2026.11.3
+
+Fixes from a fourth bug review ([#4](https://github.com/zeveck/anim8gen/issues/4)):
+
+- `head_center` (the anchor for portraits and talking heads) no longer
+  shrinks the sprite to a speck at the bottom of the canvas. It's centred like
+  `body_center`, and moved just enough for the whole sprite to fit.
+- Mixing floor anchors with `body_center` (an airborne frame in a jump) no
+  longer shrinks every frame; each kind fits on its own terms.
+- With `stabilizeAnchorX: false`, frames that reach far to one side are no
+  longer cut off at the canvas edge.
+
 ## v2026.11.1.3
 
 Fix from a third bug review ([#3](https://github.com/zeveck/anim8gen/issues/3)):
