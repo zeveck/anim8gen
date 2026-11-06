@@ -18,7 +18,7 @@ from layout_paths import resolve_layout
 ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 ANCHORS = {"body_bottom_center", "feet_center", "body_center", "head_center", "manual"}
 VIEWS = {"side", "front", "three-quarter", "top-down", "isometric"}
-# native-alpha: imagegen2 returns real PNG alpha (GPT Image 2.5); alignment
+# native-alpha: imagegen2 returns real PNG alpha (GPT Image 2.5 or 2.6); alignment
 # segments by alpha only. chroma-key: the model paints a solid key color that
 # imagegen2 removes; alignment also drops key-colored fringe pixels.
 SEGMENTATION_STRATEGIES = ("native-alpha", "chroma-key")

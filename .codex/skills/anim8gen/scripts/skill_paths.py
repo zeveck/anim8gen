@@ -20,7 +20,7 @@ SKILL_DIR = SCRIPT_DIR.parent
 ANIM8GEN_VERSION = "2026.11.3"
 
 # imagegen2 releases from this version on support --transparent-mode
-# native-alpha (GPT Image 2.5). Older copies only offer chroma-key. Used only
+# native-alpha (GPT Image 2.5 and 2.6). Older copies only offer chroma-key. Used only
 # when the dry-run probe below can't run.
 IMAGEGEN2_NATIVE_ALPHA_VERSION = (2026, 10, 11)
 

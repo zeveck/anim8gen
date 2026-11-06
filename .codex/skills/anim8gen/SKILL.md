@@ -107,7 +107,7 @@ requests where the user only wants a single static image.
    `.imagegen2-history.jsonl` log is redundant and should not be produced.
 10. For sprite work, use imagegen2's native transparency when it is
    available. Leave `segmentation` out of the brief and `init-package` picks
-   `imagegen2-info`'s `defaultSegmentation`: `native-alpha` with GPT Image 2.5
+   `imagegen2-info`'s `defaultSegmentation`: `native-alpha` with GPT Image 2.5 or 2.6
    (imagegen2 v2026.10.11 or later), otherwise `chroma-key`. Set it
    explicitly only when the user asks for hard binary edges (`chroma-key`)
    or names a mode. Read the chosen mode from the spec's

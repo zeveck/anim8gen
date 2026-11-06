@@ -1522,7 +1522,7 @@ def test_imagegen2_info_honors_project_model_pin() -> None:
 
         info = imagegen2_info(project, home, env)
         assert info["nativeAlpha"] is True
-        assert info["model"].startswith("gpt-image-2.5")
+        assert info["model"].startswith(("gpt-image-2.5", "gpt-image-2.6"))
 
         (project / ".env").write_text("IMAGEGEN2_MODEL=gpt-image-2\n")
         info = imagegen2_info(project, home, env)
